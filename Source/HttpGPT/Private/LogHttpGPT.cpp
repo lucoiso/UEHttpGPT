@@ -1,6 +1,6 @@
 // Author: Lucas Vilas-Boas
-// Year: 2022
-// Repo: https://github.com/lucoiso/UEAzSpeech
+// Year: 2023
+// Repo: https://github.com/lucoiso/UEHttpGPT
 
 #include "LogHttpGPT.h"
 

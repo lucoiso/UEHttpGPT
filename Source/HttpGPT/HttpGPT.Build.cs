@@ -1,6 +1,6 @@
 // Author: Lucas Vilas-Boas
 // Year: 2022
-// Repo: 
+// Repo: https://github.com/lucoiso/UEHttpGPT
 
 using UnrealBuildTool;
 

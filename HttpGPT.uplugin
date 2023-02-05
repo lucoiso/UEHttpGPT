@@ -9,7 +9,7 @@
 	"CreatedByURL": "https://github.com/lucoiso",
 	"DocsURL": "",
 	"MarketplaceURL": "",
-	"SupportURL": "",
+	"SupportURL": "https://github.com/lucoiso/UEHttpGPT/issues",
 	"CanContainContent": true,
 	"IsBetaVersion": true,
 	"IsExperimentalVersion": false,
