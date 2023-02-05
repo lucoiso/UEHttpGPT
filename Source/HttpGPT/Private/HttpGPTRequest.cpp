@@ -25,7 +25,7 @@ void UHttpGPTRequest::Activate()
 	if (Message.IsEmpty() || !IsValid(Settings) || Settings->APIKey.IsEmpty())
 	{
 		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Request not sent due to invalid params"), *FString(__func__), GetUniqueID());
-		
+		RequestNotSent.Broadcast();
 		SetReadyToDestroy();
 		return;
 	}

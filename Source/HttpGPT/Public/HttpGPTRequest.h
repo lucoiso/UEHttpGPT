@@ -19,12 +19,15 @@ class HTTPGPT_API UHttpGPTRequest : public UBlueprintAsyncActionBase
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	UPROPERTY(BlueprintAssignable, Category = "AzSpeech")
 	FHttpGPTResponse ResponseReceived;
 
 	UPROPERTY(BlueprintAssignable, Category = "AzSpeech")
 	FHttpGPTGenericDelegate RequestSent;
+
+	UPROPERTY(BlueprintAssignable, Category = "AzSpeech")
+	FHttpGPTGenericDelegate RequestNotSent;
 	
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send GPT Message Async"))
 	static UHttpGPTRequest* SendGPTMessageAsync(UObject* WorldContextObject, const FString& Message);
