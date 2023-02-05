@@ -9,7 +9,7 @@
 #include <Interfaces/IHttpRequest.h>
 #include <Interfaces/IHttpResponse.h>
 
-UHttpGPTRequest* UHttpGPTRequest::SendGPTMessageAsync(const UObject* WorldContextObject, const FString& Message)
+UHttpGPTRequest* UHttpGPTRequest::SendGPTMessageAsync(UObject* WorldContextObject, const FString& Message)
 {
 	UHttpGPTRequest* const Task = NewObject<UHttpGPTRequest>();
 	Task->Message = Message;

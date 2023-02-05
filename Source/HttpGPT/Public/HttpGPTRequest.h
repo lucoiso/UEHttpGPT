@@ -27,7 +27,7 @@ public:
 	FHttpGPTGenericDelegate RequestSent;
 	
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send GPT Message Async"))
-	static UHttpGPTRequest* SendGPTMessageAsync(const UObject* WorldContextObject, const FString& Message);
+	static UHttpGPTRequest* SendGPTMessageAsync(UObject* WorldContextObject, const FString& Message);
 
 	virtual void Activate() override;
 
