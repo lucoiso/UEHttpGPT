@@ -8,3 +8,7 @@ Unreal Engine plugin that allow the user to send message requests to GPT-3 via R
 
 * Call the Async Function to send requests
 ![image](https://user-images.githubusercontent.com/77353979/216823779-58fe58ff-c0cb-4464-8129-90c5d02f145d.png)
+
+## Links
+* Unreal Forum: https://forums.unrealengine.com/t/free-httpgpt-basic-plugin-to-send-requests-to-openais-gpt-3/765168
+* Demo Project: https://github.com/lucoiso/UESpeechGPT
