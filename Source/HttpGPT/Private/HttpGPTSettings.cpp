@@ -4,7 +4,10 @@
 
 #include "HttpGPTSettings.h"
 
-FString Model;
+#ifdef UE_INLINE_GENERATED_CPP_BY_NAME
+#include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTSettings)
+#endif
+
 UHttpGPTSettings::UHttpGPTSettings(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), APIKey(FString()), Model("text-davinci-003"), MaxTokens(4000), Temperature(1.f)
 {
 	CategoryName = TEXT("Plugins");

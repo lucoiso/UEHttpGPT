@@ -9,6 +9,10 @@
 #include <Interfaces/IHttpRequest.h>
 #include <Interfaces/IHttpResponse.h>
 
+#ifdef UE_INLINE_GENERATED_CPP_BY_NAME
+#include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTRequest)
+#endif
+
 UHttpGPTRequest* UHttpGPTRequest::SendGPTMessageAsync(UObject* WorldContextObject, const FString& Message)
 {
 	UHttpGPTRequest* const Task = NewObject<UHttpGPTRequest>();
