@@ -6,10 +6,11 @@
 
 #include <CoreMinimal.h>
 #include <Kismet/BlueprintAsyncActionBase.h>
+#include "HttpGPTTypes.h"
 #include "HttpGPTRequest.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FHttpGPTGenericDelegate);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHttpGPTResponse, const FString&, Response);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHttpGPTResponseDelegate, const FHttpGPTResponse&, Response);
 
 /**
  * 
@@ -21,23 +22,26 @@ class HTTPGPT_API UHttpGPTRequest : public UBlueprintAsyncActionBase
 
 public:
 	UPROPERTY(BlueprintAssignable, Category = "AzSpeech")
-	FHttpGPTResponse ResponseReceived;
+	FHttpGPTResponseDelegate ResponseReceived;
 
 	UPROPERTY(BlueprintAssignable, Category = "AzSpeech")
 	FHttpGPTGenericDelegate RequestSent;
 
 	UPROPERTY(BlueprintAssignable, Category = "AzSpeech")
 	FHttpGPTGenericDelegate RequestNotSent;
+
+	UPROPERTY(BlueprintAssignable, Category = "AzSpeech")
+	FHttpGPTGenericDelegate RequestFailed;
 	
-	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send GPT Message Async"))
-	static UHttpGPTRequest* SendGPTMessageAsync(UObject* WorldContextObject, const FString& Message);
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message to GPT"))
+	static UHttpGPTRequest* SendMessageToGPT(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages);
 
 	virtual void Activate() override;
 
 protected:
-	FString Message;
+	TArray<FHttpGPTMessage> Messages;
 	mutable FCriticalSection Mutex;
 
 	virtual void ProcessResponse(const FString& Content, const bool bWasSuccessful);
-	FString GetDesserializedResponseString(const FString& Content) const;
+	FHttpGPTResponse GetDesserializedResponse(const FString& Content) const;
 };

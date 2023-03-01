@@ -13,10 +13,10 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTRequest)
 #endif
 
-UHttpGPTRequest* UHttpGPTRequest::SendGPTMessageAsync(UObject* WorldContextObject, const FString& Message)
+UHttpGPTRequest* UHttpGPTRequest::SendMessageToGPT(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages)
 {
 	UHttpGPTRequest* const Task = NewObject<UHttpGPTRequest>();
-	Task->Message = Message;
+	Task->Messages = Messages;
 	Task->RegisterWithGameInstance(WorldContextObject);
 
 	return Task;
@@ -26,7 +26,7 @@ void UHttpGPTRequest::Activate()
 {
 	const UHttpGPTSettings* const Settings = UHttpGPTSettings::Get();
 
-	if (Message.IsEmpty() || !IsValid(Settings) || Settings->APIKey.IsEmpty())
+	if (Messages.IsEmpty() || !IsValid(Settings) || Settings->APIKey.IsEmpty())
 	{
 		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Request not sent due to invalid params"), *FString(__func__), GetUniqueID());
 		RequestNotSent.Broadcast();
@@ -35,16 +35,26 @@ void UHttpGPTRequest::Activate()
 	}
 
 	TSharedRef<class IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
-	HttpRequest->SetURL("https://api.openai.com/v1/completions");
+	HttpRequest->SetURL("https://api.openai.com/v1/chat/completions");
 	HttpRequest->SetVerb("POST");
 	HttpRequest->SetHeader("Content-Type", "application/json");
 	HttpRequest->SetHeader("Authorization", FString::Format(TEXT("Bearer {0}"), { Settings->APIKey }));
 
 	const TSharedPtr<FJsonObject> JsonRequest = MakeShareable(new FJsonObject);
-	JsonRequest->SetStringField("model", Settings->Model.ToLower());
-	JsonRequest->SetStringField("prompt", Message);
+	JsonRequest->SetStringField("model", "gpt-3.5-turbo");
 	JsonRequest->SetNumberField("max_tokens", Settings->MaxTokens);
 	JsonRequest->SetNumberField("temperature", Settings->Temperature);
+	JsonRequest->SetNumberField("n", Settings->Choices);
+	JsonRequest->SetNumberField("presence_penalty", Settings->PresencePenalty);
+	JsonRequest->SetNumberField("frequency_penalty", Settings->FrequencyPenalty);
+
+	TArray<TSharedPtr<FJsonValue>> MessagesJson;
+	for (const FHttpGPTMessage& Section : Messages)
+	{
+		MessagesJson.Add(Section.GetMessage());
+	}
+
+	JsonRequest->SetArrayField("messages", MessagesJson);
 
 	FString RequestContentString;
 	const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestContentString);
@@ -52,7 +62,8 @@ void UHttpGPTRequest::Activate()
 
 	HttpRequest->SetContentAsString(RequestContentString);
 
-	const auto ProccessComplete_Lambda = [this](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) {
+	const auto ProccessComplete_Lambda = [this](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful) 
+	{
 		FScopeLock Lock(&Mutex);
 		
 		if (IsValid(this))
@@ -63,7 +74,8 @@ void UHttpGPTRequest::Activate()
 
 	HttpRequest->OnProcessRequestComplete().BindLambda(ProccessComplete_Lambda);
 	HttpRequest->ProcessRequest();
-	
+
+	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Request sent"), *FString(__func__), GetUniqueID());
 	RequestSent.Broadcast();
 }
 
@@ -77,32 +89,75 @@ void UHttpGPTRequest::ProcessResponse(const FString& Content, const bool bWasSuc
 		return;
 	}
 
-	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Response: %s"), *FString(__func__), GetUniqueID(), *Content);
+	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Response received"), *FString(__func__), GetUniqueID());
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Response: %s"), *FString(__func__), GetUniqueID(), *Content);
 
-	ResponseReceived.Broadcast(GetDesserializedResponseString(Content));
+	const FHttpGPTResponse Response = GetDesserializedResponse(Content);
+
+	if (Response.bSuccess)
+	{
+		ResponseReceived.Broadcast(Response);
+	}
+	else
+	{
+		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Request failed"), *FString(__func__), GetUniqueID());
+		RequestFailed.Broadcast();
+	}
+
 	SetReadyToDestroy();
 }
 
-FString UHttpGPTRequest::GetDesserializedResponseString(const FString& Content) const
+FHttpGPTResponse UHttpGPTRequest::GetDesserializedResponse(const FString& Content) const
 {
+	FHttpGPTResponse Output;
+
 	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Content);
 	TSharedPtr<FJsonObject> JsonResponse = MakeShareable(new FJsonObject);
 	FJsonSerializer::Deserialize(Reader, JsonResponse);
 
-	if (const TArray<TSharedPtr<FJsonValue>>* ChoicesArr; JsonResponse->TryGetArrayField("choices", ChoicesArr))
+	if (!JsonResponse.IsValid())
 	{
-		for (auto Iterator = ChoicesArr->begin(); ChoicesArr; ++ChoicesArr)
+		return Output;
+	}
+
+	if (JsonResponse->HasField("error"))
+	{
+		Output.bSuccess = false;
+		return Output;
+	}
+
+	Output.bSuccess = true;
+	Output.ID = *JsonResponse->GetStringField("id");
+	Output.Object = *JsonResponse->GetStringField("object");
+	Output.Created = JsonResponse->GetNumberField("created");
+	TArray<TSharedPtr<FJsonValue>> ChoicesArr = JsonResponse->GetArrayField("choices");
+
+	for (auto Iterator = ChoicesArr.CreateIterator(); Iterator; ++Iterator)
+	{
+		if (const TSharedPtr<FJsonObject>* ChoiceObj; (*Iterator)->TryGetObject(ChoiceObj))
 		{
-			if (const TSharedPtr<FJsonObject>* ChoiceObj; !(*Iterator)->TryGetObject(ChoiceObj))
+			FHttpGPTChoice Choice;
+			Choice.Index = (*ChoiceObj)->GetNumberField("index");
+
+			TSharedPtr<FJsonObject> MessageObj = (*ChoiceObj)->GetObjectField("message");
+			Choice.Message = FHttpGPTMessage(*MessageObj->GetStringField("role"), *MessageObj->GetStringField("content"));
+
+			while (Choice.Message.Content.StartsWith("\n"))
 			{
-				continue;
+				Choice.Message.Content.RemoveAt(0);
 			}
-			else if (FString Text; (*ChoiceObj)->TryGetStringField("text", Text))
+
+			if (FString FinishReasonStr; (*ChoiceObj)->TryGetStringField("finish_reason", FinishReasonStr))
 			{
-				return *Text;
+				Choice.FinishReason = *FinishReasonStr;
 			}
+
+			Output.Choices.Add(Choice);
 		}
 	}
 
-	return "An error has occurred, check the logs";
+	TSharedPtr<FJsonObject> UsageObj = JsonResponse->GetObjectField("usage");
+	Output.Usage = FHttpGPTUsage(UsageObj->GetNumberField("prompt_tokens"), UsageObj->GetNumberField("completion_tokens"), UsageObj->GetNumberField("total_tokens"));
+
+	return Output;
 }
