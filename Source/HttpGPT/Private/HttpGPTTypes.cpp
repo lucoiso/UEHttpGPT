@@ -11,7 +11,7 @@
 TSharedPtr<FJsonValue> FHttpGPTMessage::GetMessage() const
 {
 	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
-	JsonObject->SetStringField("role", Role.ToString());
+	JsonObject->SetStringField("role", Role.ToString().ToLower());
 	JsonObject->SetStringField("content", Content);
 
 	return MakeShareable(new FJsonValueObject(JsonObject));
