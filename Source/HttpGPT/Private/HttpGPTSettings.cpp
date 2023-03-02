@@ -20,6 +20,7 @@ const UHttpGPTSettings* UHttpGPTSettings::Get()
 	return Instance;
 }
 
+#if WITH_EDITOR
 void UHttpGPTSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -29,6 +30,7 @@ void UHttpGPTSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyCha
 		ToggleInternalLogs();
 	}
 }
+#endif
 
 void UHttpGPTSettings::PostInitProperties()
 {
