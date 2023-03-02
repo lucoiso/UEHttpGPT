@@ -5,3 +5,4 @@
 #include "LogHttpGPT.h"
 
 DEFINE_LOG_CATEGORY(LogHttpGPT);
+DEFINE_LOG_CATEGORY(LogHttpGPT_Internal);

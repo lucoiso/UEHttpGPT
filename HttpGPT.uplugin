@@ -1,9 +1,9 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.0",
+	"VersionName": "1.1.0",
 	"FriendlyName": "HttpGPT",
-	"Description": "Send message requests to GPT-3 via REST API",
+	"Description": "Send message requests to GPT via REST API",
 	"Category": "Messaging",
 	"CreatedBy": "Lucas Vilas-Boas",
 	"CreatedByURL": "https://github.com/lucoiso",
