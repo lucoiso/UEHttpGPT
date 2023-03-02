@@ -8,6 +8,10 @@
 #include <HttpModule.h>
 #include <Interfaces/IHttpRequest.h>
 #include <Interfaces/IHttpResponse.h>
+#include <Dom/JsonObject.h>
+#include <Serialization/JsonWriter.h>
+#include <Serialization/JsonReader.h>
+#include <Serialization/JsonSerializer.h>
 
 #ifdef UE_INLINE_GENERATED_CPP_BY_NAME
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTRequest)

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <CoreMinimal.h>
+#include <Dom/JsonValue.h>
 #include "HttpGPTTypes.generated.h"
 
 USTRUCT(BlueprintType, Category = "HttpGPT", Meta = (DisplayName = "HttpGPT Message"))
