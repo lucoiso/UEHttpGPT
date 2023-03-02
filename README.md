@@ -1,13 +1,12 @@
 # Unreal Engine Plugin: HttpGPT
-Unreal Engine plugin that allow the user to send message requests to GPT-3 via REST API
-
+Unreal Engine plugin that allow the user to send message requests to OpenAI GPT via REST API
 
 # Usage
-* Fill the settings with your API key
-![image](https://user-images.githubusercontent.com/77353979/216823832-e5f29644-cd79-4d23-8054-61ef75d9e35c.png)
+* Setup your settings
+![image](https://user-images.githubusercontent.com/77353979/222471344-8cd55773-5a64-4632-b29d-9d1f3caec657.png)
 
 * Call the Async Function to send requests
-![image](https://user-images.githubusercontent.com/77353979/216823779-58fe58ff-c0cb-4464-8129-90c5d02f145d.png)
+![image](https://user-images.githubusercontent.com/77353979/222471437-161251ed-5e02-4cfb-ab64-1e23411beebc.png)
 
 ## Links
 * Unreal Forum: https://forums.unrealengine.com/t/free-httpgpt-basic-plugin-to-send-requests-to-openais-gpt-3/765168
