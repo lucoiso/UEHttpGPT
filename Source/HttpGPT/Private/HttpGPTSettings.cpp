@@ -9,7 +9,7 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTSettings)
 #endif
 
-UHttpGPTSettings::UHttpGPTSettings(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), APIKey(FString()), MaxTokens(100), Temperature(1.f), Choices(1), PresencePenalty(0.f), FrequencyPenalty(0.f), bEnableInternalLogs(false)
+UHttpGPTSettings::UHttpGPTSettings(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), APIKey(FString()), MaxTokens(2048), Temperature(1.f), Choices(1), PresencePenalty(0.f), FrequencyPenalty(0.f), bEnableInternalLogs(false)
 {
 	CategoryName = TEXT("Plugins");
 }

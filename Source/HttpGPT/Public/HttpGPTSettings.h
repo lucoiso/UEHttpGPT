@@ -24,7 +24,7 @@ public:
 	UPROPERTY(GlobalConfig, EditAnywhere, Category = "Settings", Meta = (DisplayName = "API Key"))
 	FString APIKey;
 
-	UPROPERTY(GlobalConfig, EditAnywhere, Category = "Settings", Meta = (DisplayName = "Max Tokens", ClampMin = "1", UIMin = "1", ClampMax = "4096", UIMax = "4096"))
+	UPROPERTY(GlobalConfig, EditAnywhere, Category = "Settings", Meta = (DisplayName = "Max Tokens", ClampMin = "1", UIMin = "1", ClampMax = "2048", UIMax = "2048"))
 	int32 MaxTokens;
 	
 	UPROPERTY(GlobalConfig, EditAnywhere, Category = "Settings", Meta = (DisplayName = "Temperature", ClampMin = "0.0", UIMin = "0.0", ClampMax = "2.0", UIMax = "2.0"))
