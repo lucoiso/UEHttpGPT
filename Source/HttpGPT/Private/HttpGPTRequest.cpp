@@ -131,12 +131,15 @@ void UHttpGPTRequest::ProcessResponse(const FString& Content, const bool bWasSuc
 
 	const FHttpGPTResponse Response = GetDesserializedResponse(Content);
 
-	if (!Response.bSuccess)
+	if (Response.bSuccess)
+	{
+		ResponseReceived.Broadcast(Response);
+	}
+	else
 	{
 		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Request failed"), *FString(__func__), GetUniqueID());
+		RequestFailed.Broadcast(Response);
 	}
-
-	RequestFailed.Broadcast(Response);
 
 	SetReadyToDestroy();
 }

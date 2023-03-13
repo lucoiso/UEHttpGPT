@@ -25,13 +25,13 @@ public:
 	FHttpGPTResponseDelegate ResponseReceived;
 
 	UPROPERTY(BlueprintAssignable, Category = "AzSpeech")
+	FHttpGPTResponseDelegate RequestFailed;
+
+	UPROPERTY(BlueprintAssignable, Category = "AzSpeech")
 	FHttpGPTGenericDelegate RequestSent;
 
 	UPROPERTY(BlueprintAssignable, Category = "AzSpeech")
 	FHttpGPTGenericDelegate RequestNotSent;
-
-	UPROPERTY(BlueprintAssignable, Category = "AzSpeech")
-	FHttpGPTResponseDelegate RequestFailed;
 	
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message to Model"))
 	static UHttpGPTRequest* SendMessageToModel(UObject* WorldContextObject, const FString& Message, const FString& Model);
