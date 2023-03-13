@@ -17,46 +17,26 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTRequest)
 #endif
 
-UHttpGPTRequest* UHttpGPTRequest::SendMessageToModel(UObject* WorldContextObject, const FString& Message, const FString& Model)
+UHttpGPTRequest* UHttpGPTRequest::SendMessage(UObject* WorldContextObject, const FString& Message, const FHttpGPTOptions& Options)
 {
 	UHttpGPTRequest* const Task = NewObject<UHttpGPTRequest>();
 	Task->Messages = { FHttpGPTMessage(EHttpGPTRole::User, Message) };
-	Task->Model = *Model;
+	Task->Options = Options;
 
 	Task->RegisterWithGameInstance(WorldContextObject);
 
 	return Task;
 }
 
-UHttpGPTRequest* UHttpGPTRequest::SendMessageToGPT(UObject* WorldContextObject, const FString& Message)
-{
-	return SendMessageToModel(WorldContextObject, Message, "gpt-3.5-turbo");
-}
-
-UHttpGPTRequest* UHttpGPTRequest::SendMessageToDefaultModel(UObject* WorldContextObject, const FString& Message)
-{
-	return SendMessageToModel(WorldContextObject, Message, UHttpGPTSettings::Get()->DefaultModel);
-}
-
-UHttpGPTRequest* UHttpGPTRequest::SendMessagesToModel(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages, const FString& Model)
+UHttpGPTRequest* UHttpGPTRequest::SendMessages(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages, const FHttpGPTOptions& Options)
 {
 	UHttpGPTRequest* const Task = NewObject<UHttpGPTRequest>();
 	Task->Messages = Messages;
-	Task->Model = *Model;
+	Task->Options = Options;
 
 	Task->RegisterWithGameInstance(WorldContextObject);
 
 	return Task;
-}
-
-UHttpGPTRequest* UHttpGPTRequest::SendMessagesToGPT(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages)
-{
-	return SendMessagesToModel(WorldContextObject, Messages, "gpt-3.5-turbo");
-}
-
-UHttpGPTRequest* UHttpGPTRequest::SendMessagesToDefaultModel(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages)
-{
-	return SendMessagesToModel(WorldContextObject, Messages, UHttpGPTSettings::Get()->DefaultModel);
 }
 
 void UHttpGPTRequest::Activate()
@@ -78,12 +58,12 @@ void UHttpGPTRequest::Activate()
 	HttpRequest->SetHeader("Authorization", FString::Format(TEXT("Bearer {0}"), { Settings->APIKey }));
 
 	const TSharedPtr<FJsonObject> JsonRequest = MakeShareable(new FJsonObject);
-	JsonRequest->SetStringField("model", Model.ToString().ToLower());
-	JsonRequest->SetNumberField("max_tokens", Settings->MaxTokens);
-	JsonRequest->SetNumberField("temperature", Settings->Temperature);
-	JsonRequest->SetNumberField("n", Settings->Choices);
-	JsonRequest->SetNumberField("presence_penalty", Settings->PresencePenalty);
-	JsonRequest->SetNumberField("frequency_penalty", Settings->FrequencyPenalty);
+	JsonRequest->SetStringField("model", ModelToName(Options.Model).ToString().ToLower());
+	JsonRequest->SetNumberField("max_tokens", Options.MaxTokens);
+	JsonRequest->SetNumberField("temperature", Options.Temperature);
+	JsonRequest->SetNumberField("n", Options.Choices);
+	JsonRequest->SetNumberField("presence_penalty", Options.PresencePenalty);
+	JsonRequest->SetNumberField("frequency_penalty", Options.FrequencyPenalty);
 
 	TArray<TSharedPtr<FJsonValue>> MessagesJson;
 	for (const FHttpGPTMessage& Section : Messages)

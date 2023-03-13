@@ -8,6 +8,15 @@
 #include <Dom/JsonValue.h>
 #include "HttpGPTTypes.generated.h"
 
+UENUM(BlueprintType, Category = "HttpGPT", Meta = (DisplayName = "HttpGPT Model"))
+enum class EHttpGPTModel : uint8
+{
+	gpt35turbo		UMETA(DisplayName = "gpt-3.5-turbo"),
+	textdavinci003	UMETA(DisplayName = "text-davinci-003"),
+	textdavinci002	UMETA(DisplayName = "text-davinci-002"),
+	codedavinci002	UMETA(DisplayName = "code-davinci-002"),
+};
+
 UENUM(BlueprintType, Category = "HttpGPT", Meta = (DisplayName = "HttpGPT Role"))
 enum class EHttpGPTRole : uint8
 {
@@ -112,4 +121,30 @@ struct FHttpGPTResponse
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
 	FHttpGPTError Error;
+};
+
+USTRUCT(BlueprintType, Category = "HttpGPT", Meta = (DisplayName = "HttpGPT Options"))
+struct FHttpGPTOptions
+{
+	GENERATED_BODY()
+
+	FHttpGPTOptions();
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT", Meta = (DisplayName = "Model"))
+	EHttpGPTModel Model;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT", Meta = (DisplayName = "Max Tokens", ClampMin = "1", UIMin = "1", ClampMax = "2048", UIMax = "2048"))
+	int32 MaxTokens;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT", Meta = (DisplayName = "Temperature", ClampMin = "0.0", UIMin = "0.0", ClampMax = "2.0", UIMax = "2.0"))
+	float Temperature;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT", Meta = (DisplayName = "Choices", ClampMin = "1", UIMin = "1"))
+	int32 Choices;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT", Meta = (DisplayName = "Presence Penalty", ClampMin = "-2.0", UIMin = "-2.0", ClampMax = "2.0", UIMax = "2.0"))
+	float PresencePenalty;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT", Meta = (DisplayName = "Frequency Penalty", ClampMin = "-2.0", UIMin = "-2.0", ClampMax = "2.0", UIMax = "2.0"))
+	float FrequencyPenalty;
 };
