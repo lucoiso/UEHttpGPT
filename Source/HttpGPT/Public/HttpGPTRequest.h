@@ -31,15 +31,32 @@ public:
 	FHttpGPTGenericDelegate RequestNotSent;
 
 	UPROPERTY(BlueprintAssignable, Category = "AzSpeech")
-	FHttpGPTGenericDelegate RequestFailed;
+	FHttpGPTResponseDelegate RequestFailed;
 	
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message to Model"))
+	static UHttpGPTRequest* SendMessageToModel(UObject* WorldContextObject, const FString& Message, const FString& Model);
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages to Model"))
+	static UHttpGPTRequest* SendMessagesToModel(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages, const FString& Model);
+
 	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message to GPT"))
-	static UHttpGPTRequest* SendMessageToGPT(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages);
+	static UHttpGPTRequest* SendMessageToGPT(UObject* WorldContextObject, const FString& Message);
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages to GPT"))
+	static UHttpGPTRequest* SendMessagesToGPT(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages);
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message to Default Model"))
+	static UHttpGPTRequest* SendMessageToDefaultModel(UObject* WorldContextObject, const FString& Message);
+
+	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages to Default Model"))
+	static UHttpGPTRequest* SendMessagesToDefaultModel(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages);
 
 	virtual void Activate() override;
 
 protected:
 	TArray<FHttpGPTMessage> Messages;
+	FName Model;
+
 	mutable FCriticalSection Mutex;
 
 	virtual void ProcessResponse(const FString& Content, const bool bWasSuccessful);

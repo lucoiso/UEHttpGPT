@@ -8,16 +8,24 @@
 #include <Dom/JsonValue.h>
 #include "HttpGPTTypes.generated.h"
 
+UENUM(BlueprintType, Category = "HttpGPT", Meta = (DisplayName = "HttpGPT Role"))
+enum class EHttpGPTRole : uint8
+{
+	User,
+	Assistant
+};
+
 USTRUCT(BlueprintType, Category = "HttpGPT", Meta = (DisplayName = "HttpGPT Message"))
 struct FHttpGPTMessage
 {
 	GENERATED_BODY()
 
 	FHttpGPTMessage() = default;
-	FHttpGPTMessage(const FName& Role, const FString& Content) : Role(Role), Content(Content) {}
+	FHttpGPTMessage(const EHttpGPTRole& Role, const FString& Content) : Role(Role), Content(Content) {}
+	FHttpGPTMessage(const FName& Role, const FString& Content) : Role(Role.ToString().ToLower() == "user" ? EHttpGPTRole::User : EHttpGPTRole::Assistant), Content(Content) {}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
-	FName Role;
+	EHttpGPTRole Role;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
 	FString Content;
@@ -60,6 +68,23 @@ struct FHttpGPTUsage
 	int32 TotalTokens;
 };
 
+USTRUCT(BlueprintType, Category = "HttpGPT", Meta = (DisplayName = "HttpGPT Error"))
+struct FHttpGPTError
+{
+	GENERATED_BODY()
+
+	FHttpGPTError() = default;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
+	FName Type;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
+	FName Code;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
+	FString Message;
+};
+
 USTRUCT(BlueprintType, Category = "HttpGPT", Meta = (DisplayName = "HttpGPT Response"))
 struct FHttpGPTResponse
 {
@@ -84,4 +109,7 @@ struct FHttpGPTResponse
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
 	bool bSuccess;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
+	FHttpGPTError Error;
 };
