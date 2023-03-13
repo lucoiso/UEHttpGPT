@@ -15,40 +15,40 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHttpGPTResponseDelegate, const FHtt
 /**
  * 
  */
-UCLASS(NotPlaceable)
+UCLASS(NotPlaceable, Category = "HttpGPT")
 class HTTPGPT_API UHttpGPTRequest : public UBlueprintAsyncActionBase
 {
 	GENERATED_BODY()
 
 public:
-	UPROPERTY(BlueprintAssignable, Category = "AzSpeech")
+	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
 	FHttpGPTResponseDelegate ResponseReceived;
 
-	UPROPERTY(BlueprintAssignable, Category = "AzSpeech")
+	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
 	FHttpGPTResponseDelegate RequestFailed;
 
-	UPROPERTY(BlueprintAssignable, Category = "AzSpeech")
+	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
 	FHttpGPTGenericDelegate RequestSent;
 
-	UPROPERTY(BlueprintAssignable, Category = "AzSpeech")
+	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
 	FHttpGPTGenericDelegate RequestNotSent;
 	
-	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message to Model"))
+	UFUNCTION(BlueprintCallable, Category = "HttpGPT", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message to Model"))
 	static UHttpGPTRequest* SendMessageToModel(UObject* WorldContextObject, const FString& Message, const FString& Model);
 
-	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages to Model"))
+	UFUNCTION(BlueprintCallable, Category = "HttpGPT", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages to Model"))
 	static UHttpGPTRequest* SendMessagesToModel(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages, const FString& Model);
 
-	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message to GPT"))
+	UFUNCTION(BlueprintCallable, Category = "HttpGPT", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message to GPT"))
 	static UHttpGPTRequest* SendMessageToGPT(UObject* WorldContextObject, const FString& Message);
 
-	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages to GPT"))
+	UFUNCTION(BlueprintCallable, Category = "HttpGPT", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages to GPT"))
 	static UHttpGPTRequest* SendMessagesToGPT(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages);
 
-	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message to Default Model"))
+	UFUNCTION(BlueprintCallable, Category = "HttpGPT", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message to Default Model"))
 	static UHttpGPTRequest* SendMessageToDefaultModel(UObject* WorldContextObject, const FString& Message);
 
-	UFUNCTION(BlueprintCallable, meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages to Default Model"))
+	UFUNCTION(BlueprintCallable, Category = "HttpGPT", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages to Default Model"))
 	static UHttpGPTRequest* SendMessagesToDefaultModel(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages);
 
 	virtual void Activate() override;
