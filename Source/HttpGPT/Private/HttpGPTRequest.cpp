@@ -17,10 +17,23 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTRequest)
 #endif
 
-UHttpGPTRequest* UHttpGPTRequest::SendMessageToGPT(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages)
+UHttpGPTRequest* UHttpGPTRequest::SendMessage(UObject* WorldContextObject, const FString& Message, const FHttpGPTOptions& Options)
+{
+	UHttpGPTRequest* const Task = NewObject<UHttpGPTRequest>();
+	Task->Messages = { FHttpGPTMessage(EHttpGPTRole::User, Message) };
+	Task->Options = Options;
+
+	Task->RegisterWithGameInstance(WorldContextObject);
+
+	return Task;
+}
+
+UHttpGPTRequest* UHttpGPTRequest::SendMessages(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages, const FHttpGPTOptions& Options)
 {
 	UHttpGPTRequest* const Task = NewObject<UHttpGPTRequest>();
 	Task->Messages = Messages;
+	Task->Options = Options;
+
 	Task->RegisterWithGameInstance(WorldContextObject);
 
 	return Task;
@@ -45,12 +58,12 @@ void UHttpGPTRequest::Activate()
 	HttpRequest->SetHeader("Authorization", FString::Format(TEXT("Bearer {0}"), { Settings->APIKey }));
 
 	const TSharedPtr<FJsonObject> JsonRequest = MakeShareable(new FJsonObject);
-	JsonRequest->SetStringField("model", "gpt-3.5-turbo");
-	JsonRequest->SetNumberField("max_tokens", Settings->MaxTokens);
-	JsonRequest->SetNumberField("temperature", Settings->Temperature);
-	JsonRequest->SetNumberField("n", Settings->Choices);
-	JsonRequest->SetNumberField("presence_penalty", Settings->PresencePenalty);
-	JsonRequest->SetNumberField("frequency_penalty", Settings->FrequencyPenalty);
+	JsonRequest->SetStringField("model", ModelToName(Options.Model).ToString().ToLower());
+	JsonRequest->SetNumberField("max_tokens", Options.MaxTokens);
+	JsonRequest->SetNumberField("temperature", Options.Temperature);
+	JsonRequest->SetNumberField("n", Options.Choices);
+	JsonRequest->SetNumberField("presence_penalty", Options.PresencePenalty);
+	JsonRequest->SetNumberField("frequency_penalty", Options.FrequencyPenalty);
 
 	TArray<TSharedPtr<FJsonValue>> MessagesJson;
 	for (const FHttpGPTMessage& Section : Messages)
@@ -105,7 +118,7 @@ void UHttpGPTRequest::ProcessResponse(const FString& Content, const bool bWasSuc
 	else
 	{
 		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Request failed"), *FString(__func__), GetUniqueID());
-		RequestFailed.Broadcast();
+		RequestFailed.Broadcast(Response);
 	}
 
 	SetReadyToDestroy();
@@ -126,7 +139,17 @@ FHttpGPTResponse UHttpGPTRequest::GetDesserializedResponse(const FString& Conten
 
 	if (JsonResponse->HasField("error"))
 	{
-		Output.bSuccess = false;
+		Output.bSuccess = false;		
+
+		const TSharedPtr<FJsonObject> ErrorObj = JsonResponse->GetObjectField("error");
+
+		FHttpGPTError Error;
+		Error.Code = *ErrorObj->GetStringField("code");
+		Error.Type = *ErrorObj->GetStringField("type");
+		Error.Message = ErrorObj->GetStringField("message");
+
+		Output.Error = Error;
+
 		return Output;
 	}
 
