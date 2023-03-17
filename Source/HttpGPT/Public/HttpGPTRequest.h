@@ -15,7 +15,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHttpGPTResponseDelegate, const FHtt
 /**
  * 
  */
-UCLASS(NotPlaceable, Category = "HttpGPT")
+UCLASS(NotPlaceable, Category = "HttpGPT", meta = (ExposedAsyncProxy = AsyncTask))
 class HTTPGPT_API UHttpGPTRequest : public UBlueprintAsyncActionBase
 {
 	GENERATED_BODY()
@@ -26,6 +26,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
 	FHttpGPTResponseDelegate ProgressUpdated;
+
+	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
+	FHttpGPTGenericDelegate ProgressStarted;
 
 	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
 	FHttpGPTResponseDelegate ErrorReceived;
@@ -58,6 +61,7 @@ protected:
 
 private:
 	FHttpGPTResponse Response;
+	bool bInitialized = false;
 
 	static inline FName ModelToName(const EHttpGPTModel& Model)
 	{

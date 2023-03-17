@@ -12,6 +12,7 @@
 #include <Serialization/JsonWriter.h>
 #include <Serialization/JsonReader.h>
 #include <Serialization/JsonSerializer.h>
+#include <Misc/ScopeTryLock.h>
 
 #ifdef UE_INLINE_GENERATED_CPP_BY_NAME
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTRequest)
@@ -103,9 +104,15 @@ void UHttpGPTRequest::Activate()
 	HttpRequest->SetContentAsString(RequestContentString);
 
 	HttpRequest->OnRequestProgress().BindLambda(
-		[this](FHttpRequestPtr Request, int32 BytesSent, int32 BytesReceived)
+		[this, HttpRequest](FHttpRequestPtr Request, int32 BytesSent, int32 BytesReceived)
 		{
-			FScopeLock Lock(&Mutex);
+			FScopeTryLock Lock(&Mutex);
+
+			if (!Lock.IsLocked())
+			{
+				HttpRequest->CancelRequest();
+				return;
+			}
 
 			if (IsValid(this))
 			{
@@ -115,9 +122,15 @@ void UHttpGPTRequest::Activate()
 	);
 
 	HttpRequest->OnProcessRequestComplete().BindLambda(
-		[this](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+		[this, HttpRequest](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
 		{
-			FScopeLock Lock(&Mutex);
+			FScopeTryLock Lock(&Mutex);
+
+			if (!Lock.IsLocked())
+			{
+				HttpRequest->CancelRequest();
+				return;
+			}
 
 			if (IsValid(this))
 			{
@@ -136,6 +149,12 @@ void UHttpGPTRequest::Activate()
 
 void UHttpGPTRequest::OnProgressUpdated(const FString& Content, int32 BytesSent, int32 BytesReceived)
 {
+	if (!bInitialized)
+	{
+		bInitialized = true;
+		ProgressStarted.Broadcast();
+	}
+
 	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Progress Updated"), *FString(__func__), GetUniqueID());
 	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Content: %s; Bytes Sent: %d; Bytes Received: %d"), *FString(__func__), GetUniqueID(), *Content, BytesSent, BytesReceived);
 

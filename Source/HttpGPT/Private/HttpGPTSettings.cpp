@@ -18,7 +18,7 @@ UHttpGPTSettings::UHttpGPTSettings(const FObjectInitializer& ObjectInitializer) 
 	DefaultOptions.Temperature = 1.f;
 	DefaultOptions.TopP = 1.f;
 	DefaultOptions.Choices = 1;
-	DefaultOptions.bStream = false;
+	DefaultOptions.bStream = true;
 	DefaultOptions.Stop = TArray<FName>();
 	DefaultOptions.PresencePenalty = 0.f;
 	DefaultOptions.FrequencyPenalty = 0.f;
