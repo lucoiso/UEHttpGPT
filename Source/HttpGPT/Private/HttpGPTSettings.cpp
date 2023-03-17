@@ -19,6 +19,7 @@ UHttpGPTSettings::UHttpGPTSettings(const FObjectInitializer& ObjectInitializer) 
 	DefaultOptions.TopP = 1.f;
 	DefaultOptions.Choices = 1;
 	DefaultOptions.bStream = false;
+	DefaultOptions.Stop = TArray<FName>();
 	DefaultOptions.PresencePenalty = 0.f;
 	DefaultOptions.FrequencyPenalty = 0.f;
 	DefaultOptions.LogitBias = TArray<float>();

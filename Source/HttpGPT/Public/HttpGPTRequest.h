@@ -22,16 +22,19 @@ class HTTPGPT_API UHttpGPTRequest : public UBlueprintAsyncActionBase
 
 public:
 	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
-	FHttpGPTResponseDelegate ResponseReceived;
+	FHttpGPTResponseDelegate ProcessCompleted;
 
 	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
-	FHttpGPTResponseDelegate RequestFailed;
+	FHttpGPTResponseDelegate ProgressUpdated;
+
+	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
+	FHttpGPTResponseDelegate ErrorReceived;
+
+	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
+	FHttpGPTGenericDelegate RequestFailed;
 
 	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
 	FHttpGPTGenericDelegate RequestSent;
-
-	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
-	FHttpGPTGenericDelegate RequestNotSent;
 	
 	UFUNCTION(BlueprintCallable, Category = "HttpGPT", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message", AutoCreateRefTerm = "Options"))
 	static UHttpGPTRequest* SendMessage(UObject* WorldContextObject, const FString& Message, const FHttpGPTOptions& Options = FHttpGPTOptions());
@@ -47,10 +50,15 @@ protected:
 
 	mutable FCriticalSection Mutex;
 
-	virtual void ProcessResponse(const FString& Content, const bool bWasSuccessful);
-	FHttpGPTResponse GetDesserializedResponse(const FString& Content) const;
+	void OnProgressUpdated(const FString& Content, int32 BytesSent, int32 BytesReceived);
+	void OnProgressCompleted(const FString& Content, const bool bWasSuccessful);
+
+	void DesserializeDeltaResponse(const FString& Content);
+	void DesserializeSingleResponse(const FString& Content);
 
 private:
+	FHttpGPTResponse Response;
+
 	static inline FName ModelToName(const EHttpGPTModel& Model)
 	{
 		switch (Model)

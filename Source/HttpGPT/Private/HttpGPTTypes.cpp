@@ -20,6 +20,11 @@ TSharedPtr<FJsonValue> FHttpGPTMessage::GetMessage() const
 
 FHttpGPTOptions::FHttpGPTOptions()
 {
+	SetDefaults();
+}
+
+void FHttpGPTOptions::SetDefaults()
+{
 	if (const UHttpGPTSettings* const Settings = UHttpGPTSettings::Get())
 	{
 		Model = Settings->DefaultOptions.Model;

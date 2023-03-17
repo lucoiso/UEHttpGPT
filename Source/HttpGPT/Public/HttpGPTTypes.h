@@ -148,7 +148,7 @@ struct FHttpGPTOptions
 	bool bStream;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT", Meta = (DisplayName = "Stop"))
-	FName Stop;
+	TArray<FName> Stop;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT", Meta = (DisplayName = "Presence Penalty", ClampMin = "-2.0", UIMin = "-2.0", ClampMax = "2.0", UIMax = "2.0"))
 	float PresencePenalty;
@@ -164,4 +164,7 @@ struct FHttpGPTOptions
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT", Meta = (DisplayName = "User", ClampMin = "1", UIMin = "1"))
 	FName User;
+
+private:
+	void SetDefaults();
 };
