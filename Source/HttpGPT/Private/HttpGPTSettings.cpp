@@ -9,22 +9,36 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTSettings)
 #endif
 
-UHttpGPTSettings::UHttpGPTSettings(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), APIKey(FString()), bEnableInternalLogs(false)
+UHttpGPTSettings::UHttpGPTSettings(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), APIKey(NAME_None), bEnableInternalLogs(false)
 {
 	CategoryName = TEXT("Plugins");
 
 	DefaultOptions.Model = EHttpGPTModel::gpt35turbo;
 	DefaultOptions.MaxTokens = 2048;
 	DefaultOptions.Temperature = 1.f;
+	DefaultOptions.TopP = 1.f;
 	DefaultOptions.Choices = 1;
+	DefaultOptions.bStream = false;
 	DefaultOptions.PresencePenalty = 0.f;
 	DefaultOptions.FrequencyPenalty = 0.f;
+	DefaultOptions.LogitBias = TArray<float>();
+	DefaultOptions.User = NAME_None;
 }
 
 const UHttpGPTSettings* UHttpGPTSettings::Get()
 {
 	const UHttpGPTSettings* const Instance = GetDefault<UHttpGPTSettings>();
 	return Instance;
+}
+
+FHttpGPTOptions UHttpGPTSettings::GetDefaultSettings()
+{
+	return GetDefault<UHttpGPTSettings>()->DefaultOptions;
+}
+
+void UHttpGPTSettings::SetDefaultSettings(const FHttpGPTOptions& Value)
+{
+	GetMutableDefault<UHttpGPTSettings>()->DefaultOptions = Value;
 }
 
 #if WITH_EDITOR

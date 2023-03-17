@@ -55,6 +55,12 @@ private:
 	{
 		switch (Model)
 		{
+			case EHttpGPTModel::gpt4:
+				return "gpt-4";
+
+			case EHttpGPTModel::gpt432k:
+				return "gpt-4-32k";
+
 			case EHttpGPTModel::gpt35turbo:
 				return "gpt-3.5-turbo";
 

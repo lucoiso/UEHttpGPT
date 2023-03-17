@@ -43,7 +43,7 @@ void UHttpGPTRequest::Activate()
 {
 	const UHttpGPTSettings* const Settings = UHttpGPTSettings::Get();
 
-	if (Messages.IsEmpty() || !IsValid(Settings) || Settings->APIKey.IsEmpty())
+	if (Messages.IsEmpty() || !IsValid(Settings) || Settings->APIKey.IsNone())
 	{
 		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Request not sent due to invalid params"), *FString(__func__), GetUniqueID());
 		RequestNotSent.Broadcast();
@@ -55,7 +55,7 @@ void UHttpGPTRequest::Activate()
 	HttpRequest->SetURL("https://api.openai.com/v1/chat/completions");
 	HttpRequest->SetVerb("POST");
 	HttpRequest->SetHeader("Content-Type", "application/json");
-	HttpRequest->SetHeader("Authorization", FString::Format(TEXT("Bearer {0}"), { Settings->APIKey }));
+	HttpRequest->SetHeader("Authorization", FString::Format(TEXT("Bearer {0}"), { Settings->APIKey.ToString()}));
 
 	const TSharedPtr<FJsonObject> JsonRequest = MakeShareable(new FJsonObject);
 	JsonRequest->SetStringField("model", ModelToName(Options.Model).ToString().ToLower());

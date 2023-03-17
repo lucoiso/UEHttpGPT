@@ -25,8 +25,13 @@ FHttpGPTOptions::FHttpGPTOptions()
 		Model = Settings->DefaultOptions.Model;
 		MaxTokens = Settings->DefaultOptions.MaxTokens;
 		Temperature = Settings->DefaultOptions.Temperature;
+		TopP = Settings->DefaultOptions.TopP;
 		Choices = Settings->DefaultOptions.Choices;
+		bStream = Settings->DefaultOptions.bStream;
+		Stop = Settings->DefaultOptions.Stop;
 		PresencePenalty = Settings->DefaultOptions.PresencePenalty;
 		FrequencyPenalty = Settings->DefaultOptions.FrequencyPenalty;
+		LogitBias = Settings->DefaultOptions.LogitBias;
+		User = Settings->DefaultOptions.User;
 	}
 }

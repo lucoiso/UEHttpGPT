@@ -23,7 +23,7 @@ public:
 	static const UHttpGPTSettings* Get();
 
 	UPROPERTY(GlobalConfig, EditAnywhere, Category = "Settings", Meta = (DisplayName = "API Key"))
-	FString APIKey;
+	FName APIKey;
 
 	UPROPERTY(GlobalConfig, EditAnywhere, Category = "Settings", Meta = (DisplayName = "Default Http GPT Options"))
 	FHttpGPTOptions DefaultOptions;
@@ -31,6 +31,12 @@ public:
 	/* Will print extra internal informations in log */
 	UPROPERTY(GlobalConfig, EditAnywhere, Category = "Logging", Meta = (DisplayName = "Enable Internal Logs"))
 	bool bEnableInternalLogs;
+
+	UFUNCTION(BlueprintPure, Category = "AzSpeech", meta = (HidePin = "Self", DefaultToSelf = "Self", DisplayName = "Get HttpGPT Settings Data: Default Settings"))
+	static FHttpGPTOptions GetDefaultSettings();
+
+	UFUNCTION(BlueprintCallable, Category = "AzSpeech", meta = (HidePin = "Self", DefaultToSelf = "Self", DisplayName = "Set HttpGPT Settings Data: Default Settings"))
+	static void SetDefaultSettings(const FHttpGPTOptions& Value);
 
 protected:
 #if WITH_EDITOR
