@@ -46,12 +46,15 @@ public:
 	static UHttpGPTRequest* SendMessages(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages, const FHttpGPTOptions& Options = FHttpGPTOptions());
 
 	virtual void Activate() override;
+	virtual void SetReadyToDestroy() override;
 
 protected:
 	TArray<FHttpGPTMessage> Messages;
 	FHttpGPTOptions Options;
 
 	mutable FCriticalSection Mutex;
+
+	void SendRequest();
 
 	void OnProgressUpdated(const FString& Content, int32 BytesSent, int32 BytesReceived);
 	void OnProgressCompleted(const FString& Content, const bool bWasSuccessful);

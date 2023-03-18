@@ -13,6 +13,7 @@
 #include <Serialization/JsonReader.h>
 #include <Serialization/JsonSerializer.h>
 #include <Misc/ScopeTryLock.h>
+#include <Async/Async.h>
 
 #ifdef UE_INLINE_GENERATED_CPP_BY_NAME
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTRequest)
@@ -42,21 +43,46 @@ UHttpGPTRequest* UHttpGPTRequest::SendMessages(UObject* WorldContextObject, cons
 
 void UHttpGPTRequest::Activate()
 {
-	const UHttpGPTSettings* const Settings = UHttpGPTSettings::Get();
+	Super::Activate();
 
-	if (Messages.IsEmpty() || !IsValid(Settings) || Settings->APIKey.IsNone())
+	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Activating task"), *FString(__func__), GetUniqueID());
+
+	if (Messages.IsEmpty() || UHttpGPTSettings::Get()->APIKey.IsNone())
 	{
-		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Request not sent due to invalid params"), *FString(__func__), GetUniqueID());
+		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Failed to activate task: Request not sent due to invalid params"), *FString(__func__), GetUniqueID());
 		RequestFailed.Broadcast();
 		SetReadyToDestroy();
 		return;
 	}
 
+	AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask,
+		[this]
+		{
+			SendRequest();
+		}
+	);
+}
+
+void UHttpGPTRequest::SetReadyToDestroy()
+{
+	FScopeLock Lock(&Mutex);
+
+	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Setting task as Ready to Destroy"), *FString(__func__), GetUniqueID());
+
+	Super::SetReadyToDestroy();
+}
+
+void UHttpGPTRequest::SendRequest()
+{
+	FScopeLock Lock(&Mutex);
+
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Sending request to OpenAI's Chat API"), *FString(__func__), GetUniqueID());
+
 	TSharedRef<class IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
 	HttpRequest->SetURL("https://api.openai.com/v1/chat/completions");
 	HttpRequest->SetVerb("POST");
 	HttpRequest->SetHeader("Content-Type", "application/json");
-	HttpRequest->SetHeader("Authorization", FString::Format(TEXT("Bearer {0}"), { Settings->APIKey.ToString() }));
+	HttpRequest->SetHeader("Authorization", FString::Format(TEXT("Bearer {0}"), { UHttpGPTSettings::Get()->APIKey.ToString() }));
 
 	const TSharedPtr<FJsonObject> JsonRequest = MakeShareable(new FJsonObject);
 	JsonRequest->SetStringField("model", ModelToName(Options.Model).ToString().ToLower());
@@ -67,7 +93,11 @@ void UHttpGPTRequest::Activate()
 	JsonRequest->SetBoolField("stream", Options.bStream);
 	JsonRequest->SetNumberField("presence_penalty", Options.PresencePenalty);
 	JsonRequest->SetNumberField("frequency_penalty", Options.FrequencyPenalty);
-	JsonRequest->SetStringField("user", Options.User.ToString());
+
+	if (!Options.User.IsNone())
+	{
+		JsonRequest->SetStringField("user", Options.User.ToString());
+	}
 
 	if (!Options.Stop.IsEmpty())
 	{
@@ -76,16 +106,18 @@ void UHttpGPTRequest::Activate()
 		{
 			StopJson.Add(MakeShareable(new FJsonValueString(Iterator.ToString())));
 		}
+
 		JsonRequest->SetArrayField("stop", StopJson);
 	}
 
-	if (!Options.Stop.IsEmpty())
+	if (!Options.LogitBias.IsEmpty())
 	{
 		TArray<TSharedPtr<FJsonValue>> LogitBiasJson;
 		for (const float& Iterator : Options.LogitBias)
 		{
 			LogitBiasJson.Add(MakeShareable(new FJsonValueNumber(Iterator)));
 		}
+
 		JsonRequest->SetArrayField("logit_bias", LogitBiasJson);
 	}
 
@@ -108,16 +140,13 @@ void UHttpGPTRequest::Activate()
 		{
 			FScopeTryLock Lock(&Mutex);
 
-			if (!Lock.IsLocked())
+			if (!Lock.IsLocked() || !IsValid(this))
 			{
 				HttpRequest->CancelRequest();
 				return;
 			}
 
-			if (IsValid(this))
-			{
-				OnProgressUpdated(Request->GetResponse()->GetContentAsString(), BytesSent, BytesReceived);
-			}
+			OnProgressUpdated(Request->GetResponse()->GetContentAsString(), BytesSent, BytesReceived);
 		}
 	);
 
@@ -126,17 +155,13 @@ void UHttpGPTRequest::Activate()
 		{
 			FScopeTryLock Lock(&Mutex);
 
-			if (!Lock.IsLocked())
+			if (!Lock.IsLocked() || !IsValid(this))
 			{
 				HttpRequest->CancelRequest();
 				return;
 			}
-
-			if (IsValid(this))
-			{
-				OnProgressCompleted(Response->GetContentAsString(), bWasSuccessful);
-			}
-
+			
+			OnProgressCompleted(Response->GetContentAsString(), bWasSuccessful);
 			SetReadyToDestroy();
 		}
 	);
@@ -144,20 +169,32 @@ void UHttpGPTRequest::Activate()
 	HttpRequest->ProcessRequest();
 
 	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Request sent"), *FString(__func__), GetUniqueID());
-	RequestSent.Broadcast();
+
+	AsyncTask(ENamedThreads::GameThread, 
+		[this] 
+		{ 
+			RequestSent.Broadcast(); 
+		}
+	);	
 }
 
 void UHttpGPTRequest::OnProgressUpdated(const FString& Content, int32 BytesSent, int32 BytesReceived)
 {
-	FScopeTryLock Lock(&Mutex);
+	FScopeLock Lock(&Mutex);
 
-	if (!Lock.IsLocked() || Content.IsEmpty())
+	if (Content.IsEmpty())
 	{
 		return;
 	}
 
 	TArray<FString> Deltas;
 	Content.ParseIntoArray(Deltas, TEXT("data: "));
+
+	if (Deltas.IsEmpty())
+	{
+		return;
+	}
+
 	const FString LastContent = Deltas.Top();
 
 	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Progress Updated"), *FString(__func__), GetUniqueID());
@@ -171,26 +208,34 @@ void UHttpGPTRequest::OnProgressUpdated(const FString& Content, int32 BytesSent,
 		ProgressStarted.Broadcast();
 	}
 
-	ProgressUpdated.Broadcast(Response);
+	AsyncTask(ENamedThreads::GameThread,
+		[this]
+		{
+			FScopeLock Lock(&Mutex);
+			ProgressUpdated.Broadcast(Response);
+		}
+	);
 }
 
 void UHttpGPTRequest::OnProgressCompleted(const FString& Content, const bool bWasSuccessful)
 {
-	FScopeTryLock Lock(&Mutex);
+	FScopeLock Lock(&Mutex);	
 
-	if (!Lock.IsLocked())
+	if (!bWasSuccessful || Content.IsEmpty())
 	{
+		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Request failed"), *FString(__func__), GetUniqueID());
+		AsyncTask(ENamedThreads::GameThread,
+			[this]
+			{
+				RequestFailed.Broadcast();
+			}
+		);
+
 		return;
 	}
 
 	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Process Completed"), *FString(__func__), GetUniqueID());
 	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Content: %s"), *FString(__func__), GetUniqueID(), *Content);
-
-	if (!bWasSuccessful || Content.IsEmpty())
-	{
-		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Request failed"), *FString(__func__), GetUniqueID());
-		return;
-	}
 
 	if (!Options.bStream)
 	{
@@ -199,20 +244,32 @@ void UHttpGPTRequest::OnProgressCompleted(const FString& Content, const bool bWa
 
 	if (Response.bSuccess)
 	{
-		ProcessCompleted.Broadcast(Response);
+		AsyncTask(ENamedThreads::GameThread,
+			[this]
+			{
+				FScopeLock Lock(&Mutex);
+				ProcessCompleted.Broadcast(Response);
+			}
+		);
 	}
 	else
 	{
 		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Request failed"), *FString(__func__), GetUniqueID());
-		ErrorReceived.Broadcast(Response);
+		AsyncTask(ENamedThreads::GameThread,
+			[this]
+			{
+				FScopeLock Lock(&Mutex);
+				ErrorReceived.Broadcast(Response);
+			}
+		);
 	}
 }
 
 void UHttpGPTRequest::DeserializeResponse(const FString& Content)
 {
-	FScopeTryLock Lock(&Mutex);
+	FScopeLock Lock(&Mutex);
 
-	if (!Lock.IsLocked() || Content.IsEmpty() || Content.Contains("[DONE]", ESearchCase::IgnoreCase))
+	if (Content.IsEmpty() || Content.Contains("[DONE]", ESearchCase::IgnoreCase))
 	{
 		return;
 	}
