@@ -39,7 +39,9 @@ FName UHttpGPTSettings::GetAPIKey()
 
 void UHttpGPTSettings::SetAPIKey(const FName Value)
 {
-	GetMutableDefault<UHttpGPTSettings>()->APIKey = Value;
+	UHttpGPTSettings* const Settings = GetMutableDefault<UHttpGPTSettings>();
+	Settings->APIKey = Value;
+	Settings->SaveConfig();
 }
 
 FHttpGPTOptions UHttpGPTSettings::GetDefaultSettings()
@@ -49,7 +51,9 @@ FHttpGPTOptions UHttpGPTSettings::GetDefaultSettings()
 
 void UHttpGPTSettings::SetDefaultSettings(const FHttpGPTOptions& Value)
 {
-	GetMutableDefault<UHttpGPTSettings>()->DefaultOptions = Value;
+	UHttpGPTSettings* const Settings = GetMutableDefault<UHttpGPTSettings>();
+	Settings->DefaultOptions = Value;
+	Settings->SaveConfig();
 }
 
 #if WITH_EDITOR
