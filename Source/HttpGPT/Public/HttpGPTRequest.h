@@ -56,8 +56,7 @@ protected:
 	void OnProgressUpdated(const FString& Content, int32 BytesSent, int32 BytesReceived);
 	void OnProgressCompleted(const FString& Content, const bool bWasSuccessful);
 
-	void DesserializeDeltaResponse(const FString& Content);
-	void DesserializeSingleResponse(const FString& Content);
+	void DeserializeResponse(const FString& Content);
 
 private:
 	FHttpGPTResponse Response;

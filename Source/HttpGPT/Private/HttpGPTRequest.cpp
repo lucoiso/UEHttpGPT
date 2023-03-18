@@ -149,25 +149,40 @@ void UHttpGPTRequest::Activate()
 
 void UHttpGPTRequest::OnProgressUpdated(const FString& Content, int32 BytesSent, int32 BytesReceived)
 {
-	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Progress Updated"), *FString(__func__), GetUniqueID());
-	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Content: %s; Bytes Sent: %d; Bytes Received: %d"), *FString(__func__), GetUniqueID(), *Content, BytesSent, BytesReceived);
+	FScopeTryLock Lock(&Mutex);
 
-	if (!Content.IsEmpty())
+	if (!Lock.IsLocked() || Content.IsEmpty())
 	{
-		DesserializeDeltaResponse(Content);
-
-		if (!bInitialized)
-		{
-			bInitialized = true;
-			ProgressStarted.Broadcast();
-		}
-
-		ProgressUpdated.Broadcast(Response);
+		return;
 	}
+
+	TArray<FString> Deltas;
+	Content.ParseIntoArray(Deltas, TEXT("data: "));
+	const FString LastContent = Deltas.Top();
+
+	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Progress Updated"), *FString(__func__), GetUniqueID());
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Content: %s; Bytes Sent: %d; Bytes Received: %d"), *FString(__func__), GetUniqueID(), *LastContent, BytesSent, BytesReceived);
+
+	DeserializeResponse(LastContent);
+
+	if (!bInitialized)
+	{
+		bInitialized = true;
+		ProgressStarted.Broadcast();
+	}
+
+	ProgressUpdated.Broadcast(Response);
 }
 
 void UHttpGPTRequest::OnProgressCompleted(const FString& Content, const bool bWasSuccessful)
 {
+	FScopeTryLock Lock(&Mutex);
+
+	if (!Lock.IsLocked())
+	{
+		return;
+	}
+
 	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Process Completed"), *FString(__func__), GetUniqueID());
 	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Content: %s"), *FString(__func__), GetUniqueID(), *Content);
 
@@ -179,7 +194,7 @@ void UHttpGPTRequest::OnProgressCompleted(const FString& Content, const bool bWa
 
 	if (!Options.bStream)
 	{
-		DesserializeSingleResponse(Content);
+		DeserializeResponse(Content);
 	}
 
 	if (Response.bSuccess)
@@ -193,20 +208,11 @@ void UHttpGPTRequest::OnProgressCompleted(const FString& Content, const bool bWa
 	}
 }
 
-void UHttpGPTRequest::DesserializeDeltaResponse(const FString& Content)
+void UHttpGPTRequest::DeserializeResponse(const FString& Content)
 {
-	TArray<FString> Deltas;
-	Content.ParseIntoArray(Deltas, TEXT("data: "));
+	FScopeTryLock Lock(&Mutex);
 
-	if (!Deltas.IsEmpty())
-	{
-		DesserializeSingleResponse(Deltas.Top());
-	}
-}
-
-void UHttpGPTRequest::DesserializeSingleResponse(const FString& Content)
-{
-	if (Content.Contains("[DONE]", ESearchCase::IgnoreCase))
+	if (!Lock.IsLocked() || Content.IsEmpty() || Content.Contains("[DONE]", ESearchCase::IgnoreCase))
 	{
 		return;
 	}
@@ -214,11 +220,6 @@ void UHttpGPTRequest::DesserializeSingleResponse(const FString& Content)
 	const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Content);
 	TSharedPtr<FJsonObject> JsonResponse = MakeShareable(new FJsonObject);
 	FJsonSerializer::Deserialize(Reader, JsonResponse);
-
-	if (!JsonResponse.IsValid())
-	{
-		return;
-	}
 
 	if (JsonResponse->HasField("error"))
 	{
@@ -237,60 +238,56 @@ void UHttpGPTRequest::DesserializeSingleResponse(const FString& Content)
 	}
 
 	Response.bSuccess = true;
+
 	Response.ID = *JsonResponse->GetStringField("id");
 	Response.Object = *JsonResponse->GetStringField("object");
 	Response.Created = JsonResponse->GetNumberField("created");
-	TArray<TSharedPtr<FJsonValue>> ChoicesArr = JsonResponse->GetArrayField("choices");
+
+	const TArray<TSharedPtr<FJsonValue>> ChoicesArr = JsonResponse->GetArrayField("choices");
 
 	for (auto Iterator = ChoicesArr.CreateConstIterator(); Iterator; ++Iterator)
 	{
-		if (const TSharedPtr<FJsonObject>* ChoiceObj; (*Iterator)->TryGetObject(ChoiceObj))
+		const TSharedPtr<FJsonObject> ChoiceObj = (*Iterator)->AsObject();
+		const int32 ChoiceIndex = ChoiceObj->GetIntegerField("index");
+
+		FHttpGPTChoice* Choice = Response.Choices.FindByPredicate(
+			[this, ChoiceIndex](const FHttpGPTChoice& Element)
+			{
+				return Element.Index == ChoiceIndex;
+			}
+		);
+
+		if (!Choice)
 		{
-			FHttpGPTChoice Choice;
-			Choice.Index = (*ChoiceObj)->GetNumberField("index");
+			FHttpGPTChoice NewChoice;
+			NewChoice.Index = ChoiceIndex;
+			Choice = &Response.Choices.Add_GetRef(NewChoice);
+		}
 
-			FHttpGPTChoice* const ExistingChoice = Response.Choices.FindByPredicate([this, Choice](const FHttpGPTChoice& Element) { return Element.Index == Choice.Index;  });
-
-			bool bAddNewChoice = ExistingChoice == nullptr;
-
-			if (const TSharedPtr<FJsonObject>* MessageObj; (*ChoiceObj)->TryGetObjectField("message", MessageObj))
+		if (const TSharedPtr<FJsonObject>* MessageObj; ChoiceObj->TryGetObjectField("message", MessageObj))
+		{
+			Choice->Message = FHttpGPTMessage(*(*MessageObj)->GetStringField("role"), *(*MessageObj)->GetStringField("content"));
+		}
+		else if (const TSharedPtr<FJsonObject>* DeltaObj; ChoiceObj->TryGetObjectField("delta", DeltaObj))
+		{
+			if (FString RoleStr; (*DeltaObj)->TryGetStringField("role", RoleStr))
 			{
-				Choice.Message = FHttpGPTMessage(*(*MessageObj)->GetStringField("role"), *(*MessageObj)->GetStringField("content"));
+				Choice->Message.Role = RoleStr == "user" ? EHttpGPTRole::User : EHttpGPTRole::Assistant;
 			}
-			else if (const TSharedPtr<FJsonObject>* DeltaObj; (*ChoiceObj)->TryGetObjectField("delta", DeltaObj))
+			else if (FString ContentStr; (*DeltaObj)->TryGetStringField("content", ContentStr))
 			{
-				FHttpGPTMessage Message = ExistingChoice ? ExistingChoice->Message : FHttpGPTMessage();
-
-				if (FString RoleStr; (*DeltaObj)->TryGetStringField("role", RoleStr))
-				{
-					Message.Role = RoleStr == "user" ? EHttpGPTRole::User : EHttpGPTRole::Assistant;
-				}
-				else if (FString ContentStr; (*DeltaObj)->TryGetStringField("content", ContentStr))
-				{
-					Message.Content += ContentStr;
-				}
-
-				Choice.Message = Message;
+				Choice->Message.Content += ContentStr;
 			}
+		}
 
-			while (Choice.Message.Content.StartsWith("\n"))
-			{
-				Choice.Message.Content.RemoveAt(0);
-			}
+		while (Choice->Message.Content.StartsWith("\n"))
+		{
+			Choice->Message.Content.RemoveAt(0);
+		}
 
-			if (FString FinishReasonStr; (*ChoiceObj)->TryGetStringField("finish_reason", FinishReasonStr))
-			{
-				Choice.FinishReason = *FinishReasonStr;
-			}
-
-			if (bAddNewChoice)
-			{
-				Response.Choices.Add(Choice);
-			}
-			else
-			{
-				*ExistingChoice = Choice;
-			}
+		if (FString FinishReasonStr; ChoiceObj->TryGetStringField("finish_reason", FinishReasonStr))
+		{
+			Choice->FinishReason = *FinishReasonStr;
 		}
 	}
 
