@@ -64,32 +64,4 @@ protected:
 private:
 	FHttpGPTResponse Response;
 	bool bInitialized = false;
-
-	static inline FName ModelToName(const EHttpGPTModel& Model)
-	{
-		switch (Model)
-		{
-			case EHttpGPTModel::gpt4:
-				return "gpt-4";
-
-			case EHttpGPTModel::gpt432k:
-				return "gpt-4-32k";
-
-			case EHttpGPTModel::gpt35turbo:
-				return "gpt-3.5-turbo";
-
-			case EHttpGPTModel::textdavinci003:
-				return "text-davinci-003";
-
-			case EHttpGPTModel::textdavinci002:
-				return "text-davinci-002";
-
-			case EHttpGPTModel::codedavinci002:
-				return "code-davinci-002";
-
-			default: break;
-		}
-
-		return NAME_None;
-	}
 };

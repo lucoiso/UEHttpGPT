@@ -16,7 +16,7 @@ enum class EHttpGPTRole : uint8
 };
 
 USTRUCT(BlueprintType, Category = "HttpGPT", Meta = (DisplayName = "HttpGPT Message"))
-struct FHttpGPTMessage
+struct HTTPGPT_API FHttpGPTMessage
 {
 	GENERATED_BODY()
 
@@ -34,7 +34,7 @@ struct FHttpGPTMessage
 };
 
 USTRUCT(BlueprintType, Category = "HttpGPT", Meta = (DisplayName = "HttpGPT Choice"))
-struct FHttpGPTChoice
+struct HTTPGPT_API FHttpGPTChoice
 {
 	GENERATED_BODY()
 
@@ -51,7 +51,7 @@ struct FHttpGPTChoice
 };
 
 USTRUCT(BlueprintType, Category = "HttpGPT", Meta = (DisplayName = "HttpGPT Usage"))
-struct FHttpGPTUsage
+struct HTTPGPT_API FHttpGPTUsage
 {
 	GENERATED_BODY()
 
@@ -69,7 +69,7 @@ struct FHttpGPTUsage
 };
 
 USTRUCT(BlueprintType, Category = "HttpGPT", Meta = (DisplayName = "HttpGPT Error"))
-struct FHttpGPTError
+struct HTTPGPT_API FHttpGPTError
 {
 	GENERATED_BODY()
 
@@ -86,7 +86,7 @@ struct FHttpGPTError
 };
 
 USTRUCT(BlueprintType, Category = "HttpGPT", Meta = (DisplayName = "HttpGPT Response"))
-struct FHttpGPTResponse
+struct HTTPGPT_API FHttpGPTResponse
 {
 	GENERATED_BODY()
 
@@ -126,7 +126,7 @@ enum class EHttpGPTModel : uint8
 };
 
 USTRUCT(BlueprintType, Category = "HttpGPT", Meta = (DisplayName = "HttpGPT Options"))
-struct FHttpGPTOptions
+struct HTTPGPT_API FHttpGPTOptions
 {
 	GENERATED_BODY()
 
@@ -156,7 +156,7 @@ struct FHttpGPTOptions
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT", Meta = (DisplayName = "Frequency Penalty", ClampMin = "-2.0", UIMin = "-2.0", ClampMax = "2.0", UIMax = "2.0"))
 	float FrequencyPenalty;
 
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT", Meta = (DisplayName = "Max Tokens", ClampMin = "1", UIMin = "1", ClampMax = "2048", UIMax = "2048"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT", Meta = (DisplayName = "Max Tokens", ClampMin = "1", UIMin = "1", ClampMax = "32768", UIMax = "32768"))
 	int32 MaxTokens;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT", Meta = (DisplayName = "Logit Bias"))

@@ -7,6 +7,7 @@
 #include <CoreMinimal.h>
 #include <Kismet/BlueprintFunctionLibrary.h>
 #include "HttpGPTRequest.h"
+#include "HttpGPTTypes.h"
 #include "HttpGPTHelper.generated.h"
 
 /**
@@ -20,4 +21,10 @@ class HTTPGPT_API UHttpGPTHelper final : public UBlueprintFunctionLibrary
 public:
 	UFUNCTION(BlueprintPure, Category = "HttpGPT", meta = (DisplayName = "Cast to HttpGPT Request Async Task"))
 	static UHttpGPTRequest* CastToHttpGPTRequest(UObject* Object);
+
+	UFUNCTION(BlueprintPure, Category = "HttpGPT", meta = (DisplayName = "Get Available GPT Models"))
+	static const FName ModelToName(const EHttpGPTModel& Model);
+
+	UFUNCTION(BlueprintPure, Category = "HttpGPT", meta = (DisplayName = "Get Available GPT Models"))
+	static const TArray<FName> GetAvailableGPTModels();
 };

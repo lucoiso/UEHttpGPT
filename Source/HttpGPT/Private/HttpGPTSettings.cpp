@@ -32,6 +32,16 @@ const UHttpGPTSettings* UHttpGPTSettings::Get()
 	return Instance;
 }
 
+FName UHttpGPTSettings::GetAPIKey()
+{
+	return GetDefault<UHttpGPTSettings>()->APIKey;
+}
+
+void UHttpGPTSettings::SetAPIKey(const FName Value)
+{
+	GetMutableDefault<UHttpGPTSettings>()->APIKey = Value;
+}
+
 FHttpGPTOptions UHttpGPTSettings::GetDefaultSettings()
 {
 	return GetDefault<UHttpGPTSettings>()->DefaultOptions;

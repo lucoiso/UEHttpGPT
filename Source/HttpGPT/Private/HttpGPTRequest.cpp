@@ -4,6 +4,7 @@
 
 #include "HttpGPTRequest.h"
 #include "HttpGPTSettings.h"
+#include "HttpGPTHelper.h"
 #include "LogHttpGPT.h"
 #include <HttpModule.h>
 #include <Interfaces/IHttpRequest.h>
@@ -85,7 +86,7 @@ void UHttpGPTRequest::SendRequest()
 	HttpRequest->SetHeader("Authorization", FString::Format(TEXT("Bearer {0}"), { UHttpGPTSettings::Get()->APIKey.ToString() }));
 
 	const TSharedPtr<FJsonObject> JsonRequest = MakeShareable(new FJsonObject);
-	JsonRequest->SetStringField("model", ModelToName(Options.Model).ToString().ToLower());
+	JsonRequest->SetStringField("model", UHttpGPTHelper::ModelToName(Options.Model).ToString().ToLower());
 	JsonRequest->SetNumberField("max_tokens", Options.MaxTokens);
 	JsonRequest->SetNumberField("temperature", Options.Temperature);
 	JsonRequest->SetNumberField("top_p", Options.TopP);

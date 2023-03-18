@@ -32,6 +32,12 @@ public:
 	UPROPERTY(GlobalConfig, EditAnywhere, Category = "Logging", Meta = (DisplayName = "Enable Internal Logs"))
 	bool bEnableInternalLogs;
 
+	UFUNCTION(BlueprintPure, Category = "AzSpeech", meta = (HidePin = "Self", DefaultToSelf = "Self", DisplayName = "Get HttpGPT Settings Data: API Key"))
+	static FName GetAPIKey();
+
+	UFUNCTION(BlueprintCallable, Category = "AzSpeech", meta = (HidePin = "Self", DefaultToSelf = "Self", DisplayName = "Set HttpGPT Settings Data: API Key"))
+	static void SetAPIKey(const FName Value);
+
 	UFUNCTION(BlueprintPure, Category = "AzSpeech", meta = (HidePin = "Self", DefaultToSelf = "Self", DisplayName = "Get HttpGPT Settings Data: Default Settings"))
 	static FHttpGPTOptions GetDefaultSettings();
 
