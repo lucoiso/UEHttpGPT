@@ -136,20 +136,23 @@ void UHttpGPTRequest::SendRequest()
 
 	HttpRequest->SetContentAsString(RequestContentString);
 
-	HttpRequest->OnRequestProgress().BindLambda(
-		[this, HttpRequest](FHttpRequestPtr Request, int32 BytesSent, int32 BytesReceived)
-		{
-			FScopeTryLock Lock(&Mutex);
-
-			if (!Lock.IsLocked() || !IsValid(this))
+	if (Options.bStream)
+	{
+		HttpRequest->OnRequestProgress().BindLambda(
+			[this, HttpRequest](FHttpRequestPtr Request, int32 BytesSent, int32 BytesReceived)
 			{
-				HttpRequest->CancelRequest();
-				return;
-			}
+				FScopeTryLock Lock(&Mutex);
 
-			OnProgressUpdated(Request->GetResponse()->GetContentAsString(), BytesSent, BytesReceived);
-		}
-	);
+				if (!Lock.IsLocked() || !IsValid(this))
+				{
+					HttpRequest->CancelRequest();
+					return;
+				}
+
+				OnProgressUpdated(Request->GetResponse()->GetContentAsString(), BytesSent, BytesReceived);
+			}
+		);
+	}
 
 	HttpRequest->OnProcessRequestComplete().BindLambda(
 		[this, HttpRequest](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
@@ -188,13 +191,13 @@ void UHttpGPTRequest::OnProgressUpdated(const FString& Content, int32 BytesSent,
 		return;
 	}
 
-	TArray<FString> Deltas;
-	Content.ParseIntoArray(Deltas, TEXT("data: "));
-
-	if (Deltas.IsEmpty())
+	if (!Content.Contains("data: ", ESearchCase::IgnoreCase))
 	{
 		return;
 	}
+
+	TArray<FString> Deltas;
+	Content.ParseIntoArray(Deltas, TEXT("data: "));
 
 	const FString LastContent = Deltas.Top();
 
