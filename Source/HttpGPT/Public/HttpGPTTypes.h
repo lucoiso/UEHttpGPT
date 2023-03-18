@@ -25,7 +25,7 @@ struct HTTPGPT_API FHttpGPTMessage
 	FHttpGPTMessage(const FName& Role, const FString& Content) : Role(Role.ToString().ToLower() == "user" ? EHttpGPTRole::User : EHttpGPTRole::Assistant), Content(Content) {}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
-	EHttpGPTRole Role;
+	EHttpGPTRole Role = EHttpGPTRole::User;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
 	FString Content;
@@ -41,13 +41,13 @@ struct HTTPGPT_API FHttpGPTChoice
 	FHttpGPTChoice() = default;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
-	int32 Index;
+	int32 Index = 0;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
 	FHttpGPTMessage Message;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
-	FName FinishReason;
+	FName FinishReason = NAME_None;
 };
 
 USTRUCT(BlueprintType, Category = "HttpGPT", Meta = (DisplayName = "HttpGPT Usage"))
@@ -93,13 +93,13 @@ struct HTTPGPT_API FHttpGPTResponse
 	FHttpGPTResponse() = default;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
-	FName ID;
+	FName ID = NAME_None;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
-	FName Object;
+	FName Object = NAME_None;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
-	int32 Created;
+	int32 Created = 0;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
 	TArray<FHttpGPTChoice> Choices;
@@ -108,7 +108,7 @@ struct HTTPGPT_API FHttpGPTResponse
 	FHttpGPTUsage Usage;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
-	bool bSuccess;
+	bool bSuccess = false;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
 	FHttpGPTError Error;

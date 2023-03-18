@@ -28,7 +28,7 @@ public:
 	FHttpGPTResponseDelegate ProgressUpdated;
 
 	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
-	FHttpGPTGenericDelegate ProgressStarted;
+	FHttpGPTResponseDelegate ProgressStarted;
 
 	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
 	FHttpGPTResponseDelegate ErrorReceived;
@@ -38,19 +38,22 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
 	FHttpGPTGenericDelegate RequestSent;
+		
+	UFUNCTION(BlueprintPure, Category = "AzSpeech")
+	const FHttpGPTOptions GetTaskOptions() const;
 	
-	UFUNCTION(BlueprintCallable, Category = "HttpGPT", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message", AutoCreateRefTerm = "Options"))
-	static UHttpGPTRequest* SendMessage(UObject* WorldContextObject, const FString& Message, const FHttpGPTOptions& Options = FHttpGPTOptions());
+	UFUNCTION(BlueprintCallable, Category = "HttpGPT", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message"))
+	static UHttpGPTRequest* SendMessage(UObject* WorldContextObject, const FString& Message, const FHttpGPTOptions& Options);
 
-	UFUNCTION(BlueprintCallable, Category = "HttpGPT", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages", AutoCreateRefTerm = "Options"))
-	static UHttpGPTRequest* SendMessages(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages, const FHttpGPTOptions& Options = FHttpGPTOptions());
+	UFUNCTION(BlueprintCallable, Category = "HttpGPT", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages"))
+	static UHttpGPTRequest* SendMessages(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages, const FHttpGPTOptions& Options);
 
 	virtual void Activate() override;
 	virtual void SetReadyToDestroy() override;
 
 protected:
 	TArray<FHttpGPTMessage> Messages;
-	FHttpGPTOptions Options;
+	FHttpGPTOptions TaskOptions;
 
 	mutable FCriticalSection Mutex;
 

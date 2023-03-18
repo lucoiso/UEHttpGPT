@@ -41,7 +41,8 @@ void UHttpGPTSettings::SetAPIKey(const FName Value)
 {
 	UHttpGPTSettings* const Settings = GetMutableDefault<UHttpGPTSettings>();
 	Settings->APIKey = Value;
-	Settings->SaveConfig();
+
+	Settings->SaveAndReload(GET_MEMBER_NAME_CHECKED(UHttpGPTSettings, APIKey));
 }
 
 FHttpGPTOptions UHttpGPTSettings::GetDefaultSettings()
@@ -53,7 +54,8 @@ void UHttpGPTSettings::SetDefaultSettings(const FHttpGPTOptions& Value)
 {
 	UHttpGPTSettings* const Settings = GetMutableDefault<UHttpGPTSettings>();
 	Settings->DefaultOptions = Value;
-	Settings->SaveConfig();
+
+	Settings->SaveAndReload(GET_MEMBER_NAME_CHECKED(UHttpGPTSettings, DefaultOptions));
 }
 
 #if WITH_EDITOR
@@ -72,6 +74,12 @@ void UHttpGPTSettings::PostInitProperties()
 {
 	Super::PostInitProperties();
 	ToggleInternalLogs();
+}
+
+void UHttpGPTSettings::SaveAndReload(const FName& PropertyName)
+{
+	SaveConfig();
+	ReloadConfig(GetClass(), *GetDefaultConfigFilename(), UE::ELoadConfigPropagationFlags::LCPF_PropagateToChildDefaultObjects, GetClass()->FindPropertyByName(PropertyName));
 }
 
 void UHttpGPTSettings::ToggleInternalLogs()

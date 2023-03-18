@@ -20,11 +20,16 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTRequest)
 #endif
 
+const FHttpGPTOptions UHttpGPTRequest::GetTaskOptions() const
+{
+	return TaskOptions;
+}
+
 UHttpGPTRequest* UHttpGPTRequest::SendMessage(UObject* WorldContextObject, const FString& Message, const FHttpGPTOptions& Options)
 {
 	UHttpGPTRequest* const Task = NewObject<UHttpGPTRequest>();
 	Task->Messages = { FHttpGPTMessage(EHttpGPTRole::User, Message) };
-	Task->Options = Options;
+	Task->TaskOptions = Options;
 
 	Task->RegisterWithGameInstance(WorldContextObject);
 
@@ -35,7 +40,7 @@ UHttpGPTRequest* UHttpGPTRequest::SendMessages(UObject* WorldContextObject, cons
 {
 	UHttpGPTRequest* const Task = NewObject<UHttpGPTRequest>();
 	Task->Messages = Messages;
-	Task->Options = Options;
+	Task->TaskOptions = Options;
 
 	Task->RegisterWithGameInstance(WorldContextObject);
 
@@ -86,24 +91,24 @@ void UHttpGPTRequest::SendRequest()
 	HttpRequest->SetHeader("Authorization", FString::Format(TEXT("Bearer {0}"), { UHttpGPTSettings::Get()->APIKey.ToString() }));
 
 	const TSharedPtr<FJsonObject> JsonRequest = MakeShareable(new FJsonObject);
-	JsonRequest->SetStringField("model", UHttpGPTHelper::ModelToName(Options.Model).ToString().ToLower());
-	JsonRequest->SetNumberField("max_tokens", Options.MaxTokens);
-	JsonRequest->SetNumberField("temperature", Options.Temperature);
-	JsonRequest->SetNumberField("top_p", Options.TopP);
-	JsonRequest->SetNumberField("n", Options.Choices);
-	JsonRequest->SetBoolField("stream", Options.bStream);
-	JsonRequest->SetNumberField("presence_penalty", Options.PresencePenalty);
-	JsonRequest->SetNumberField("frequency_penalty", Options.FrequencyPenalty);
+	JsonRequest->SetStringField("model", UHttpGPTHelper::ModelToName(TaskOptions.Model).ToString().ToLower());
+	JsonRequest->SetNumberField("max_tokens", TaskOptions.MaxTokens);
+	JsonRequest->SetNumberField("temperature", TaskOptions.Temperature);
+	JsonRequest->SetNumberField("top_p", TaskOptions.TopP);
+	JsonRequest->SetNumberField("n", TaskOptions.Choices);
+	JsonRequest->SetBoolField("stream", TaskOptions.bStream);
+	JsonRequest->SetNumberField("presence_penalty", TaskOptions.PresencePenalty);
+	JsonRequest->SetNumberField("frequency_penalty", TaskOptions.FrequencyPenalty);
 
-	if (!Options.User.IsNone())
+	if (!TaskOptions.User.IsNone())
 	{
-		JsonRequest->SetStringField("user", Options.User.ToString());
+		JsonRequest->SetStringField("user", TaskOptions.User.ToString());
 	}
 
-	if (!Options.Stop.IsEmpty())
+	if (!TaskOptions.Stop.IsEmpty())
 	{
 		TArray<TSharedPtr<FJsonValue>> StopJson;
-		for (const FName& Iterator : Options.Stop)
+		for (const FName& Iterator : TaskOptions.Stop)
 		{
 			StopJson.Add(MakeShareable(new FJsonValueString(Iterator.ToString())));
 		}
@@ -111,10 +116,10 @@ void UHttpGPTRequest::SendRequest()
 		JsonRequest->SetArrayField("stop", StopJson);
 	}
 
-	if (!Options.LogitBias.IsEmpty())
+	if (!TaskOptions.LogitBias.IsEmpty())
 	{
 		TArray<TSharedPtr<FJsonValue>> LogitBiasJson;
-		for (const float& Iterator : Options.LogitBias)
+		for (const float& Iterator : TaskOptions.LogitBias)
 		{
 			LogitBiasJson.Add(MakeShareable(new FJsonValueNumber(Iterator)));
 		}
@@ -136,7 +141,7 @@ void UHttpGPTRequest::SendRequest()
 
 	HttpRequest->SetContentAsString(RequestContentString);
 
-	if (Options.bStream)
+	if (TaskOptions.bStream)
 	{
 		HttpRequest->OnRequestProgress().BindLambda(
 			[this, HttpRequest](FHttpRequestPtr Request, int32 BytesSent, int32 BytesReceived)
@@ -198,8 +203,8 @@ void UHttpGPTRequest::OnProgressUpdated(const FString& Content, int32 BytesSent,
 
 	TArray<FString> Deltas;
 	Content.ParseIntoArray(Deltas, TEXT("data: "));
-
-	const FString LastContent = Deltas.Top();
+	FString LastContent = Deltas.Top();
+	LastContent.RemoveFromEnd("data: [DONE]", ESearchCase::IgnoreCase);
 
 	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Progress Updated"), *FString(__func__), GetUniqueID());
 	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Content: %s; Bytes Sent: %d; Bytes Received: %d"), *FString(__func__), GetUniqueID(), *LastContent, BytesSent, BytesReceived);
@@ -209,7 +214,14 @@ void UHttpGPTRequest::OnProgressUpdated(const FString& Content, int32 BytesSent,
 	if (!bInitialized)
 	{
 		bInitialized = true;
-		ProgressStarted.Broadcast();
+
+		AsyncTask(ENamedThreads::GameThread,
+			[this]
+			{
+				FScopeLock Lock(&Mutex);
+				ProgressStarted.Broadcast(Response);
+			}
+		);
 	}
 
 	AsyncTask(ENamedThreads::GameThread,
@@ -241,7 +253,7 @@ void UHttpGPTRequest::OnProgressCompleted(const FString& Content, const bool bWa
 	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Process Completed"), *FString(__func__), GetUniqueID());
 	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Content: %s"), *FString(__func__), GetUniqueID(), *Content);
 
-	if (!Options.bStream)
+	if (!TaskOptions.bStream)
 	{
 		DeserializeResponse(Content);
 	}
@@ -252,6 +264,12 @@ void UHttpGPTRequest::OnProgressCompleted(const FString& Content, const bool bWa
 			[this]
 			{
 				FScopeLock Lock(&Mutex);
+
+				if (!TaskOptions.bStream)
+				{
+					ProgressStarted.Broadcast(Response);
+				}
+
 				ProcessCompleted.Broadcast(Response);
 			}
 		);
@@ -273,7 +291,7 @@ void UHttpGPTRequest::DeserializeResponse(const FString& Content)
 {
 	FScopeLock Lock(&Mutex);
 
-	if (Content.IsEmpty() || Content.Contains("[DONE]", ESearchCase::IgnoreCase))
+	if (Content.IsEmpty())
 	{
 		return;
 	}

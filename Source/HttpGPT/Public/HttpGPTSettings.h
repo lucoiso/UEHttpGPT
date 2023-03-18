@@ -51,6 +51,8 @@ protected:
 
 	virtual void PostInitProperties() override;
 
+	void SaveAndReload(const FName& PropertyName);
+
 private:
 	void ToggleInternalLogs();
 };
