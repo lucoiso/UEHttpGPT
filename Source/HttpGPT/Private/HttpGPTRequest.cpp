@@ -149,18 +149,19 @@ void UHttpGPTRequest::Activate()
 
 void UHttpGPTRequest::OnProgressUpdated(const FString& Content, int32 BytesSent, int32 BytesReceived)
 {
-	if (!bInitialized)
-	{
-		bInitialized = true;
-		ProgressStarted.Broadcast();
-	}
-
 	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Progress Updated"), *FString(__func__), GetUniqueID());
 	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Content: %s; Bytes Sent: %d; Bytes Received: %d"), *FString(__func__), GetUniqueID(), *Content, BytesSent, BytesReceived);
 
 	if (!Content.IsEmpty())
 	{
 		DesserializeDeltaResponse(Content);
+
+		if (!bInitialized)
+		{
+			bInitialized = true;
+			ProgressStarted.Broadcast();
+		}
+
 		ProgressUpdated.Broadcast(Response);
 	}
 }
