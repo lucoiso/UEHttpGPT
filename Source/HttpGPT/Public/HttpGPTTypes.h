@@ -12,7 +12,8 @@ UENUM(BlueprintType, Category = "HttpGPT", Meta = (DisplayName = "HttpGPT Role")
 enum class EHttpGPTRole : uint8
 {
 	User,
-	Assistant
+	Assistant,
+	System
 };
 
 USTRUCT(BlueprintType, Category = "HttpGPT", Meta = (DisplayName = "HttpGPT Message"))
@@ -22,7 +23,7 @@ struct HTTPGPT_API FHttpGPTMessage
 
 	FHttpGPTMessage() = default;
 	FHttpGPTMessage(const EHttpGPTRole& Role, const FString& Content) : Role(Role), Content(Content) {}
-	FHttpGPTMessage(const FName& Role, const FString& Content) : Role(Role.ToString().ToLower() == "user" ? EHttpGPTRole::User : EHttpGPTRole::Assistant), Content(Content) {}
+	FHttpGPTMessage(const FName& Role, const FString& Content);
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
 	EHttpGPTRole Role = EHttpGPTRole::User;

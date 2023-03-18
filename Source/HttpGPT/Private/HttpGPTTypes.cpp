@@ -9,10 +9,53 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTTypes)
 #endif
 
+FHttpGPTMessage::FHttpGPTMessage(const FName& Role, const FString& Content)
+{
+	if (Role.IsEqual("user", ENameCase::IgnoreCase))
+	{
+		this->Role = EHttpGPTRole::User;
+	}
+	else if (Role.IsEqual("assistant", ENameCase::IgnoreCase))
+	{
+		this->Role = EHttpGPTRole::Assistant;
+	}
+	else if (Role.IsEqual("system", ENameCase::IgnoreCase))
+	{
+		this->Role = EHttpGPTRole::System;
+	}
+	else
+	{
+		this->Role = EHttpGPTRole::User;
+	}
+
+	this->Content = Content;
+}
+
 TSharedPtr<FJsonValue> FHttpGPTMessage::GetMessage() const
 {
 	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
-	JsonObject->SetStringField("role", Role == EHttpGPTRole::User ? "user" : "assistant");
+
+	FString MessageRole;
+	switch (Role)
+	{
+		case EHttpGPTRole::User:
+			MessageRole = "user";
+			break;
+
+		case EHttpGPTRole::Assistant:
+			MessageRole = "assistant";
+			break;
+
+		case EHttpGPTRole::System:
+			MessageRole = "system";
+			break;
+
+		default:
+			MessageRole = "user";
+			break;
+	}
+
+	JsonObject->SetStringField("role", MessageRole);
 	JsonObject->SetStringField("content", Content);
 
 	return MakeShareable(new FJsonValueObject(JsonObject));
