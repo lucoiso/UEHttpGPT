@@ -22,7 +22,7 @@ public:
 
 	static const UHttpGPTSettings* Get();
 
-	UPROPERTY(GlobalConfig, EditAnywhere, Category = "Settings", Meta = (DisplayName = "Default Options"))
+	UPROPERTY(GlobalConfig, EditAnywhere, Category = "HttpGPT", Meta = (DisplayName = "Default Options"))
 	FHttpGPTOptions DefaultOptions;
 
 	/* Will print extra internal informations in log */

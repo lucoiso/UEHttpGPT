@@ -149,7 +149,7 @@ void UHttpGPTRequest::SendRequest()
 	}
 
 	HttpRequest->OnProcessRequestComplete().BindLambda(
-		[this, HttpRequest](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bWasSuccessful)
+		[this, HttpRequest](FHttpRequestPtr Request, FHttpResponsePtr RequestResponse, bool bWasSuccessful)
 		{
 			FScopeTryLock Lock(&Mutex);
 
@@ -159,7 +159,7 @@ void UHttpGPTRequest::SendRequest()
 				return;
 			}
 			
-			OnProgressCompleted(Response->GetContentAsString(), bWasSuccessful);
+			OnProgressCompleted(RequestResponse->GetContentAsString(), bWasSuccessful);
 			SetReadyToDestroy();
 		}
 	);
