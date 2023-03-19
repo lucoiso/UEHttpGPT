@@ -20,6 +20,21 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTRequest)
 #endif
 
+UHttpGPTRequest* UHttpGPTRequest::SendMessage_DefaultOptions(UObject* WorldContextObject, const FString& Message)
+{
+	return SendMessage_CustomOptions(WorldContextObject, Message, FHttpGPTOptions());
+}
+
+UHttpGPTRequest* UHttpGPTRequest::SendMessages_DefaultOptions(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages)
+{
+	return SendMessages_CustomOptions(WorldContextObject, Messages, FHttpGPTOptions());
+}
+
+UHttpGPTRequest* UHttpGPTRequest::SendMessage_CustomOptions(UObject* WorldContextObject, const FString& Message, const FHttpGPTOptions& Options)
+{
+	return SendMessages_CustomOptions(WorldContextObject, { FHttpGPTMessage(EHttpGPTRole::User, Message) }, Options);
+}
+
 UHttpGPTRequest* UHttpGPTRequest::SendMessages_CustomOptions(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages, const FHttpGPTOptions& Options)
 {
 	UHttpGPTRequest* const Task = NewObject<UHttpGPTRequest>();

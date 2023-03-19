@@ -68,7 +68,7 @@ FHttpGPTOptions::FHttpGPTOptions()
 
 void FHttpGPTOptions::SetDefaults()
 {
-	if (const UHttpGPTSettings* const Settings = UHttpGPTSettings::Get())
+	if (const UHttpGPTSettings* const Settings = GetDefault<UHttpGPTSettings>())
 	{
 		Model = Settings->DefaultOptions.Model;
 		MaxTokens = Settings->DefaultOptions.MaxTokens;
