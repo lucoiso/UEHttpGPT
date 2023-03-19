@@ -133,6 +133,9 @@ struct HTTPGPT_API FHttpGPTOptions
 
 	FHttpGPTOptions();
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Settings", Meta = (DisplayName = "API Key"))
+	FName APIKey;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT", Meta = (DisplayName = "Model"))
 	EHttpGPTModel Model;
 	

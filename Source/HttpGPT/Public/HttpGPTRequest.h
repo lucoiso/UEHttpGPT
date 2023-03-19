@@ -38,15 +38,30 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
 	FHttpGPTGenericDelegate RequestSent;
-		
+	
+	UFUNCTION(BlueprintCallable, Category = "HttpGPT | Default", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message with Default Options"))
+	static FORCEINLINE UHttpGPTRequest* SendMessage_DefaultOptions(UObject* WorldContextObject, const FString& Message)
+	{
+		return SendMessage_CustomOptions(WorldContextObject, Message, FHttpGPTOptions());
+	}
+
+	UFUNCTION(BlueprintCallable, Category = "HttpGPT | Default", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages with Default Options"))
+	static FORCEINLINE UHttpGPTRequest* SendMessages_DefaultOptions(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages)
+	{
+		return SendMessages_CustomOptions(WorldContextObject, Messages, FHttpGPTOptions());
+	}
+
+	UFUNCTION(BlueprintCallable, Category = "HttpGPT | Custom", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message with Custom Options"))
+	static FORCEINLINE UHttpGPTRequest* SendMessage_CustomOptions(UObject* WorldContextObject, const FString& Message, const FHttpGPTOptions& Options)
+	{
+		return SendMessages_CustomOptions(WorldContextObject, { FHttpGPTMessage(EHttpGPTRole::User, Message) }, Options);
+	}
+
+	UFUNCTION(BlueprintCallable, Category = "HttpGPT | Custom", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages with Custom Options"))
+	static UHttpGPTRequest* SendMessages_CustomOptions(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages, const FHttpGPTOptions& Options);
+
 	UFUNCTION(BlueprintPure, Category = "AzSpeech")
 	const FHttpGPTOptions GetTaskOptions() const;
-	
-	UFUNCTION(BlueprintCallable, Category = "HttpGPT", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message"))
-	static UHttpGPTRequest* SendMessage(UObject* WorldContextObject, const FString& Message, const FHttpGPTOptions& Options);
-
-	UFUNCTION(BlueprintCallable, Category = "HttpGPT", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages"))
-	static UHttpGPTRequest* SendMessages(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages, const FHttpGPTOptions& Options);
 
 	virtual void Activate() override;
 	virtual void SetReadyToDestroy() override;

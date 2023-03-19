@@ -20,23 +20,7 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTRequest)
 #endif
 
-const FHttpGPTOptions UHttpGPTRequest::GetTaskOptions() const
-{
-	return TaskOptions;
-}
-
-UHttpGPTRequest* UHttpGPTRequest::SendMessage(UObject* WorldContextObject, const FString& Message, const FHttpGPTOptions& Options)
-{
-	UHttpGPTRequest* const Task = NewObject<UHttpGPTRequest>();
-	Task->Messages = { FHttpGPTMessage(EHttpGPTRole::User, Message) };
-	Task->TaskOptions = Options;
-
-	Task->RegisterWithGameInstance(WorldContextObject);
-
-	return Task;
-}
-
-UHttpGPTRequest* UHttpGPTRequest::SendMessages(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages, const FHttpGPTOptions& Options)
+UHttpGPTRequest* UHttpGPTRequest::SendMessages_CustomOptions(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages, const FHttpGPTOptions& Options)
 {
 	UHttpGPTRequest* const Task = NewObject<UHttpGPTRequest>();
 	Task->Messages = Messages;
@@ -47,13 +31,18 @@ UHttpGPTRequest* UHttpGPTRequest::SendMessages(UObject* WorldContextObject, cons
 	return Task;
 }
 
+const FHttpGPTOptions UHttpGPTRequest::GetTaskOptions() const
+{
+	return TaskOptions;
+}
+
 void UHttpGPTRequest::Activate()
 {
 	Super::Activate();
 
 	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Activating task"), *FString(__func__), GetUniqueID());
 
-	if (Messages.IsEmpty() || UHttpGPTSettings::Get()->APIKey.IsNone())
+	if (Messages.IsEmpty() || TaskOptions.APIKey.IsNone())
 	{
 		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Failed to activate task: Request not sent due to invalid params"), *FString(__func__), GetUniqueID());
 		RequestFailed.Broadcast();
@@ -88,7 +77,7 @@ void UHttpGPTRequest::SendRequest()
 	HttpRequest->SetURL("https://api.openai.com/v1/chat/completions");
 	HttpRequest->SetVerb("POST");
 	HttpRequest->SetHeader("Content-Type", "application/json");
-	HttpRequest->SetHeader("Authorization", FString::Format(TEXT("Bearer {0}"), { UHttpGPTSettings::Get()->APIKey.ToString() }));
+	HttpRequest->SetHeader("Authorization", FString::Format(TEXT("Bearer {0}"), { TaskOptions.APIKey.ToString() }));
 
 	const TSharedPtr<FJsonObject> JsonRequest = MakeShareable(new FJsonObject);
 	JsonRequest->SetStringField("model", UHttpGPTHelper::ModelToName(TaskOptions.Model).ToString().ToLower());
