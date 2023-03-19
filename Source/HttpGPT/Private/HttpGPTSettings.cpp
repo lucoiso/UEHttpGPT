@@ -4,6 +4,7 @@
 
 #include "HttpGPTSettings.h"
 #include "LogHttpGPT.h"
+#include <Runtime/Launch/Resources/Version.h>
 
 #ifdef UE_INLINE_GENERATED_CPP_BY_NAME
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTSettings)
@@ -72,7 +73,16 @@ void UHttpGPTSettings::SetToDefaults()
 void UHttpGPTSettings::SaveAndReload(const FName& PropertyName)
 {
 	SaveConfig();
-	ReloadConfig(GetClass(), *GetDefaultConfigFilename(), UE::ELoadConfigPropagationFlags::LCPF_PropagateToChildDefaultObjects, GetClass()->FindPropertyByName(PropertyName));
+
+	uint32 PropagationFlags = 0u;
+
+#if ENGINE_MAJOR_VERSION >= 5
+	PropagationFlags = UE::ELoadConfigPropagationFlags::LCPF_PropagateToChildDefaultObjects;
+#else
+	PropagationFlags = UE4::ELoadConfigPropagationFlags::LCPF_PropagateToChildDefaultObjects;
+#endif
+
+	ReloadConfig(GetClass(), *GetDefaultConfigFilename(), PropagationFlags, GetClass()->FindPropertyByName(PropertyName));
 }
 
 void UHttpGPTSettings::ToggleInternalLogs()
