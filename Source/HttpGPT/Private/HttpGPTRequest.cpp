@@ -166,7 +166,7 @@ void UHttpGPTRequest::SendRequest()
 
 	HttpRequest->ProcessRequest();
 
-	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Request sent"), *FString(__func__), GetUniqueID());
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Request sent"), *FString(__func__), GetUniqueID());
 
 	AsyncTask(ENamedThreads::GameThread, 
 		[this] 
@@ -185,17 +185,24 @@ void UHttpGPTRequest::OnProgressUpdated(const FString& Content, int32 BytesSent,
 		return;
 	}
 
+	FString UsedContent = Content;
+	UsedContent.RemoveFromEnd("data: [DONE]", ESearchCase::IgnoreCase);
+
 	if (!Content.Contains("data: ", ESearchCase::IgnoreCase))
 	{
 		return;
 	}
 
 	TArray<FString> Deltas;
-	Content.ParseIntoArray(Deltas, TEXT("data: "));
-	FString LastContent = Deltas.Top();
-	LastContent.RemoveFromEnd("data: [DONE]", ESearchCase::IgnoreCase);
+	UsedContent.ParseIntoArray(Deltas, TEXT("data: "));
+	const FString LastContent = Deltas.Top();
 
-	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Progress Updated"), *FString(__func__), GetUniqueID());
+	if (LastContent.Contains("done", ESearchCase::IgnoreCase))
+	{
+		return;
+	}
+
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Progress Updated"), *FString(__func__), GetUniqueID());
 	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Content: %s; Bytes Sent: %d; Bytes Received: %d"), *FString(__func__), GetUniqueID(), *LastContent, BytesSent, BytesReceived);
 
 	DeserializeResponse(LastContent);
@@ -239,7 +246,7 @@ void UHttpGPTRequest::OnProgressCompleted(const FString& Content, const bool bWa
 		return;
 	}
 
-	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Process Completed"), *FString(__func__), GetUniqueID());
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Process Completed"), *FString(__func__), GetUniqueID());
 	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Content: %s"), *FString(__func__), GetUniqueID(), *Content);
 
 	if (!TaskOptions.bStream)

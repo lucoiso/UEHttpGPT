@@ -60,13 +60,13 @@ struct HTTPGPT_API FHttpGPTUsage
 	FHttpGPTUsage(const int32& PromptTokens, const int32& CompletionTokens, const int32& TotalTokens) : PromptTokens(PromptTokens), CompletionTokens(CompletionTokens), TotalTokens(TotalTokens) {}
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
-	int32 PromptTokens;
+	int32 PromptTokens = 0;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
-	int32 CompletionTokens;
+	int32 CompletionTokens = 0;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT")
-	int32 TotalTokens;
+	int32 TotalTokens = 0;
 };
 
 USTRUCT(BlueprintType, Category = "HttpGPT", Meta = (DisplayName = "HttpGPT Error"))
