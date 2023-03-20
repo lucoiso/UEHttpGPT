@@ -47,12 +47,12 @@ void FHttpGPTEditorModule::RegisterMenus()
 	const FName AppStyleName = FAppStyle::GetAppStyleSetName();
 #endif
 
-	const TSharedPtr<FWorkspaceItem> Menu = WorkspaceMenu::GetMenuStructure().GetToolsCategory()->AddGroup(LOCTEXT("HttpGPTCategory", "HttpGPT"), LOCTEXT("HttpGPTCategoryTooltip", "HttpGPT Plugin Tabs"), FSlateIcon(AppStyleName, "Icons.Package"));
+	const TSharedPtr<FWorkspaceItem> Menu = WorkspaceMenu::GetMenuStructure().GetToolsCategory()->AddGroup(LOCTEXT("HttpGPTCategory", "HttpGPT"), LOCTEXT("HttpGPTCategoryTooltip", "HttpGPT Plugin Tabs"), FSlateIcon(AppStyleName, "Icons.Documentation"));
 	
 	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(HttpGPTEditorTabName, EditorTabSpawnerDelegate)
 		.SetDisplayName(FText::FromString("HttpGPT Chat"))
 		.SetTooltipText(FText::FromString("Open HttpGPT Chat"))
-		.SetIcon(FSlateIcon(AppStyleName, "Icons.Plus"))
+		.SetIcon(FSlateIcon(AppStyleName, "DerivedData.ResourceUsage"))
 		.SetGroup(Menu.ToSharedRef());
 }
 

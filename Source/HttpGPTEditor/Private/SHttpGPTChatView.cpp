@@ -36,7 +36,7 @@ void SHttpGPTChatView::Construct([[maybe_unused]] const FArguments&)
 {
 	ModelsComboBox = SNew(STextComboBox)
 		.OptionsSource(&AvailableModels)
-		.ToolTipText(FText::FromString("Select Model"));
+		.ToolTipText(FText::FromString("Selected GPT Model"));
 
 	InitializeModelsOptions();
 
@@ -200,7 +200,7 @@ void SHttpGPTChatItem::Construct(const FArguments& InArgs, const TSharedRef<STab
 	[
 		SNew(SVerticalBox)
 		+ SVerticalBox::Slot()
-		.Padding(MessagingHandlerObject->Message.Role == EHttpGPTRole::User ? FMargin(Slot_Padding * 64.f, Slot_Padding, Slot_Padding, Slot_Padding) : FMargin(Slot_Padding, Slot_Padding, Slot_Padding * 64.f, Slot_Padding))
+		.Padding(MessagingHandlerObject->Message.Role == EHttpGPTRole::User ? FMargin(Slot_Padding * 32.f, Slot_Padding, Slot_Padding, Slot_Padding) : FMargin(Slot_Padding, Slot_Padding, Slot_Padding * 32.f, Slot_Padding))
 		[
 			SNew(SBorder)
 			.BorderImage(AppStyle.GetBrush("ToolPanel.GroupBorder"))
