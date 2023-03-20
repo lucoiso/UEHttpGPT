@@ -55,6 +55,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "HttpGPT", meta = (DisplayName = "Stop HttpGPT Task"))
 	void StopHttpGPTTask();
 
+	const bool IsTaskActive() const;
+
 	UFUNCTION(BlueprintPure, Category = "AzSpeech")
 	const FHttpGPTOptions GetTaskOptions() const;
 

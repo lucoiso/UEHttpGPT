@@ -68,6 +68,13 @@ void UHttpGPTRequest::StopHttpGPTTask()
 	SetReadyToDestroy();
 }
 
+const bool UHttpGPTRequest::IsTaskActive() const
+{
+	FScopeLock Lock(&Mutex);
+
+	return bIsActive;
+}
+
 const FHttpGPTOptions UHttpGPTRequest::GetTaskOptions() const
 {
 	return TaskOptions;
@@ -132,16 +139,23 @@ void UHttpGPTRequest::SendRequest()
 
 	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Sending request"), *FString(__func__), GetUniqueID());
 
-	HttpRequest->ProcessRequest();
+	if (HttpRequest->ProcessRequest())
+	{
+		UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Request sent"), *FString(__func__), GetUniqueID());
 
-	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Request sent"), *FString(__func__), GetUniqueID());
-
-	AsyncTask(ENamedThreads::GameThread, 
-		[this] 
-		{ 
-			RequestSent.Broadcast(); 
-		}
-	);	
+		AsyncTask(ENamedThreads::GameThread,
+			[this]
+			{
+				RequestSent.Broadcast();
+			}
+		);
+	}
+	else
+	{
+		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Failed to initialize the request process"), *FString(__func__), GetUniqueID());
+		RequestFailed.Broadcast();
+		SetReadyToDestroy();
+	}
 }
 
 void UHttpGPTRequest::InitializeRequest()
