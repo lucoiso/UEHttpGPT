@@ -27,4 +27,10 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "HttpGPT", meta = (DisplayName = "Get Available GPT Models"))
 	static const TArray<FName> GetAvailableGPTModels();
+		
+	UFUNCTION(BlueprintPure, Category = "HttpGPT", meta = (DisplayName = "Get Endpoint for Model"))
+	static const FName GetEndpointForModel(const EHttpGPTModel& Model);
+
+	UFUNCTION(BlueprintPure, Category = "HttpGPT", meta = (DisplayName = "Get Endpoint for Model"))
+	static const bool ModelSupportsChat(const EHttpGPTModel& Model);
 };

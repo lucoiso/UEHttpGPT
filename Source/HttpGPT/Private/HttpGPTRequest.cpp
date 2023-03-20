@@ -150,8 +150,8 @@ void UHttpGPTRequest::InitializeRequest()
 
 	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Initializing request object"), *FString(__func__), GetUniqueID());
 
-	HttpRequest = FHttpModule::Get().CreateRequest();
-	HttpRequest->SetURL("https://api.openai.com/v1/chat/completions");
+	HttpRequest = FHttpModule::Get().CreateRequest();	
+	HttpRequest->SetURL(FString::Format(TEXT("https://api.openai.com/{0}"), { UHttpGPTHelper::GetEndpointForModel(TaskOptions.Model).ToString() }));
 	HttpRequest->SetVerb("POST");
 	HttpRequest->SetHeader("Content-Type", "application/json");
 	HttpRequest->SetHeader("Authorization", FString::Format(TEXT("Bearer {0}"), { TaskOptions.APIKey.ToString() }));
@@ -205,13 +205,22 @@ void UHttpGPTRequest::SetRequestContent()
 		JsonRequest->SetObjectField("logit_bias", LogitBiasJson);
 	}
 
-	TArray<TSharedPtr<FJsonValue>> MessagesJson;
-	for (const FHttpGPTMessage& Iterator : Messages)
+	if (UHttpGPTHelper::ModelSupportsChat(TaskOptions.Model))
 	{
-		MessagesJson.Add(Iterator.GetMessage());
-	}
+		UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Selected model supports Chat API. Mounting section history."), *FString(__func__), GetUniqueID());
+		TArray<TSharedPtr<FJsonValue>> MessagesJson;
+		for (const FHttpGPTMessage& Iterator : Messages)
+		{
+			MessagesJson.Add(Iterator.GetMessage());
+		}
 
-	JsonRequest->SetArrayField("messages", MessagesJson);
+		JsonRequest->SetArrayField("messages", MessagesJson);
+	}
+	else
+	{
+		UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Selected model does not supports Chat API. Using last message as prompt content."), *FString(__func__), GetUniqueID());
+		JsonRequest->SetStringField("prompt", Messages.Top().Content);
+	}
 
 	FString RequestContentString;
 	const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestContentString);
@@ -279,6 +288,11 @@ void UHttpGPTRequest::OnProgressUpdated(const FString& Content, int32 BytesSent,
 	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Content: %s; Bytes Sent: %d; Bytes Received: %d"), *FString(__func__), GetUniqueID(), *Deltas.Top(), BytesSent, BytesReceived);
 
 	DeserializeStreamedResponse(Deltas);
+
+	if (!Response.bSuccess)
+	{
+		return;
+	}
 
 	if (!bInitialized)
 	{
@@ -460,6 +474,11 @@ void UHttpGPTRequest::DeserializeSingleResponse(const FString& Content)
 			{
 				Choice->Message.Content += ContentStr;
 			}
+		}
+		else if (FString MessageText; ChoiceObj->TryGetStringField("text", MessageText))
+		{
+			Choice->Message.Role = EHttpGPTRole::Assistant;
+			Choice->Message.Content += MessageText;
 		}
 
 		while (Choice->Message.Content.StartsWith("\n"))
