@@ -41,6 +41,36 @@ const FName UHttpGPTHelper::ModelToName(const EHttpGPTModel& Model)
 	return NAME_None;
 }
 
+const EHttpGPTModel UHttpGPTHelper::NameToModel(const FName Model)
+{
+	if (Model.IsEqual("gpt-4", ENameCase::IgnoreCase))
+	{
+		return EHttpGPTModel::gpt4;
+	}
+	else if (Model.IsEqual("gpt-4-32k", ENameCase::IgnoreCase))
+	{
+		return EHttpGPTModel::gpt432k;
+	}
+	else if (Model.IsEqual("gpt-3.5-turbo", ENameCase::IgnoreCase))
+	{
+		return EHttpGPTModel::gpt35turbo;
+	}
+	else if (Model.IsEqual("text-davinci-003", ENameCase::IgnoreCase))
+	{
+		return EHttpGPTModel::textdavinci003;
+	}
+	else if (Model.IsEqual("text-davinci-002", ENameCase::IgnoreCase))
+	{
+		return EHttpGPTModel::textdavinci002;
+	}
+	else if (Model.IsEqual("code-davinci-002", ENameCase::IgnoreCase))
+	{
+		return EHttpGPTModel::codedavinci002;
+	}
+
+	return EHttpGPTModel::gpt35turbo;
+}
+
 const TArray<FName> UHttpGPTHelper::GetAvailableGPTModels()
 {
 	TArray<FName> Output;

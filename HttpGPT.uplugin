@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
-	"Version": 5,
-	"VersionName": "1.3.0",
+	"Version": 6,
+	"VersionName": "1.4.0",
 	"EngineVersion": "5.1.0",
 	"FriendlyName": "HttpGPT - ChatGPT via REST",
 	"Description": "HttpGPT is an Unreal Engine plugin that facilitates integration with Chat GPT through asynchronous REST requests, making it easy for developers to communicate with the chatbot.",
@@ -26,6 +26,15 @@
 				"Linux",
 				"IOS",
 				"Android"
+			]
+		},
+		{
+			"Name": "HttpGPTEditor",
+			"Type": "Editor",
+			"PlatformAllowList": [
+				"Win64",
+				"Mac",
+				"Linux"
 			]
 		}
 	]

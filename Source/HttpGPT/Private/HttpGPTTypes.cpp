@@ -70,6 +70,7 @@ void FHttpGPTOptions::SetDefaults()
 {
 	if (const UHttpGPTSettings* const Settings = GetDefault<UHttpGPTSettings>())
 	{
+		APIKey = Settings->DefaultOptions.APIKey;
 		Model = Settings->DefaultOptions.Model;
 		MaxTokens = Settings->DefaultOptions.MaxTokens;
 		Temperature = Settings->DefaultOptions.Temperature;

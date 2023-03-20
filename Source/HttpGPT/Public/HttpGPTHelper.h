@@ -22,8 +22,11 @@ public:
 	UFUNCTION(BlueprintPure, Category = "HttpGPT", meta = (DisplayName = "Cast to HttpGPT Request Async Task"))
 	static UHttpGPTRequest* CastToHttpGPTRequest(UObject* Object);
 
-	UFUNCTION(BlueprintPure, Category = "HttpGPT", meta = (DisplayName = "Get Available GPT Models"))
+	UFUNCTION(BlueprintPure, Category = "HttpGPT", meta = (DisplayName = "Convert HttpGPT Model to Name"))
 	static const FName ModelToName(const EHttpGPTModel& Model);
+
+	UFUNCTION(BlueprintPure, Category = "HttpGPT", meta = (DisplayName = "Convert Name to HttpGPT Model"))
+	static const EHttpGPTModel NameToModel(const FName Model);
 
 	UFUNCTION(BlueprintPure, Category = "HttpGPT", meta = (DisplayName = "Get Available GPT Models"))
 	static const TArray<FName> GetAvailableGPTModels();
