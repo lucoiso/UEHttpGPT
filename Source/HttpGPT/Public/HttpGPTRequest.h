@@ -15,61 +15,62 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHttpGPTResponseDelegate, const FHtt
 /**
  * 
  */
-UCLASS(NotPlaceable, Category = "HttpGPT")
+UCLASS(NotPlaceable, Category = "HttpGPT", meta = (ExposedAsyncProxy = AsyncTask))
 class HTTPGPT_API UHttpGPTRequest : public UBlueprintAsyncActionBase
 {
 	GENERATED_BODY()
 
 public:
 	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
-	FHttpGPTResponseDelegate ResponseReceived;
+	FHttpGPTResponseDelegate ProcessCompleted;
 
 	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
-	FHttpGPTResponseDelegate RequestFailed;
+	FHttpGPTResponseDelegate ProgressUpdated;
+
+	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
+	FHttpGPTResponseDelegate ProgressStarted;
+
+	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
+	FHttpGPTResponseDelegate ErrorReceived;
+
+	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
+	FHttpGPTGenericDelegate RequestFailed;
 
 	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
 	FHttpGPTGenericDelegate RequestSent;
-
-	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
-	FHttpGPTGenericDelegate RequestNotSent;
 	
-	UFUNCTION(BlueprintCallable, Category = "HttpGPT", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message", AutoCreateRefTerm = "Options"))
-	static UHttpGPTRequest* SendMessage(UObject* WorldContextObject, const FString& Message, const FHttpGPTOptions& Options = FHttpGPTOptions());
+	UFUNCTION(BlueprintCallable, Category = "HttpGPT | Default", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message with Default Options"))
+	static UHttpGPTRequest* SendMessage_DefaultOptions(UObject* WorldContextObject, const FString& Message);
 
-	UFUNCTION(BlueprintCallable, Category = "HttpGPT", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages", AutoCreateRefTerm = "Options"))
-	static UHttpGPTRequest* SendMessages(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages, const FHttpGPTOptions& Options = FHttpGPTOptions());
+	UFUNCTION(BlueprintCallable, Category = "HttpGPT | Default", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages with Default Options"))
+	static UHttpGPTRequest* SendMessages_DefaultOptions(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages);
+
+	UFUNCTION(BlueprintCallable, Category = "HttpGPT | Custom", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message with Custom Options"))
+	static UHttpGPTRequest* SendMessage_CustomOptions(UObject* WorldContextObject, const FString& Message, const FHttpGPTOptions& Options);
+
+	UFUNCTION(BlueprintCallable, Category = "HttpGPT | Custom", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages with Custom Options"))
+	static UHttpGPTRequest* SendMessages_CustomOptions(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages, const FHttpGPTOptions& Options);
+
+	UFUNCTION(BlueprintPure, Category = "AzSpeech")
+	const FHttpGPTOptions GetTaskOptions() const;
 
 	virtual void Activate() override;
+	virtual void SetReadyToDestroy() override;
 
 protected:
 	TArray<FHttpGPTMessage> Messages;
-	FHttpGPTOptions Options;
+	FHttpGPTOptions TaskOptions;
 
 	mutable FCriticalSection Mutex;
 
-	virtual void ProcessResponse(const FString& Content, const bool bWasSuccessful);
-	FHttpGPTResponse GetDesserializedResponse(const FString& Content) const;
+	void SendRequest();
+
+	void OnProgressUpdated(const FString& Content, int32 BytesSent, int32 BytesReceived);
+	void OnProgressCompleted(const FString& Content, const bool bWasSuccessful);
+
+	void DeserializeResponse(const FString& Content);
 
 private:
-	static inline FName ModelToName(const EHttpGPTModel& Model)
-	{
-		switch (Model)
-		{
-			case EHttpGPTModel::gpt35turbo:
-				return "gpt-3.5-turbo";
-
-			case EHttpGPTModel::textdavinci003:
-				return "text-davinci-003";
-
-			case EHttpGPTModel::textdavinci002:
-				return "text-davinci-002";
-
-			case EHttpGPTModel::codedavinci002:
-				return "code-davinci-002";
-
-			default: break;
-		}
-
-		return NAME_None;
-	}
+	FHttpGPTResponse Response;
+	bool bInitialized = false;
 };
