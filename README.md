@@ -2,7 +2,7 @@
 
 ![Banner1](https://user-images.githubusercontent.com/77353979/226219720-150abd31-487c-474f-ab14-576ff2efbdde.png)
 
-HttpGPT is an Unreal Engine plugin that facilitates integration with Chat GPT through asynchronous REST requests, making it easy for developers to communicate with the chatbot.
+HttpGPT is an Unreal Engine plugin that facilitates integration with Chat GPT through asynchronous REST requests, making it easy for developers to communicate with the chatbot. HttpGPT also includes a new Editor Tool to integrate Chat GPT directly in the Engine.
 
 ## Links
 * [Documentation](https://github.com/lucoiso/UEHttpGPT/wiki)
