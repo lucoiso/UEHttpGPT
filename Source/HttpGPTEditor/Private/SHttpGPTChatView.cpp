@@ -4,6 +4,7 @@
 
 #include "SHttpGPTChatView.h"
 #include <HttpGPTHelper.h>
+#include <Interfaces/IPluginManager.h>
 
 #ifdef UE_INLINE_GENERATED_CPP_BY_NAME
 #include UE_INLINE_GENERATED_CPP_BY_NAME(SHttpGPTChatView)
@@ -13,6 +14,16 @@ constexpr float Slot_Padding = 4.0f;
 
 UHttpGPTMessagingHandler::UHttpGPTMessagingHandler(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
+}
+
+void UHttpGPTMessagingHandler::RequestSent()
+{
+	Message.Content = "Waiting Response...";
+}
+
+void UHttpGPTMessagingHandler::RequestFailed()
+{
+	Message.Content = "Request Failed. Please check the logs. (Enable internal logs in Project Settings -> Plugins -> HttpGPT)";
 }
 
 void UHttpGPTMessagingHandler::ResponseReceived(const FHttpGPTResponse& Response)
@@ -114,6 +125,7 @@ FReply SHttpGPTChatView::HandleSendMessageButton()
 
 	RequestReference = UHttpGPTRequest::SendMessages_CustomOptions(GEditor->GetEditorWorldContext().World(), GetChatHistory(), Options);
 
+	RequestReference->ProgressStarted.AddDynamic(NewMessage, &UHttpGPTMessagingHandler::ResponseReceived);
 	RequestReference->ProgressUpdated.AddDynamic(NewMessage, &UHttpGPTMessagingHandler::ResponseReceived);
 	RequestReference->ProcessCompleted.AddDynamic(NewMessage, &UHttpGPTMessagingHandler::ResponseReceived);
 	RequestReference->ErrorReceived.AddDynamic(NewMessage, &UHttpGPTMessagingHandler::ResponseReceived);
@@ -160,7 +172,7 @@ TArray<FHttpGPTMessage> SHttpGPTChatView::GetChatHistory() const
 {
 	TArray<FHttpGPTMessage> Output
 	{
-		FHttpGPTMessage(EHttpGPTRole::System, "You are in an Unreal Engine 5.1 plugin called HttpGPT, which was developed by Lucas Vilas-Boas. You are an assistant that will help with the development of projects in Unreal Engine in general.")
+		FHttpGPTMessage(EHttpGPTRole::System, GetSystemContext())
 	};
 
 	for (const auto& Item : ListItems)
@@ -169,6 +181,22 @@ TArray<FHttpGPTMessage> SHttpGPTChatView::GetChatHistory() const
 	}
 
 	return Output;
+}
+
+FString SHttpGPTChatView::GetSystemContext() const
+{
+	const TSharedPtr<IPlugin> PluginInterface = IPluginManager::Get().FindPlugin("HttpGPT");
+
+	const FStringFormatOrderedArguments Arguments {
+		FString::Printf(TEXT("%d.%d"), ENGINE_MAJOR_VERSION, ENGINE_MINOR_VERSION),
+		"HttpGPT",
+		PluginInterface->GetDescriptor().VersionName,
+		PluginInterface->GetDescriptor().CreatedBy,
+		PluginInterface->GetDescriptor().DocsURL,
+		PluginInterface->GetDescriptor().SupportURL
+	};
+
+	return FString::Format(TEXT("You are in the Unreal Engine {0} plugin '{1} v{2}', which was developed by {3}. You can find the documentation at {4} and support at {5}. You are an assistant that will help with the development of projects in Unreal Engine in general."), Arguments);
 }
 
 void SHttpGPTChatView::InitializeModelsOptions()
@@ -200,7 +228,7 @@ void SHttpGPTChatItem::Construct(const FArguments& InArgs, const TSharedRef<STab
 	[
 		SNew(SVerticalBox)
 		+ SVerticalBox::Slot()
-		.Padding(MessagingHandlerObject->Message.Role == EHttpGPTRole::User ? FMargin(Slot_Padding * 32.f, Slot_Padding, Slot_Padding, Slot_Padding) : FMargin(Slot_Padding, Slot_Padding, Slot_Padding * 32.f, Slot_Padding))
+		.Padding(MessagingHandlerObject->Message.Role == EHttpGPTRole::User ? FMargin(Slot_Padding * 16.f, Slot_Padding, Slot_Padding, Slot_Padding) : FMargin(Slot_Padding, Slot_Padding, Slot_Padding * 16.f, Slot_Padding))
 		[
 			SNew(SBorder)
 			.BorderImage(AppStyle.GetBrush("ToolPanel.GroupBorder"))

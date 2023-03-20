@@ -3,7 +3,7 @@
 	"Version": 6,
 	"VersionName": "1.4.0",
 	"EngineVersion": "5.1.0",
-	"FriendlyName": "HttpGPT - ChatGPT via REST",
+	"FriendlyName": "HttpGPT - ChatGPT integrated in the Engine",
 	"Description": "HttpGPT is an Unreal Engine plugin that facilitates integration with Chat GPT through asynchronous REST requests, making it easy for developers to communicate with the chatbot.",
 	"Category": "Messaging",
 	"CreatedBy": "Lucas Vilas-Boas",

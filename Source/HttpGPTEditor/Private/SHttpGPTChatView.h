@@ -20,6 +20,12 @@ public:
 	explicit UHttpGPTMessagingHandler(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	UFUNCTION()
+	void RequestSent();
+
+	UFUNCTION()
+	void RequestFailed();
+
+	UFUNCTION()
 	void ResponseReceived(const FHttpGPTResponse& Response);
 
 	FHttpGPTMessage Message;
@@ -47,6 +53,7 @@ public:
 
 protected:
 	TArray<FHttpGPTMessage> GetChatHistory() const;
+	FString GetSystemContext() const;
 
 	void InitializeModelsOptions();
 

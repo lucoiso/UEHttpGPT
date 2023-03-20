@@ -29,7 +29,8 @@ public class HttpGPTEditor : ModuleRules
             "UnrealEd",
             "ToolMenus",
             "EditorStyle",
-            "WorkspaceMenuStructure"
+            "WorkspaceMenuStructure",
+            "Projects"
         });
     }
 }
