@@ -66,7 +66,7 @@ void UHttpGPTSettings::SetToDefaults()
 	DefaultOptions.Stop = TArray<FName>();
 	DefaultOptions.PresencePenalty = 0.f;
 	DefaultOptions.FrequencyPenalty = 0.f;
-	DefaultOptions.LogitBias = TArray<float>();
+	DefaultOptions.LogitBias = TMap<int32, float>();
 	DefaultOptions.User = NAME_None;
 }
 

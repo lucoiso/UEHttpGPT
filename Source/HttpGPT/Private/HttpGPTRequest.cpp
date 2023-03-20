@@ -46,6 +46,35 @@ UHttpGPTRequest* UHttpGPTRequest::SendMessages_CustomOptions(UObject* WorldConte
 	return Task;
 }
 
+void UHttpGPTRequest::StopHttpGPTTask()
+{
+	FScopeLock Lock(&Mutex);
+
+	if (!bIsActive)
+	{
+		return;
+	}
+
+	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Stopping task"), *FString(__func__), GetUniqueID());
+
+	bIsActive = false;
+
+	if (HttpRequest.IsValid())
+	{
+		HttpRequest->CancelRequest();
+		HttpRequest.Reset();
+	}
+
+	SetReadyToDestroy();
+}
+
+const bool UHttpGPTRequest::IsTaskActive() const
+{
+	FScopeLock Lock(&Mutex);
+
+	return bIsActive;
+}
+
 const FHttpGPTOptions UHttpGPTRequest::GetTaskOptions() const
 {
 	return TaskOptions;
@@ -56,6 +85,8 @@ void UHttpGPTRequest::Activate()
 	Super::Activate();
 
 	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Activating task"), *FString(__func__), GetUniqueID());
+
+	bIsActive = true;
 
 	if (Messages.IsEmpty() || TaskOptions.APIKey.IsNone())
 	{
@@ -77,22 +108,79 @@ void UHttpGPTRequest::SetReadyToDestroy()
 {
 	FScopeLock Lock(&Mutex);
 
+	if (bIsReadyToDestroy)
+	{
+		return;
+	}
+
 	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Setting task as Ready to Destroy"), *FString(__func__), GetUniqueID());
 
 	Super::SetReadyToDestroy();
+
+	bIsReadyToDestroy = true;
+	bIsActive = false;
 }
 
 void UHttpGPTRequest::SendRequest()
 {
 	FScopeLock Lock(&Mutex);
 
-	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Sending request to OpenAI's Chat API"), *FString(__func__), GetUniqueID());
+	InitializeRequest();
+	SetRequestContent();
+	BindRequestCallbacks();
 
-	TSharedRef<class IHttpRequest> HttpRequest = FHttpModule::Get().CreateRequest();
-	HttpRequest->SetURL("https://api.openai.com/v1/chat/completions");
+	if (!HttpRequest.IsValid())
+	{
+		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Failed to send request: Request object is invalid"), *FString(__func__), GetUniqueID());
+		RequestFailed.Broadcast();
+		SetReadyToDestroy();
+		return;
+	}
+
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Sending request"), *FString(__func__), GetUniqueID());
+
+	if (HttpRequest->ProcessRequest())
+	{
+		UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Request sent"), *FString(__func__), GetUniqueID());
+
+		AsyncTask(ENamedThreads::GameThread,
+			[this]
+			{
+				RequestSent.Broadcast();
+			}
+		);
+	}
+	else
+	{
+		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Failed to initialize the request process"), *FString(__func__), GetUniqueID());
+		RequestFailed.Broadcast();
+		SetReadyToDestroy();
+	}
+}
+
+void UHttpGPTRequest::InitializeRequest()
+{
+	FScopeLock Lock(&Mutex);
+
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Initializing request object"), *FString(__func__), GetUniqueID());
+
+	HttpRequest = FHttpModule::Get().CreateRequest();	
+	HttpRequest->SetURL(FString::Format(TEXT("https://api.openai.com/{0}"), { UHttpGPTHelper::GetEndpointForModel(TaskOptions.Model).ToString() }));
 	HttpRequest->SetVerb("POST");
 	HttpRequest->SetHeader("Content-Type", "application/json");
 	HttpRequest->SetHeader("Authorization", FString::Format(TEXT("Bearer {0}"), { TaskOptions.APIKey.ToString() }));
+}
+
+void UHttpGPTRequest::SetRequestContent()
+{
+	FScopeLock Lock(&Mutex);
+
+	if (!HttpRequest.IsValid())
+	{
+		return;
+	}
+
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Mounting content"), *FString(__func__), GetUniqueID());
 
 	const TSharedPtr<FJsonObject> JsonRequest = MakeShareable(new FJsonObject);
 	JsonRequest->SetStringField("model", UHttpGPTHelper::ModelToName(TaskOptions.Model).ToString().ToLower());
@@ -122,39 +210,59 @@ void UHttpGPTRequest::SendRequest()
 
 	if (!TaskOptions.LogitBias.IsEmpty())
 	{
-		TArray<TSharedPtr<FJsonValue>> LogitBiasJson;
-		for (const float& Iterator : TaskOptions.LogitBias)
+		TSharedPtr<FJsonObject> LogitBiasJson = MakeShareable(new FJsonObject());
+		for (auto Iterator = TaskOptions.LogitBias.CreateConstIterator(); Iterator; ++Iterator)
 		{
-			LogitBiasJson.Add(MakeShareable(new FJsonValueNumber(Iterator)));
+			LogitBiasJson->SetNumberField(FString::FromInt(Iterator.Key()), Iterator.Value());
 		}
 
-		JsonRequest->SetArrayField("logit_bias", LogitBiasJson);
+		JsonRequest->SetObjectField("logit_bias", LogitBiasJson);
 	}
 
-	TArray<TSharedPtr<FJsonValue>> MessagesJson;
-	for (const FHttpGPTMessage& Iterator : Messages)
+	if (UHttpGPTHelper::ModelSupportsChat(TaskOptions.Model))
 	{
-		MessagesJson.Add(Iterator.GetMessage());
-	}
+		UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Selected model supports Chat API. Mounting section history."), *FString(__func__), GetUniqueID());
+		TArray<TSharedPtr<FJsonValue>> MessagesJson;
+		for (const FHttpGPTMessage& Iterator : Messages)
+		{
+			MessagesJson.Add(Iterator.GetMessage());
+		}
 
-	JsonRequest->SetArrayField("messages", MessagesJson);
+		JsonRequest->SetArrayField("messages", MessagesJson);
+	}
+	else
+	{
+		UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Selected model does not supports Chat API. Using last message as prompt content."), *FString(__func__), GetUniqueID());
+		JsonRequest->SetStringField("prompt", Messages.Top().Content);
+	}
 
 	FString RequestContentString;
 	const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestContentString);
 	FJsonSerializer::Serialize(JsonRequest.ToSharedRef(), Writer);
 
 	HttpRequest->SetContentAsString(RequestContentString);
+}
+
+void UHttpGPTRequest::BindRequestCallbacks()
+{
+	FScopeLock Lock(&Mutex);
+
+	if (!HttpRequest.IsValid())
+	{
+		return;
+	}
+
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Binding callbacks"), *FString(__func__), GetUniqueID());
 
 	if (TaskOptions.bStream)
 	{
 		HttpRequest->OnRequestProgress().BindLambda(
-			[this, HttpRequest](FHttpRequestPtr Request, int32 BytesSent, int32 BytesReceived)
+			[this](FHttpRequestPtr Request, int32 BytesSent, int32 BytesReceived)
 			{
 				FScopeTryLock Lock(&Mutex);
 
-				if (!Lock.IsLocked() || !IsValid(this))
+				if (!Lock.IsLocked() || !IsValid(this) || !bIsActive)
 				{
-					HttpRequest->CancelRequest();
 					return;
 				}
 
@@ -164,31 +272,19 @@ void UHttpGPTRequest::SendRequest()
 	}
 
 	HttpRequest->OnProcessRequestComplete().BindLambda(
-		[this, HttpRequest](FHttpRequestPtr Request, FHttpResponsePtr RequestResponse, bool bWasSuccessful)
+		[this](FHttpRequestPtr Request, FHttpResponsePtr RequestResponse, bool bWasSuccessful)
 		{
 			FScopeTryLock Lock(&Mutex);
 
-			if (!Lock.IsLocked() || !IsValid(this))
+			if (!Lock.IsLocked() || !IsValid(this) || !bIsActive)
 			{
-				HttpRequest->CancelRequest();
 				return;
 			}
-			
+
 			OnProgressCompleted(RequestResponse->GetContentAsString(), bWasSuccessful);
 			SetReadyToDestroy();
 		}
 	);
-
-	HttpRequest->ProcessRequest();
-
-	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Request sent"), *FString(__func__), GetUniqueID());
-
-	AsyncTask(ENamedThreads::GameThread, 
-		[this] 
-		{ 
-			RequestSent.Broadcast(); 
-		}
-	);	
 }
 
 void UHttpGPTRequest::OnProgressUpdated(const FString& Content, int32 BytesSent, int32 BytesReceived)
@@ -200,27 +296,17 @@ void UHttpGPTRequest::OnProgressUpdated(const FString& Content, int32 BytesSent,
 		return;
 	}
 
-	FString UsedContent = Content;
-	UsedContent.RemoveFromEnd("data: [DONE]", ESearchCase::IgnoreCase);
-
-	if (!Content.Contains("data: ", ESearchCase::IgnoreCase))
-	{
-		return;
-	}
-
-	TArray<FString> Deltas;
-	UsedContent.ParseIntoArray(Deltas, TEXT("data: "));
-	const FString LastContent = Deltas.Top();
-
-	if (LastContent.Contains("done", ESearchCase::IgnoreCase))
-	{
-		return;
-	}
+	TArray<FString> Deltas = GetDeltasFromContent(Content);
 
 	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Progress Updated"), *FString(__func__), GetUniqueID());
-	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Content: %s; Bytes Sent: %d; Bytes Received: %d"), *FString(__func__), GetUniqueID(), *LastContent, BytesSent, BytesReceived);
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Content: %s; Bytes Sent: %d; Bytes Received: %d"), *FString(__func__), GetUniqueID(), *Deltas.Top(), BytesSent, BytesReceived);
 
-	DeserializeResponse(LastContent);
+	DeserializeStreamedResponse(Deltas);
+
+	if (!Response.bSuccess)
+	{
+		return;
+	}
 
 	if (!bInitialized)
 	{
@@ -266,7 +352,12 @@ void UHttpGPTRequest::OnProgressCompleted(const FString& Content, const bool bWa
 
 	if (!TaskOptions.bStream)
 	{
-		DeserializeResponse(Content);
+		DeserializeSingleResponse(Content);
+	}
+	else
+	{
+		TArray<FString> Deltas = GetDeltasFromContent(Content);
+		DeserializeStreamedResponse(Deltas);
 	}
 
 	if (Response.bSuccess)
@@ -298,7 +389,36 @@ void UHttpGPTRequest::OnProgressCompleted(const FString& Content, const bool bWa
 	}
 }
 
-void UHttpGPTRequest::DeserializeResponse(const FString& Content)
+TArray<FString> UHttpGPTRequest::GetDeltasFromContent(const FString& Content) const
+{
+	TArray<FString> Deltas;
+	Content.ParseIntoArray(Deltas, TEXT("data: "));
+
+	if (Deltas.Top().Contains("[done]", ESearchCase::IgnoreCase))
+	{
+		Deltas.Pop();
+	}
+
+	if (Deltas.IsEmpty())
+	{
+		Deltas.Add(Content);
+	}
+
+	return Deltas;
+}
+
+void UHttpGPTRequest::DeserializeStreamedResponse(const TArray<FString>& Deltas)
+{
+	FScopeLock Lock(&Mutex);
+
+	Response.Choices.Empty(Deltas.Num());
+	for (const FString& Delta : Deltas)
+	{
+		DeserializeSingleResponse(Delta);
+	}
+}
+
+void UHttpGPTRequest::DeserializeSingleResponse(const FString& Content)
 {
 	FScopeLock Lock(&Mutex);
 
@@ -368,6 +488,11 @@ void UHttpGPTRequest::DeserializeResponse(const FString& Content)
 			{
 				Choice->Message.Content += ContentStr;
 			}
+		}
+		else if (FString MessageText; ChoiceObj->TryGetStringField("text", MessageText))
+		{
+			Choice->Message.Role = EHttpGPTRole::Assistant;
+			Choice->Message.Content += MessageText;
 		}
 
 		while (Choice->Message.Content.StartsWith("\n"))

@@ -164,7 +164,7 @@ struct HTTPGPT_API FHttpGPTOptions
 	int32 MaxTokens;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT", Meta = (DisplayName = "Logit Bias"))
-	TArray<float> LogitBias;
+	TMap<int32, float> LogitBias;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT", Meta = (DisplayName = "User", ClampMin = "1", UIMin = "1"))
 	FName User;
