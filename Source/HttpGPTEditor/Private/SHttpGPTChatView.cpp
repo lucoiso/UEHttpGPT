@@ -196,7 +196,7 @@ FString SHttpGPTChatView::GetSystemContext() const
 		PluginInterface->GetDescriptor().SupportURL
 	};
 
-	return FString::Format(TEXT("You are in the Unreal Engine {0} plugin '{1} v{2}', which was developed by {3}. You can find the documentation at {4} and support at {5}. You are an assistant that will help with the development of projects in Unreal Engine in general."), Arguments);
+	return FString::Format(TEXT("You are in the Unreal Engine {0} plugin {1} version {2}, which was developed by {3}. You can find the documentation at {4} and support at {5}. You are an assistant that will help with the development of projects in Unreal Engine in general."), Arguments);
 }
 
 void SHttpGPTChatView::InitializeModelsOptions()
