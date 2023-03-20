@@ -1,13 +1,12 @@
 # Unreal Engine Plugin: HttpGPT
-Unreal Engine plugin that allow the user to send message requests to OpenAI GPT via REST API
 
-# Usage
-* Setup your settings
-![image](https://user-images.githubusercontent.com/77353979/222471344-8cd55773-5a64-4632-b29d-9d1f3caec657.png)
+![Banner1](https://user-images.githubusercontent.com/77353979/226219720-150abd31-487c-474f-ab14-576ff2efbdde.png)
 
-* Call the Async Function to send requests
-![image](https://user-images.githubusercontent.com/77353979/222471437-161251ed-5e02-4cfb-ab64-1e23411beebc.png)
+HttpGPT is an Unreal Engine plugin that facilitates integration with Chat GPT through asynchronous REST requests, making it easy for developers to communicate with the chatbot.
 
 ## Links
-* Unreal Forum: https://forums.unrealengine.com/t/free-httpgpt-basic-plugin-to-send-requests-to-openais-gpt-3/765168
-* Demo Project: https://github.com/lucoiso/UESpeechGPT
+* [Documentation](https://github.com/lucoiso/UEHttpGPT/wiki)
+* Unreal Engine Marketplace: To be published
+* [Unreal Engine Forum](https://forums.unrealengine.com/t/free-httpgpt-integrate-chatgpt-in-the-engine-via-asynchronous-tasks-rest/765168?u=lucoiso)
+* [OpenAI Documentation](https://platform.openai.com/docs/guides/chat)
+* [Example Project: SpeechGPT](https://github.com/lucoiso/UESpeechGPT)
