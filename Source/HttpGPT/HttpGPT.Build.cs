@@ -24,5 +24,10 @@ public class HttpGPT : ModuleRules
             "CoreUObject",
             "DeveloperSettings"
         });
+
+        if (Target.bBuildEditor)
+        {
+            PrivateDependencyModuleNames.Add("UnrealEd");
+        }
     }
 }

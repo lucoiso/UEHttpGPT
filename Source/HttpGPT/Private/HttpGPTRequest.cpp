@@ -16,6 +16,10 @@
 #include <Misc/ScopeTryLock.h>
 #include <Async/Async.h>
 
+#if WITH_EDITOR
+#include <Editor.h>
+#endif
+
 #ifdef UE_INLINE_GENERATED_CPP_BY_NAME
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTRequest)
 #endif
@@ -102,6 +106,10 @@ void UHttpGPTRequest::Activate()
 			SendRequest();
 		}
 	);
+
+#if WITH_EDITOR
+	FEditorDelegates::PrePIEEnded.AddUObject(this, &UHttpGPTRequest::PrePIEEnded);
+#endif
 }
 
 void UHttpGPTRequest::SetReadyToDestroy()
@@ -115,11 +123,33 @@ void UHttpGPTRequest::SetReadyToDestroy()
 
 	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Setting task as Ready to Destroy"), *FString(__func__), GetUniqueID());
 
-	Super::SetReadyToDestroy();
+#if WITH_EDITOR
+	if (FEditorDelegates::PrePIEEnded.IsBoundToObject(this))
+	{
+		FEditorDelegates::PrePIEEnded.RemoveAll(this);
+	}
+#endif
 
 	bIsReadyToDestroy = true;
 	bIsActive = false;
+
+	Super::SetReadyToDestroy();
 }
+
+#if WITH_EDITOR
+void UHttpGPTRequest::PrePIEEnded(bool bIsSimulating)
+{
+	if (!IsValid(this))
+	{
+		return;
+	}
+
+	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Trying to finish task due to PIE end"), *FString(__func__), GetUniqueID());
+
+	bEndingPIE = true;
+	StopHttpGPTTask();
+}
+#endif
 
 void UHttpGPTRequest::SendRequest()
 {

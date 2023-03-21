@@ -129,6 +129,8 @@ FReply SHttpGPTChatView::HandleSendMessageButton()
 	RequestReference->ProgressUpdated.AddDynamic(NewMessage, &UHttpGPTMessagingHandler::ResponseReceived);
 	RequestReference->ProcessCompleted.AddDynamic(NewMessage, &UHttpGPTMessagingHandler::ResponseReceived);
 	RequestReference->ErrorReceived.AddDynamic(NewMessage, &UHttpGPTMessagingHandler::ResponseReceived);
+	RequestReference->RequestFailed.AddDynamic(NewMessage, &UHttpGPTMessagingHandler::RequestFailed);
+	RequestReference->RequestSent.AddDynamic(NewMessage, &UHttpGPTMessagingHandler::RequestSent);
 
 	RequestReference->Activate();
 

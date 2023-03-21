@@ -89,4 +89,10 @@ private:
 	bool bInitialized = false;
 	bool bIsReadyToDestroy = false;
 	bool bIsActive = false;
+
+#if WITH_EDITOR
+	virtual void PrePIEEnded(bool bIsSimulating);
+
+	bool bEndingPIE = false;
+#endif
 };
