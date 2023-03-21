@@ -6,7 +6,6 @@
 
 #include <CoreMinimal.h>
 #include <HttpGPTTypes.h>
-#include <Widgets/Views/SListView.h>
 #include <Widgets/Input/SEditableTextBox.h>
 #include <Widgets/Input/STextComboBox.h>
 #include "SHttpGPTChatView.generated.h"
@@ -33,6 +32,28 @@ public:
 
 typedef UHttpGPTMessagingHandler* UHttpGPTMessagingHandlerPtr;
 
+class SHttpGPTChatItem final : public SCompoundWidget
+{
+public:
+	SLATE_BEGIN_ARGS(SHttpGPTChatItem) : _MessageRole(), _InputText()
+	{
+	}
+	SLATE_ARGUMENT(EHttpGPTRole, MessageRole)
+	SLATE_ARGUMENT(FString, InputText)
+	SLATE_END_ARGS()
+
+	void Construct(const FArguments& InArgs);
+
+	FText GetMessageText() const;
+
+	UHttpGPTMessagingHandlerPtr MessagingHandlerObject;
+
+private:
+	TSharedPtr<STextBlock, ESPMode::ThreadSafe> MessageBox;
+};
+
+typedef TSharedPtr<SHttpGPTChatItem, ESPMode::ThreadSafe> SHttpGPTChatItemPtr;
+
 class SHttpGPTChatView final : public SCompoundWidget
 {
 public:
@@ -42,8 +63,6 @@ public:
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
-
-	TSharedRef<ITableRow> OnGenerateRow(UHttpGPTMessagingHandlerPtr Item, const TSharedRef<STableViewBase>& OwnerTable);
 
 	FReply HandleSendMessageButton();
 	bool IsSendMessageEnabled() const;
@@ -58,8 +77,8 @@ protected:
 	void InitializeModelsOptions();
 
 private:
-	TArray<UHttpGPTMessagingHandlerPtr> ListItems;
-	TSharedPtr<SListView<UHttpGPTMessagingHandlerPtr>> ListView;
+	TSharedPtr<SVerticalBox> ChatBox;
+	TArray<SHttpGPTChatItemPtr> ChatItems;
 
 	TSharedPtr<SEditableTextBox, ESPMode::ThreadSafe> InputTextBox;
 	TSharedPtr<STextComboBox, ESPMode::ThreadSafe> ModelsComboBox;
@@ -71,19 +90,4 @@ private:
 #else
 	class UHttpGPTRequest* RequestReference;
 #endif
-};
-
-class SHttpGPTChatItem : public STableRow<UHttpGPTMessagingHandlerPtr>
-{
-public:
-	SLATE_BEGIN_ARGS(SHttpGPTChatItem) { }
-	SLATE_END_ARGS()
-
-	void Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& InOwnerTableView, const UHttpGPTMessagingHandlerPtr InMessagingHandlerObject);
-	
-	FText GetMessageText() const;
-
-private:
-	UHttpGPTMessagingHandlerPtr MessagingHandlerObject;
-	TSharedPtr<STextBlock, ESPMode::ThreadSafe> MessageBox;
 };

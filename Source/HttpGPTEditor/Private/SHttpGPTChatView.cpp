@@ -5,6 +5,7 @@
 #include "SHttpGPTChatView.h"
 #include <HttpGPTHelper.h>
 #include <Interfaces/IPluginManager.h>
+#include <Widgets/Layout/SScrollBox.h>
 
 #ifdef UE_INLINE_GENERATED_CPP_BY_NAME
 #include UE_INLINE_GENERATED_CPP_BY_NAME(SHttpGPTChatView)
@@ -43,8 +44,61 @@ void UHttpGPTMessagingHandler::ResponseReceived(const FHttpGPTResponse& Response
 	}
 }
 
+void SHttpGPTChatItem::Construct(const FArguments& InArgs)
+{
+	MessagingHandlerObject = NewObject<UHttpGPTMessagingHandler>();
+	MessagingHandlerObject->Message = FHttpGPTMessage(InArgs._MessageRole, InArgs._InputText);
+
+#if ENGINE_MAJOR_VERSION < 5
+	using FAppStyle = FEditorStyle;
+#endif
+
+	const ISlateStyle& AppStyle = FAppStyle::Get();
+
+	ChildSlot
+	[
+		SNew(SVerticalBox)
+		+ SVerticalBox::Slot()
+		.Padding(MessagingHandlerObject->Message.Role == EHttpGPTRole::User ? FMargin(Slot_Padding * 16.f, Slot_Padding, Slot_Padding, Slot_Padding) : FMargin(Slot_Padding, Slot_Padding, Slot_Padding * 16.f, Slot_Padding))
+		[
+			SNew(SBorder)
+			.BorderImage(AppStyle.GetBrush("Menu.Background"))
+			[
+				SNew(SVerticalBox)
+				+ SVerticalBox::Slot()
+				.Padding(Slot_Padding)
+				.AutoHeight()
+				[
+					SNew(STextBlock)
+					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+					.Text(FText::FromString(MessagingHandlerObject->Message.Role == EHttpGPTRole::User ? "User:" : "Assistant:"))
+				]
+				+ SVerticalBox::Slot()
+				.Padding(FMargin(Slot_Padding * 4, Slot_Padding, Slot_Padding, Slot_Padding))
+				.FillHeight(1.f)
+				[
+					SAssignNew(MessageBox, STextBlock)
+					.AutoWrapText(true)
+					.Text(this, &SHttpGPTChatItem::GetMessageText)
+				]
+			]
+		]
+	];
+}
+
+FText SHttpGPTChatItem::GetMessageText() const
+{
+	return FText::FromString(MessagingHandlerObject->Message.Content);
+}
+
 void SHttpGPTChatView::Construct([[maybe_unused]] const FArguments&)
 {
+#if ENGINE_MAJOR_VERSION < 5
+	using FAppStyle = FEditorStyle;
+#endif
+
+	const ISlateStyle& AppStyle = FAppStyle::Get();
+
 	ModelsComboBox = SNew(STextComboBox)
 		.OptionsSource(&AvailableModels)
 		.ToolTipText(FText::FromString("Selected GPT Model"));
@@ -58,10 +112,15 @@ void SHttpGPTChatView::Construct([[maybe_unused]] const FArguments&)
 		.Padding(Slot_Padding)
 		.FillHeight(1.f)
 		[
-			SAssignNew(ListView, SListView<UHttpGPTMessagingHandlerPtr>)
-			.ListItemsSource(&ListItems)
-			.SelectionMode(ESelectionMode::None)
-			.OnGenerateRow(this, &SHttpGPTChatView::OnGenerateRow)
+			SNew(SBorder)
+			.BorderImage(AppStyle.GetBrush("NoBorder"))
+			[
+				SNew(SScrollBox)
+				+ SScrollBox::Slot()
+				[
+					SAssignNew(ChatBox, SVerticalBox)
+				]
+			]
 		]
 		+ SVerticalBox::Slot()
 		.Padding(Slot_Padding)
@@ -104,20 +163,13 @@ void SHttpGPTChatView::Construct([[maybe_unused]] const FArguments&)
 	];
 }
 
-TSharedRef<ITableRow> SHttpGPTChatView::OnGenerateRow(UHttpGPTMessagingHandlerPtr Item, const TSharedRef<STableViewBase>& OwnerTable)
-{
-	return SNew(SHttpGPTChatItem, OwnerTable, Item);
-}
-
 FReply SHttpGPTChatView::HandleSendMessageButton()
 {
-	UHttpGPTMessagingHandlerPtr UserMessage = NewObject<UHttpGPTMessagingHandler>();
-	UserMessage->Message = FHttpGPTMessage(EHttpGPTRole::User, InputTextBox->GetText().ToString());
+	SHttpGPTChatItemPtr UserMessage = SNew(SHttpGPTChatItem).MessageRole(EHttpGPTRole::User).InputText(InputTextBox->GetText().ToString());
+	ChatBox->AddSlot().AutoHeight() [ UserMessage.ToSharedRef() ];
+	ChatItems.Add(UserMessage);
 
-	ListItems.Add(UserMessage);
-
-	UHttpGPTMessagingHandlerPtr NewMessage = NewObject<UHttpGPTMessagingHandler>();
-	NewMessage->Message.Role = EHttpGPTRole::Assistant;
+	SHttpGPTChatItemPtr AssistantMessage = SNew(SHttpGPTChatItem).MessageRole(EHttpGPTRole::Assistant);
 
 	FHttpGPTOptions Options;
 	Options.Model = UHttpGPTHelper::NameToModel(*(*ModelsComboBox->GetSelectedItem().Get()));
@@ -125,23 +177,22 @@ FReply SHttpGPTChatView::HandleSendMessageButton()
 
 	RequestReference = UHttpGPTRequest::SendMessages_CustomOptions(GEditor->GetEditorWorldContext().World(), GetChatHistory(), Options);
 
-	RequestReference->ProgressStarted.AddDynamic(NewMessage, &UHttpGPTMessagingHandler::ResponseReceived);
-	RequestReference->ProgressUpdated.AddDynamic(NewMessage, &UHttpGPTMessagingHandler::ResponseReceived);
-	RequestReference->ProcessCompleted.AddDynamic(NewMessage, &UHttpGPTMessagingHandler::ResponseReceived);
-	RequestReference->ErrorReceived.AddDynamic(NewMessage, &UHttpGPTMessagingHandler::ResponseReceived);
-	RequestReference->RequestFailed.AddDynamic(NewMessage, &UHttpGPTMessagingHandler::RequestFailed);
-	RequestReference->RequestSent.AddDynamic(NewMessage, &UHttpGPTMessagingHandler::RequestSent);
+	RequestReference->ProgressStarted.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::ResponseReceived);
+	RequestReference->ProgressUpdated.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::ResponseReceived);
+	RequestReference->ProcessCompleted.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::ResponseReceived);
+	RequestReference->ErrorReceived.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::ResponseReceived);
+	RequestReference->RequestFailed.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::RequestFailed);
+	RequestReference->RequestSent.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::RequestSent);
 
 	RequestReference->Activate();
 
 	if (RequestReference->IsTaskActive())
 	{
-		ListItems.Add(NewMessage);
+		ChatBox->AddSlot().AutoHeight() [AssistantMessage.ToSharedRef()];
+		ChatItems.Add(AssistantMessage);
 	}
 
 	InputTextBox->SetText(FText::GetEmpty());
-
-	ListView->RequestListRefresh();
 
 	return FReply::Handled();
 }
@@ -153,9 +204,8 @@ bool SHttpGPTChatView::IsSendMessageEnabled() const
 
 FReply SHttpGPTChatView::HandleClearChatButton()
 {
-	ListItems.Empty();
-
-	ListView->RequestListRefresh();
+	ChatItems.Empty();
+	ChatBox->ClearChildren();
 
 	if (RequestReference)
 	{
@@ -167,7 +217,7 @@ FReply SHttpGPTChatView::HandleClearChatButton()
 
 bool SHttpGPTChatView::IsClearChatEnabled() const
 {
-	return !ListItems.IsEmpty();
+	return !ChatItems.IsEmpty();
 }
 
 TArray<FHttpGPTMessage> SHttpGPTChatView::GetChatHistory() const
@@ -177,9 +227,9 @@ TArray<FHttpGPTMessage> SHttpGPTChatView::GetChatHistory() const
 		FHttpGPTMessage(EHttpGPTRole::System, GetSystemContext())
 	};
 
-	for (const auto& Item : ListItems)
+	for (const auto& Item : ChatItems)
 	{
-		Output.Add(Item->Message);
+		Output.Add(Item->MessagingHandlerObject->Message);
 	}
 
 	return Output;
@@ -212,51 +262,4 @@ void SHttpGPTChatView::InitializeModelsOptions()
 			ModelsComboBox->SetSelectedItem(AvailableModels.Top());
 		}
 	}
-}
-
-void SHttpGPTChatItem::Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& InOwnerTableView, const UHttpGPTMessagingHandlerPtr InMessagingHandlerObject)
-{
-#if ENGINE_MAJOR_VERSION < 5
-	using FAppStyle = FEditorStyle;
-#endif
-
-	const ISlateStyle& AppStyle = FAppStyle::Get();
-
-	MessagingHandlerObject = InMessagingHandlerObject;
-
-	STableRow<UHttpGPTMessagingHandlerPtr>::Construct(STableRow<UHttpGPTMessagingHandlerPtr>::FArguments(), InOwnerTableView);
-
-	ChildSlot
-	[
-		SNew(SVerticalBox)
-		+ SVerticalBox::Slot()
-		.Padding(MessagingHandlerObject->Message.Role == EHttpGPTRole::User ? FMargin(Slot_Padding * 16.f, Slot_Padding, Slot_Padding, Slot_Padding) : FMargin(Slot_Padding, Slot_Padding, Slot_Padding * 16.f, Slot_Padding))
-		[
-			SNew(SBorder)
-			.BorderImage(AppStyle.GetBrush("ToolPanel.GroupBorder"))
-			[
-				SNew(SVerticalBox)
-				+ SVerticalBox::Slot()
-				.Padding(Slot_Padding)
-				.AutoHeight()
-				[
-					SNew(STextBlock)
-					.Text(FText::FromString(MessagingHandlerObject->Message.Role == EHttpGPTRole::User ? "User:" : "Assistant:"))
-				]
-				+ SVerticalBox::Slot()
-				.Padding(FMargin(Slot_Padding * 4, Slot_Padding, Slot_Padding, Slot_Padding))
-				.FillHeight(1.f)
-				[
-					SAssignNew(MessageBox, STextBlock)
-					.AutoWrapText(true)
-					.Text(this, &SHttpGPTChatItem::GetMessageText)
-				]
-			]
-		]
-	];
-}
-
-FText SHttpGPTChatItem::GetMessageText() const
-{
-	return FText::FromString(MessagingHandlerObject->Message.Content);
 }
