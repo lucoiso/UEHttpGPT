@@ -8,6 +8,7 @@
 #include <HttpGPTTypes.h>
 #include <Widgets/Input/SEditableTextBox.h>
 #include <Widgets/Input/STextComboBox.h>
+#include <Widgets/Layout/SScrollBox.h>
 #include "SHttpGPTChatView.generated.h"
 
 UCLASS(MinimalAPI, NotBlueprintable, NotPlaceable, Category = "Implementation")
@@ -25,9 +26,17 @@ public:
 	void RequestFailed();
 
 	UFUNCTION()
-	void ResponseReceived(const FHttpGPTResponse& Response);
+	void ProcessUpdated(const FHttpGPTResponse& Response);
+	
+	UFUNCTION()
+	void ProcessCompleted(const FHttpGPTResponse& Response);
 
 	FHttpGPTMessage Message;
+
+	TSharedPtr<SScrollBox, ESPMode::ThreadSafe> ScrollBoxReference;
+
+private:
+	void ProcessResponse(const FHttpGPTResponse& Response);
 };
 
 typedef UHttpGPTMessagingHandler* UHttpGPTMessagingHandlerPtr;
@@ -79,6 +88,8 @@ protected:
 private:
 	TSharedPtr<SVerticalBox> ChatBox;
 	TArray<SHttpGPTChatItemPtr> ChatItems;
+
+	TSharedPtr<SScrollBox, ESPMode::ThreadSafe> ChatScrollBox;
 
 	TSharedPtr<SEditableTextBox, ESPMode::ThreadSafe> InputTextBox;
 	TSharedPtr<STextComboBox, ESPMode::ThreadSafe> ModelsComboBox;

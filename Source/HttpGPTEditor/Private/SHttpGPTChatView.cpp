@@ -5,7 +5,6 @@
 #include "SHttpGPTChatView.h"
 #include <HttpGPTHelper.h>
 #include <Interfaces/IPluginManager.h>
-#include <Widgets/Layout/SScrollBox.h>
 
 #ifdef UE_INLINE_GENERATED_CPP_BY_NAME
 #include UE_INLINE_GENERATED_CPP_BY_NAME(SHttpGPTChatView)
@@ -27,7 +26,19 @@ void UHttpGPTMessagingHandler::RequestFailed()
 	Message.Content = "Request Failed. Please check the logs. (Enable internal logs in Project Settings -> Plugins -> HttpGPT)";
 }
 
-void UHttpGPTMessagingHandler::ResponseReceived(const FHttpGPTResponse& Response)
+void UHttpGPTMessagingHandler::ProcessUpdated(const FHttpGPTResponse& Response)
+{
+	ProcessResponse(Response);
+}
+
+void UHttpGPTMessagingHandler::ProcessCompleted(const FHttpGPTResponse& Response)
+{
+	ProcessResponse(Response);
+
+	ScrollBoxReference.Reset();
+}
+
+void UHttpGPTMessagingHandler::ProcessResponse(const FHttpGPTResponse& Response)
 {
 	if (Response.Choices.IsEmpty())
 	{
@@ -41,6 +52,11 @@ void UHttpGPTMessagingHandler::ResponseReceived(const FHttpGPTResponse& Response
 	else
 	{
 		Message.Content = Response.Error.Message;
+	}
+
+	if (ScrollBoxReference.IsValid())
+	{
+		ScrollBoxReference->ScrollToEnd();
 	}
 }
 
@@ -115,7 +131,7 @@ void SHttpGPTChatView::Construct([[maybe_unused]] const FArguments&)
 			SNew(SBorder)
 			.BorderImage(AppStyle.GetBrush("NoBorder"))
 			[
-				SNew(SScrollBox)
+				SAssignNew(ChatScrollBox, SScrollBox)
 				+ SScrollBox::Slot()
 				[
 					SAssignNew(ChatBox, SVerticalBox)
@@ -170,6 +186,7 @@ FReply SHttpGPTChatView::HandleSendMessageButton()
 	ChatItems.Add(UserMessage);
 
 	SHttpGPTChatItemPtr AssistantMessage = SNew(SHttpGPTChatItem).MessageRole(EHttpGPTRole::Assistant);
+	AssistantMessage->MessagingHandlerObject->ScrollBoxReference = ChatScrollBox;
 
 	FHttpGPTOptions Options;
 	Options.Model = UHttpGPTHelper::NameToModel(*(*ModelsComboBox->GetSelectedItem().Get()));
@@ -177,10 +194,10 @@ FReply SHttpGPTChatView::HandleSendMessageButton()
 
 	RequestReference = UHttpGPTRequest::SendMessages_CustomOptions(GEditor->GetEditorWorldContext().World(), GetChatHistory(), Options);
 
-	RequestReference->ProgressStarted.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::ResponseReceived);
-	RequestReference->ProgressUpdated.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::ResponseReceived);
-	RequestReference->ProcessCompleted.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::ResponseReceived);
-	RequestReference->ErrorReceived.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::ResponseReceived);
+	RequestReference->ProgressStarted.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::ProcessUpdated);
+	RequestReference->ProgressUpdated.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::ProcessUpdated);
+	RequestReference->ProcessCompleted.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::ProcessCompleted);
+	RequestReference->ErrorReceived.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::ProcessCompleted);
 	RequestReference->RequestFailed.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::RequestFailed);
 	RequestReference->RequestSent.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::RequestSent);
 
@@ -191,6 +208,8 @@ FReply SHttpGPTChatView::HandleSendMessageButton()
 		ChatBox->AddSlot().AutoHeight() [AssistantMessage.ToSharedRef()];
 		ChatItems.Add(AssistantMessage);
 	}
+
+	ChatScrollBox->ScrollToEnd();
 
 	InputTextBox->SetText(FText::GetEmpty());
 
