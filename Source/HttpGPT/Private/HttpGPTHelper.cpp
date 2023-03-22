@@ -3,6 +3,7 @@
 // Repo: https://github.com/lucoiso/UEHttpGPT
 
 #include "HttpGPTHelper.h"
+#include <HttpGPTInternalFuncs.h>
 
 #ifdef UE_INLINE_GENERATED_CPP_BY_NAME
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTHelper)
@@ -77,7 +78,7 @@ const TArray<FName> UHttpGPTHelper::GetAvailableGPTModels()
 
 	for (uint8 Iterator = static_cast<uint8>(EHttpGPTModel::gpt4); Iterator <= static_cast<uint8>(EHttpGPTModel::codedavinci002); ++Iterator)
 	{				
-		if (const FName ModelName = ModelToName(static_cast<EHttpGPTModel>(Iterator)); !ModelName.IsNone())
+		if (const FName ModelName = ModelToName(static_cast<EHttpGPTModel>(Iterator)); !HttpGPT::Internal::HasEmptyParam(ModelName))
 		{
 			Output.Add(ModelName);
 		}
