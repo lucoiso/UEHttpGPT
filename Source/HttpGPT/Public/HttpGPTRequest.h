@@ -83,7 +83,7 @@ protected:
 	void DeserializeSingleResponse(const FString& Content);
 
 private:
-	TSharedPtr<IHttpRequest> HttpRequest;
+	TSharedPtr<IHttpRequest, ESPMode::ThreadSafe> HttpRequest;
 	FHttpGPTResponse Response;
 
 	bool bInitialized = false;

@@ -4,6 +4,7 @@
 
 #include "SHttpGPTChatView.h"
 #include <HttpGPTHelper.h>
+#include <HttpGPTInternalFuncs.h>
 #include <Interfaces/IPluginManager.h>
 
 #ifdef UE_INLINE_GENERATED_CPP_BY_NAME
@@ -40,7 +41,7 @@ void UHttpGPTMessagingHandler::ProcessCompleted(const FHttpGPTResponse& Response
 
 void UHttpGPTMessagingHandler::ProcessResponse(const FHttpGPTResponse& Response)
 {
-	if (Response.Choices.IsEmpty())
+	if (HttpGPT::Internal::HasEmptyParam(Response.Choices))
 	{
 		return;
 	}
@@ -218,7 +219,7 @@ FReply SHttpGPTChatView::HandleSendMessageButton()
 
 bool SHttpGPTChatView::IsSendMessageEnabled() const
 {
-	return (!IsValid(RequestReference) || !RequestReference->IsTaskActive()) && !InputTextBox->GetText().IsEmptyOrWhitespace();
+	return (!IsValid(RequestReference) || !RequestReference->IsTaskActive()) && !HttpGPT::Internal::HasEmptyParam(InputTextBox->GetText());
 }
 
 FReply SHttpGPTChatView::HandleClearChatButton()
@@ -236,7 +237,7 @@ FReply SHttpGPTChatView::HandleClearChatButton()
 
 bool SHttpGPTChatView::IsClearChatEnabled() const
 {
-	return !ChatItems.IsEmpty();
+	return !HttpGPT::Internal::HasEmptyParam(ChatItems);
 }
 
 TArray<FHttpGPTMessage> SHttpGPTChatView::GetChatHistory() const
@@ -256,18 +257,27 @@ TArray<FHttpGPTMessage> SHttpGPTChatView::GetChatHistory() const
 
 FString SHttpGPTChatView::GetSystemContext() const
 {
+	FString SupportedModels;
+	for (const TSharedPtr<FString>& Model : AvailableModels)
+	{
+		SupportedModels.Append(*Model.Get() + ", ");
+	}
+
+	SupportedModels.RemoveFromEnd(", ");
+
 	const TSharedPtr<IPlugin> PluginInterface = IPluginManager::Get().FindPlugin("HttpGPT");
 
 	const FStringFormatOrderedArguments Arguments {
 		FString::Printf(TEXT("%d.%d"), ENGINE_MAJOR_VERSION, ENGINE_MINOR_VERSION),
-		"HttpGPT",
+		FString("HttpGPT"),
 		PluginInterface->GetDescriptor().VersionName,
 		PluginInterface->GetDescriptor().CreatedBy,
 		PluginInterface->GetDescriptor().DocsURL,
-		PluginInterface->GetDescriptor().SupportURL
+		PluginInterface->GetDescriptor().SupportURL,
+		SupportedModels
 	};
 
-	return FString::Format(TEXT("You are in the Unreal Engine {0} plugin {1} version {2}, which was developed by {3}. You can find the documentation at {4} and support at {5}. You are an assistant that will help with the development of projects in Unreal Engine in general."), Arguments);
+	return FString::Format(TEXT("You are in the Unreal Engine {0} plugin {1} version {2}, which was developed by {3}. You can find the documentation at {4} and support at {5}. You are an assistant that will help with the development of projects in Unreal Engine in general. HttpGPT supports all these models provided by OpenAI: {6}."), Arguments);
 }
 
 void SHttpGPTChatView::InitializeModelsOptions()
