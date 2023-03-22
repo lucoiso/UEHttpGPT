@@ -11,7 +11,6 @@ public class HttpGPTEditor : ModuleRules
     {
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         CppStandard = CppStandardVersion.Cpp17;
-        bEnableExceptions = true;
 
         PublicDependencyModuleNames.AddRange(new[]
         {

@@ -5,6 +5,7 @@
 #include "HttpGPTRequest.h"
 #include "HttpGPTSettings.h"
 #include "HttpGPTHelper.h"
+#include "HttpGPTInternalFuncs.h"
 #include "LogHttpGPT.h"
 #include <HttpModule.h>
 #include <Interfaces/IHttpRequest.h>
@@ -92,7 +93,7 @@ void UHttpGPTRequest::Activate()
 
 	bIsActive = true;
 
-	if (Messages.IsEmpty() || TaskOptions.APIKey.IsNone())
+	if (HttpGPT::Internal::HasEmptyParam(Messages) || HttpGPT::Internal::HasEmptyParam(TaskOptions.APIKey))
 	{
 		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Failed to activate task: Request not sent due to invalid params"), *FString(__func__), GetUniqueID());
 		RequestFailed.Broadcast();
@@ -222,23 +223,23 @@ void UHttpGPTRequest::SetRequestContent()
 	JsonRequest->SetNumberField("presence_penalty", TaskOptions.PresencePenalty);
 	JsonRequest->SetNumberField("frequency_penalty", TaskOptions.FrequencyPenalty);
 
-	if (!TaskOptions.User.IsNone())
+	if (!HttpGPT::Internal::HasEmptyParam(TaskOptions.User))
 	{
 		JsonRequest->SetStringField("user", TaskOptions.User.ToString());
 	}
 
-	if (!TaskOptions.Stop.IsEmpty())
+	if (!HttpGPT::Internal::HasEmptyParam(TaskOptions.Stop))
 	{
 		TArray<TSharedPtr<FJsonValue>> StopJson;
-		for (const FName& Iterator : TaskOptions.Stop)
-		{
-			StopJson.Add(MakeShareable(new FJsonValueString(Iterator.ToString())));
-		}
+			for (const FName& Iterator : TaskOptions.Stop)
+			{
+				StopJson.Add(MakeShareable(new FJsonValueString(Iterator.ToString())));
+			}
 
 		JsonRequest->SetArrayField("stop", StopJson);
 	}
 
-	if (!TaskOptions.LogitBias.IsEmpty())
+	if (!HttpGPT::Internal::HasEmptyParam(TaskOptions.LogitBias))
 	{
 		TSharedPtr<FJsonObject> LogitBiasJson = MakeShareable(new FJsonObject());
 		for (auto Iterator = TaskOptions.LogitBias.CreateConstIterator(); Iterator; ++Iterator)
@@ -321,7 +322,7 @@ void UHttpGPTRequest::OnProgressUpdated(const FString& Content, int32 BytesSent,
 {
 	FScopeLock Lock(&Mutex);
 
-	if (Content.IsEmpty())
+	if (HttpGPT::Internal::HasEmptyParam(Content))
 	{
 		return;
 	}
@@ -364,7 +365,7 @@ void UHttpGPTRequest::OnProgressCompleted(const FString& Content, const bool bWa
 {
 	FScopeLock Lock(&Mutex);	
 
-	if (!bWasSuccessful || Content.IsEmpty())
+	if (!bWasSuccessful || HttpGPT::Internal::HasEmptyParam(Content))
 	{
 		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Request failed"), *FString(__func__), GetUniqueID());
 		AsyncTask(ENamedThreads::GameThread,
@@ -429,7 +430,7 @@ TArray<FString> UHttpGPTRequest::GetDeltasFromContent(const FString& Content) co
 		Deltas.Pop();
 	}
 
-	if (Deltas.IsEmpty())
+	if (HttpGPT::Internal::HasEmptyParam(Deltas))
 	{
 		Deltas.Add(Content);
 	}
@@ -452,7 +453,7 @@ void UHttpGPTRequest::DeserializeSingleResponse(const FString& Content)
 {
 	FScopeLock Lock(&Mutex);
 
-	if (Content.IsEmpty())
+	if (HttpGPT::Internal::HasEmptyParam(Content))
 	{
 		return;
 	}

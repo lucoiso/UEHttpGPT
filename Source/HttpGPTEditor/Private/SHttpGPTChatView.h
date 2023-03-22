@@ -33,7 +33,7 @@ public:
 
 	FHttpGPTMessage Message;
 
-	TSharedPtr<SScrollBox, ESPMode::ThreadSafe> ScrollBoxReference;
+	TSharedPtr<SScrollBox> ScrollBoxReference;
 
 private:
 	void ProcessResponse(const FHttpGPTResponse& Response);
@@ -58,10 +58,10 @@ public:
 	UHttpGPTMessagingHandlerPtr MessagingHandlerObject;
 
 private:
-	TSharedPtr<STextBlock, ESPMode::ThreadSafe> MessageBox;
+	TSharedPtr<STextBlock> MessageBox;
 };
 
-typedef TSharedPtr<SHttpGPTChatItem, ESPMode::ThreadSafe> SHttpGPTChatItemPtr;
+typedef TSharedPtr<SHttpGPTChatItem> SHttpGPTChatItemPtr;
 
 class SHttpGPTChatView final : public SCompoundWidget
 {
@@ -89,10 +89,10 @@ private:
 	TSharedPtr<SVerticalBox> ChatBox;
 	TArray<SHttpGPTChatItemPtr> ChatItems;
 
-	TSharedPtr<SScrollBox, ESPMode::ThreadSafe> ChatScrollBox;
+	TSharedPtr<SScrollBox> ChatScrollBox;
 
-	TSharedPtr<SEditableTextBox, ESPMode::ThreadSafe> InputTextBox;
-	TSharedPtr<STextComboBox, ESPMode::ThreadSafe> ModelsComboBox;
+	TSharedPtr<SEditableTextBox> InputTextBox;
+	TSharedPtr<STextComboBox> ModelsComboBox;
 
 	TArray<TSharedPtr<FString>> AvailableModels;
 
