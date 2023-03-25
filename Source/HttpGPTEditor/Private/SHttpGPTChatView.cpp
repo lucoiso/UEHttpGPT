@@ -262,22 +262,54 @@ FString SHttpGPTChatView::GetSystemContext() const
 	{
 		SupportedModels.Append(*Model.Get() + ", ");
 	}
-
 	SupportedModels.RemoveFromEnd(", ");
 
 	const TSharedPtr<IPlugin> PluginInterface = IPluginManager::Get().FindPlugin("HttpGPT");
 
-	const FStringFormatOrderedArguments Arguments {
-		FString::Printf(TEXT("%d.%d"), ENGINE_MAJOR_VERSION, ENGINE_MINOR_VERSION),
-		FString("HttpGPT"),
+	const FString PluginShortName = "HttpGPT";
+	const FString EngineVersion = FString::Printf(TEXT("%d.%d"), ENGINE_MAJOR_VERSION, ENGINE_MINOR_VERSION);
+
+	const FStringFormatOrderedArguments Arguments_PluginInfo{
+		EngineVersion,
+		PluginShortName,
 		PluginInterface->GetDescriptor().VersionName,
-		PluginInterface->GetDescriptor().CreatedBy,
+		PluginInterface->GetDescriptor().CreatedBy
+	};
+
+	const FString PluginInformation = FString::Format(TEXT("You are in the Unreal Engine {0} plugin {1} version {2}, which was developed by {3}."), Arguments_PluginInfo);
+
+	const FStringFormatOrderedArguments Arguments_SupportInfo{
 		PluginInterface->GetDescriptor().DocsURL,
 		PluginInterface->GetDescriptor().SupportURL,
+	};
+
+	const FString PluginSupport = FString::Format(TEXT("You can find the HttpGPT documentation at {0} and support at {1}."), Arguments_SupportInfo);
+
+	const FStringFormatOrderedArguments Arguments_Models{
+		*ModelsComboBox->GetSelectedItem().Get(),
 		SupportedModels
 	};
 
-	return FString::Format(TEXT("You are in the Unreal Engine {0} plugin {1} version {2}, which was developed by {3}. You can find the documentation at {4} and support at {5}. You are an assistant that will help with the development of projects in Unreal Engine in general. HttpGPT supports all these models provided by OpenAI: {6}."), Arguments);
+	const FString ModelsInformation = FString::Format(TEXT("You're using the model {0} and HttpGPT currently supports all these OpenAI Models: {1}."), Arguments_Models);
+
+	const FStringFormatOrderedArguments Arguments_EngineDocumentation{
+		EngineVersion
+	};
+
+	const FString EngineDocumentation_General = FString::Format(TEXT("You can find the Unreal Engine {0} general documentation at https://docs.unrealengine.com/{0}/en-US/."), Arguments_EngineDocumentation);
+	const FString EngineDocumentation_CPP = FString::Format(TEXT("You can find the Unreal Engine {0} API documentation for C++ at https://docs.unrealengine.com/{0}/en-US/API/."), Arguments_EngineDocumentation);
+	const FString EngineDocumentation_BP = FString::Format(TEXT("You can find the Unreal Engine {0} API documentation for Blueprints at https://docs.unrealengine.com/{0}/en-US/BlueprintAPI/."), Arguments_EngineDocumentation);
+
+	const FStringFormatOrderedArguments Arguments_SystemContext{
+		PluginInformation,
+		PluginSupport,
+		ModelsInformation,
+		EngineDocumentation_General,
+		EngineDocumentation_CPP,
+		EngineDocumentation_BP
+	};
+	
+	return FString::Format(TEXT("You are an assistant that will help with the development of projects in Unreal Engine in general.\n{0}\n{1}\n{2}\n{3}\n{4}\n{5}"), Arguments_SystemContext);
 }
 
 void SHttpGPTChatView::InitializeModelsOptions()
