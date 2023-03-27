@@ -11,7 +11,7 @@ HttpGPT also includes a new Editor Tool to integrate Chat GPT directly in the En
 
 ## Links
 * [Documentation](https://github.com/lucoiso/UEHttpGPT/wiki)
-* Unreal Engine Marketplace: To be published
+* [Unreal Engine Marketplace](https://www.unrealengine.com/marketplace/en-US/product/433c180835184aeca0172680a69497ee)
 * [Unreal Engine Forum](https://forums.unrealengine.com/t/free-httpgpt-integrate-chatgpt-in-the-engine-via-asynchronous-tasks-rest/765168?u=lucoiso)
 * [OpenAI Documentation](https://platform.openai.com/docs/guides/chat)
 * [Example Project: SpeechGPT](https://github.com/lucoiso/UESpeechGPT)
