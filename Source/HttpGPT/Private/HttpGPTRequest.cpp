@@ -55,14 +55,14 @@ void UHttpGPTRequest::StopHttpGPTTask()
 {
 	FScopeLock Lock(&Mutex);
 
-	if (!bIsActive)
+	if (!bIsTaskActive)
 	{
 		return;
 	}
 
 	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Stopping task"), *FString(__func__), GetUniqueID());
 
-	bIsActive = false;
+	bIsTaskActive = false;
 
 	if (HttpRequest.IsValid())
 	{
@@ -71,13 +71,6 @@ void UHttpGPTRequest::StopHttpGPTTask()
 	}
 
 	SetReadyToDestroy();
-}
-
-const bool UHttpGPTRequest::IsTaskActive() const
-{
-	FScopeLock Lock(&Mutex);
-
-	return bIsActive;
 }
 
 const FHttpGPTOptions UHttpGPTRequest::GetTaskOptions() const
@@ -91,7 +84,7 @@ void UHttpGPTRequest::Activate()
 
 	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Activating task"), *FString(__func__), GetUniqueID());
 
-	bIsActive = true;
+	bIsTaskActive = true;
 
 	if (HttpGPT::Internal::HasEmptyParam(Messages) || HttpGPT::Internal::HasEmptyParam(TaskOptions.APIKey))
 	{
@@ -132,7 +125,7 @@ void UHttpGPTRequest::SetReadyToDestroy()
 #endif
 
 	bIsReadyToDestroy = true;
-	bIsActive = false;
+	bIsTaskActive = false;
 
 	Super::SetReadyToDestroy();
 }
@@ -304,7 +297,7 @@ void UHttpGPTRequest::BindRequestCallbacks()
 			{
 				FScopeTryLock Lock(&Mutex);
 
-				if (!Lock.IsLocked() || !IsValid(this) || !bIsActive)
+				if (!Lock.IsLocked() || !IsValid(this) || !bIsTaskActive)
 				{
 					return;
 				}
@@ -319,7 +312,7 @@ void UHttpGPTRequest::BindRequestCallbacks()
 		{
 			FScopeTryLock Lock(&Mutex);
 
-			if (!Lock.IsLocked() || !IsValid(this) || !bIsActive)
+			if (!Lock.IsLocked() || !IsValid(this) || !bIsTaskActive)
 			{
 				return;
 			}
@@ -558,4 +551,25 @@ void UHttpGPTRequest::DeserializeSingleResponse(const FString& Content)
 	{
 		Response.Usage = FHttpGPTUsage((*UsageObj)->GetNumberField("prompt_tokens"), (*UsageObj)->GetNumberField("completion_tokens"), (*UsageObj)->GetNumberField("total_tokens"));
 	}
+}
+
+bool UHttpGPTTaskStatus::IsTaskActive(const UHttpGPTRequest* Test)
+{
+	return IsValid(Test) && Test->bIsTaskActive;
+}
+
+bool UHttpGPTTaskStatus::IsTaskReadyToDestroy(const UHttpGPTRequest* Test)
+{
+	return IsValid(Test) && Test->bIsReadyToDestroy;
+}
+
+bool UHttpGPTTaskStatus::IsTaskStillValid(const UHttpGPTRequest* Test)
+{
+	bool bOutput = IsValid(Test) && !IsTaskReadyToDestroy(Test);
+
+#if WITH_EDITOR
+	bOutput = bOutput && !Test->bEndingPIE;
+#endif
+
+	return bOutput;
 }
