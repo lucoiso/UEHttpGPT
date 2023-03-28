@@ -19,12 +19,12 @@ UHttpGPTMessagingHandler::UHttpGPTMessagingHandler(const FObjectInitializer& Obj
 
 void UHttpGPTMessagingHandler::RequestSent()
 {
-	Message.Content = "Waiting Response...";
+	Message.Content = "Waiting for response...";
 }
 
 void UHttpGPTMessagingHandler::RequestFailed()
 {
-	Message.Content = "Request Failed. Please check the logs. (Enable internal logs in Project Settings -> Plugins -> HttpGPT)";
+	Message.Content = "Request Failed.\nPlease check the logs. (Enable internal logs in Project Settings -> Plugins -> HttpGPT).";
 }
 
 void UHttpGPTMessagingHandler::ProcessUpdated(const FHttpGPTResponse& Response)
@@ -40,19 +40,27 @@ void UHttpGPTMessagingHandler::ProcessCompleted(const FHttpGPTResponse& Response
 }
 
 void UHttpGPTMessagingHandler::ProcessResponse(const FHttpGPTResponse& Response)
-{
-	if (HttpGPT::Internal::HasEmptyParam(Response.Choices))
+{	
+	if (!Response.bSuccess)
 	{
-		return;
-	}
+		const FStringFormatOrderedArguments Arguments_ErrorDetails{
+			"Request Failed.",
+			"Please check the logs. (Enable internal logs in Project Settings -> Plugins -> HttpGPT).",
+			"Error Details: ",
+			"\tError Code: " + Response.Error.Code.ToString(),
+			"\tError Type: " + Response.Error.Type.ToString(),
+			"\tError Message: " + Response.Error.Message
+		};
 
-	if (Response.bSuccess)
+		Message.Content = FString::Format(TEXT("{0}\n{1}\n\n{2}\n{3}\n{4}\n{5}"), Arguments_ErrorDetails);
+	}
+	else if (Response.bSuccess && !HttpGPT::Internal::HasEmptyParam(Response.Choices))
 	{
 		Message = Response.Choices[0].Message;
 	}
 	else
 	{
-		Message.Content = Response.Error.Message;
+		return;
 	}
 
 	if (ScrollBoxReference.IsValid())
@@ -204,11 +212,8 @@ FReply SHttpGPTChatView::HandleSendMessageButton()
 
 	RequestReference->Activate();
 
-	if (RequestReference->IsTaskActive())
-	{
-		ChatBox->AddSlot().AutoHeight() [AssistantMessage.ToSharedRef()];
-		ChatItems.Add(AssistantMessage);
-	}
+	ChatBox->AddSlot().AutoHeight() [AssistantMessage.ToSharedRef()];
+	ChatItems.Add(AssistantMessage);
 
 	ChatScrollBox->ScrollToEnd();
 

@@ -163,8 +163,15 @@ void UHttpGPTRequest::SendRequest()
 	if (!HttpRequest.IsValid())
 	{
 		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Failed to send request: Request object is invalid"), *FString(__func__), GetUniqueID());
-		RequestFailed.Broadcast();
-		SetReadyToDestroy();
+		
+		AsyncTask(ENamedThreads::GameThread,
+			[this]
+			{
+				RequestFailed.Broadcast();
+				SetReadyToDestroy();
+			}
+		);
+
 		return;
 	}
 
@@ -184,8 +191,13 @@ void UHttpGPTRequest::SendRequest()
 	else
 	{
 		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Failed to initialize the request process"), *FString(__func__), GetUniqueID());
-		RequestFailed.Broadcast();
-		SetReadyToDestroy();
+		AsyncTask(ENamedThreads::GameThread,
+			[this]
+			{
+				RequestFailed.Broadcast();
+				SetReadyToDestroy();
+			}
+		);
 	}
 }
 
@@ -467,13 +479,18 @@ void UHttpGPTRequest::DeserializeSingleResponse(const FString& Content)
 		Response.bSuccess = false;
 
 		const TSharedPtr<FJsonObject> ErrorObj = JsonResponse->GetObjectField("error");
-
-		FHttpGPTError Error;
-		Error.Code = *ErrorObj->GetStringField("code");
-		Error.Type = *ErrorObj->GetStringField("type");
-		Error.Message = ErrorObj->GetStringField("message");
-
-		Response.Error = Error;
+		if (FString ErrorMessage; ErrorObj->TryGetStringField("message", ErrorMessage))
+		{
+			Response.Error.Message = *ErrorMessage;
+		}
+		if (FString ErrorCode; ErrorObj->TryGetStringField("code", ErrorCode))
+		{
+			Response.Error.Code = *ErrorCode;
+		}
+		if (FString ErrorType; ErrorObj->TryGetStringField("type", ErrorType))
+		{
+			Response.Error.Type = *ErrorType;
+		}
 
 		return;
 	}
