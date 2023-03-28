@@ -19,12 +19,13 @@ UHttpGPTMessagingHandler::UHttpGPTMessagingHandler(const FObjectInitializer& Obj
 
 void UHttpGPTMessagingHandler::RequestSent()
 {
-	Message.Content = "Waiting for response...";
+	OnMessageContentUpdated.ExecuteIfBound("Waiting for response...");
 }
 
 void UHttpGPTMessagingHandler::RequestFailed()
 {
-	Message.Content = "Request Failed.\nPlease check the logs. (Enable internal logs in Project Settings -> Plugins -> HttpGPT).";
+	OnMessageContentUpdated.ExecuteIfBound("Request Failed.\nPlease check the logs. (Enable internal logs in Project Settings -> Plugins -> HttpGPT).");
+	Destroy();
 }
 
 void UHttpGPTMessagingHandler::ProcessUpdated(const FHttpGPTResponse& Response)
@@ -35,8 +36,7 @@ void UHttpGPTMessagingHandler::ProcessUpdated(const FHttpGPTResponse& Response)
 void UHttpGPTMessagingHandler::ProcessCompleted(const FHttpGPTResponse& Response)
 {
 	ProcessResponse(Response);
-
-	ScrollBoxReference.Reset();
+	Destroy();
 }
 
 void UHttpGPTMessagingHandler::ProcessResponse(const FHttpGPTResponse& Response)
@@ -52,11 +52,11 @@ void UHttpGPTMessagingHandler::ProcessResponse(const FHttpGPTResponse& Response)
 			"\tError Message: " + Response.Error.Message
 		};
 
-		Message.Content = FString::Format(TEXT("{0}\n{1}\n\n{2}\n{3}\n{4}\n{5}"), Arguments_ErrorDetails);
+		OnMessageContentUpdated.ExecuteIfBound(FString::Format(TEXT("{0}\n{1}\n\n{2}\n{3}\n{4}\n{5}"), Arguments_ErrorDetails));
 	}
 	else if (Response.bSuccess && !HttpGPT::Internal::HasEmptyParam(Response.Choices))
 	{
-		Message = Response.Choices[0].Message;
+		OnMessageContentUpdated.ExecuteIfBound(Response.Choices[0].Message.Content);
 	}
 	else
 	{
@@ -69,10 +69,26 @@ void UHttpGPTMessagingHandler::ProcessResponse(const FHttpGPTResponse& Response)
 	}
 }
 
+void UHttpGPTMessagingHandler::Destroy()
+{
+#if ENGINE_MAJOR_VERSION >= 5
+	MarkAsGarbage();
+#else
+	MarkPendingKill();
+#endif
+}
+
 void SHttpGPTChatItem::Construct(const FArguments& InArgs)
 {
+	Message = FHttpGPTMessage(InArgs._MessageRole, InArgs._InputText);
+
 	MessagingHandlerObject = NewObject<UHttpGPTMessagingHandler>();
-	MessagingHandlerObject->Message = FHttpGPTMessage(InArgs._MessageRole, InArgs._InputText);
+	MessagingHandlerObject->OnMessageContentUpdated.BindLambda(
+		[this](FString Content)
+		{
+			Message.Content = Content;
+		}
+	);
 
 #if ENGINE_MAJOR_VERSION < 5
 	using FAppStyle = FEditorStyle;
@@ -84,7 +100,7 @@ void SHttpGPTChatItem::Construct(const FArguments& InArgs)
 	[
 		SNew(SVerticalBox)
 		+ SVerticalBox::Slot()
-		.Padding(MessagingHandlerObject->Message.Role == EHttpGPTRole::User ? FMargin(Slot_Padding * 16.f, Slot_Padding, Slot_Padding, Slot_Padding) : FMargin(Slot_Padding, Slot_Padding, Slot_Padding * 16.f, Slot_Padding))
+		.Padding(Message.Role == EHttpGPTRole::User ? FMargin(Slot_Padding * 16.f, Slot_Padding, Slot_Padding, Slot_Padding) : FMargin(Slot_Padding, Slot_Padding, Slot_Padding * 16.f, Slot_Padding))
 		[
 			SNew(SBorder)
 			.BorderImage(AppStyle.GetBrush("Menu.Background"))
@@ -96,7 +112,7 @@ void SHttpGPTChatItem::Construct(const FArguments& InArgs)
 				[
 					SNew(STextBlock)
 					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
-					.Text(FText::FromString(MessagingHandlerObject->Message.Role == EHttpGPTRole::User ? "User:" : "Assistant:"))
+					.Text(FText::FromString(Message.Role == EHttpGPTRole::User ? "User:" : "Assistant:"))
 				]
 				+ SVerticalBox::Slot()
 				.Padding(FMargin(Slot_Padding * 4, Slot_Padding, Slot_Padding, Slot_Padding))
@@ -113,7 +129,7 @@ void SHttpGPTChatItem::Construct(const FArguments& InArgs)
 
 FText SHttpGPTChatItem::GetMessageText() const
 {
-	return FText::FromString(MessagingHandlerObject->Message.Content);
+	return FText::FromString(Message.Content);
 }
 
 void SHttpGPTChatView::Construct([[maybe_unused]] const FArguments&)
@@ -203,12 +219,12 @@ FReply SHttpGPTChatView::HandleSendMessageButton()
 
 	RequestReference = UHttpGPTRequest::SendMessages_CustomOptions(GEditor->GetEditorWorldContext().World(), GetChatHistory(), Options);
 
-	RequestReference->ProgressStarted.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::ProcessUpdated);
-	RequestReference->ProgressUpdated.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::ProcessUpdated);
-	RequestReference->ProcessCompleted.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::ProcessCompleted);
-	RequestReference->ErrorReceived.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::ProcessCompleted);
-	RequestReference->RequestFailed.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::RequestFailed);
-	RequestReference->RequestSent.AddDynamic(AssistantMessage->MessagingHandlerObject, &UHttpGPTMessagingHandler::RequestSent);
+	RequestReference->ProgressStarted.AddDynamic(AssistantMessage->MessagingHandlerObject.Get(), &UHttpGPTMessagingHandler::ProcessUpdated);
+	RequestReference->ProgressUpdated.AddDynamic(AssistantMessage->MessagingHandlerObject.Get(), &UHttpGPTMessagingHandler::ProcessUpdated);
+	RequestReference->ProcessCompleted.AddDynamic(AssistantMessage->MessagingHandlerObject.Get(), &UHttpGPTMessagingHandler::ProcessCompleted);
+	RequestReference->ErrorReceived.AddDynamic(AssistantMessage->MessagingHandlerObject.Get(), &UHttpGPTMessagingHandler::ProcessCompleted);
+	RequestReference->RequestFailed.AddDynamic(AssistantMessage->MessagingHandlerObject.Get(), &UHttpGPTMessagingHandler::RequestFailed);
+	RequestReference->RequestSent.AddDynamic(AssistantMessage->MessagingHandlerObject.Get(), &UHttpGPTMessagingHandler::RequestSent);
 
 	RequestReference->Activate();
 
@@ -224,7 +240,7 @@ FReply SHttpGPTChatView::HandleSendMessageButton()
 
 bool SHttpGPTChatView::IsSendMessageEnabled() const
 {
-	return (!IsValid(RequestReference) || !RequestReference->IsTaskActive()) && !HttpGPT::Internal::HasEmptyParam(InputTextBox->GetText());
+	return (!RequestReference.IsValid() || !UHttpGPTTaskStatus::IsTaskActive(RequestReference.Get())) && !HttpGPT::Internal::HasEmptyParam(InputTextBox->GetText());
 }
 
 FReply SHttpGPTChatView::HandleClearChatButton()
@@ -232,9 +248,13 @@ FReply SHttpGPTChatView::HandleClearChatButton()
 	ChatItems.Empty();
 	ChatBox->ClearChildren();
 
-	if (RequestReference)
+	if (RequestReference.IsValid())
 	{
 		RequestReference->StopHttpGPTTask();
+	}
+	else
+	{
+		RequestReference.Reset();
 	}
 
 	return FReply::Handled();
@@ -254,7 +274,7 @@ TArray<FHttpGPTMessage> SHttpGPTChatView::GetChatHistory() const
 
 	for (const auto& Item : ChatItems)
 	{
-		Output.Add(Item->MessagingHandlerObject->Message);
+		Output.Add(Item->Message);
 	}
 
 	return Output;
