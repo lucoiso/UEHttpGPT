@@ -44,12 +44,12 @@ void UHttpGPTMessagingHandler::ProcessResponse(const FHttpGPTResponse& Response)
 	if (!Response.bSuccess)
 	{
 		const FStringFormatOrderedArguments Arguments_ErrorDetails{
-			"Request Failed.",
-			"Please check the logs. (Enable internal logs in Project Settings -> Plugins -> HttpGPT).",
-			"Error Details: ",
-			"\tError Code: " + Response.Error.Code.ToString(),
-			"\tError Type: " + Response.Error.Type.ToString(),
-			"\tError Message: " + Response.Error.Message
+			FString("Request Failed."),
+			FString("Please check the logs. (Enable internal logs in Project Settings -> Plugins -> HttpGPT)."),
+			FString("Error Details: "),
+			FString("\tError Code: ") + Response.Error.Code.ToString(),
+			FString("\tError Type: ") + Response.Error.Type.ToString(),
+			FString("\tError Message: ") + Response.Error.Message
 		};
 
 		OnMessageContentUpdated.ExecuteIfBound(FString::Format(TEXT("{0}\n{1}\n\n{2}\n{3}\n{4}\n{5}"), Arguments_ErrorDetails));
