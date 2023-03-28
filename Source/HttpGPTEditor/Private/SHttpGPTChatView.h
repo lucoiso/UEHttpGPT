@@ -11,6 +11,8 @@
 #include <Widgets/Layout/SScrollBox.h>
 #include "SHttpGPTChatView.generated.h"
 
+DECLARE_DELEGATE_OneParam(FMessageContentUpdated, FString);
+
 UCLASS(MinimalAPI, NotBlueprintable, NotPlaceable, Category = "Implementation")
 class UHttpGPTMessagingHandler : public UObject
 {
@@ -18,6 +20,8 @@ class UHttpGPTMessagingHandler : public UObject
 
 public:
 	explicit UHttpGPTMessagingHandler(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+
+	FMessageContentUpdated OnMessageContentUpdated;
 
 	UFUNCTION()
 	void RequestSent();
@@ -31,15 +35,13 @@ public:
 	UFUNCTION()
 	void ProcessCompleted(const FHttpGPTResponse& Response);
 
-	FHttpGPTMessage Message;
-
 	TSharedPtr<SScrollBox> ScrollBoxReference;
+
+	void Destroy();
 
 private:
 	void ProcessResponse(const FHttpGPTResponse& Response);
 };
-
-typedef UHttpGPTMessagingHandler* UHttpGPTMessagingHandlerPtr;
 
 class SHttpGPTChatItem final : public SCompoundWidget
 {
@@ -55,7 +57,8 @@ public:
 
 	FText GetMessageText() const;
 
-	UHttpGPTMessagingHandlerPtr MessagingHandlerObject;
+	TWeakObjectPtr<UHttpGPTMessagingHandler> MessagingHandlerObject;
+	FHttpGPTMessage Message;
 
 private:
 	TSharedPtr<STextBlock> MessageBox;
@@ -96,9 +99,5 @@ private:
 
 	TArray<TSharedPtr<FString>> AvailableModels;
 
-#if ENGINE_MAJOR_VERSION >= 5
-	TObjectPtr<class UHttpGPTRequest> RequestReference;
-#else
-	class UHttpGPTRequest* RequestReference;
-#endif
+	TWeakObjectPtr<class UHttpGPTRequest> RequestReference;
 };

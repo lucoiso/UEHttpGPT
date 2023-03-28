@@ -5,8 +5,9 @@
 #pragma once
 
 #include <CoreMinimal.h>
-#include <Kismet/BlueprintAsyncActionBase.h>
 #include <Interfaces/IHttpRequest.h>
+#include <Kismet/BlueprintAsyncActionBase.h>
+#include <Kismet/BlueprintFunctionLibrary.h>
 #include "HttpGPTTypes.h"
 #include "HttpGPTRequest.generated.h"
 
@@ -20,6 +21,8 @@ UCLASS(NotPlaceable, Category = "HttpGPT", meta = (ExposedAsyncProxy = AsyncTask
 class HTTPGPT_API UHttpGPTRequest : public UBlueprintAsyncActionBase
 {
 	GENERATED_BODY()
+
+	friend class UHttpGPTTaskStatus;
 
 public:
 	UPROPERTY(BlueprintAssignable, Category = "HttpGPT")
@@ -55,9 +58,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "HttpGPT", meta = (DisplayName = "Stop HttpGPT Task"))
 	void StopHttpGPTTask();
 
-	const bool IsTaskActive() const;
-
-	UFUNCTION(BlueprintPure, Category = "AzSpeech")
+	UFUNCTION(BlueprintPure, Category = "HttpGPT")
 	const FHttpGPTOptions GetTaskOptions() const;
 
 	virtual void Activate() override;
@@ -88,11 +89,27 @@ private:
 
 	bool bInitialized = false;
 	bool bIsReadyToDestroy = false;
-	bool bIsActive = false;
+	bool bIsTaskActive = false;
 
 #if WITH_EDITOR
 	virtual void PrePIEEnded(bool bIsSimulating);
 
 	bool bEndingPIE = false;
 #endif
+};
+
+UCLASS(NotPlaceable, Category = "HttpGPT")
+class HTTPGPT_API UHttpGPTTaskStatus final : public UBlueprintFunctionLibrary
+{
+	GENERATED_BODY()
+
+public:
+	UFUNCTION(BlueprintPure, Category = "HttpGPT")
+	static bool IsTaskActive(const UHttpGPTRequest* Test);
+
+	UFUNCTION(BlueprintPure, Category = "HttpGPT")
+	static bool IsTaskReadyToDestroy(const UHttpGPTRequest* Test);
+
+	UFUNCTION(BlueprintPure, Category = "HttpGPT")
+	static bool IsTaskStillValid(const UHttpGPTRequest* Test);
 };
