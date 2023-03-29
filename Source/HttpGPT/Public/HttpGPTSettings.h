@@ -29,10 +29,10 @@ public:
 	UPROPERTY(GlobalConfig, EditAnywhere, Category = "Logging", Meta = (DisplayName = "Enable Internal Logs"))
 	bool bEnableInternalLogs;
 
-	UFUNCTION(BlueprintPure, Category = "AzSpeech | Settings", meta = (HidePin = "Self", DefaultToSelf = "Self", DisplayName = "Get Default Options", CompactNodeTitle = "HttpGPT Default Options"))
+	UFUNCTION(BlueprintPure, Category = "HttpGPT | Settings", meta = (HidePin = "Self", DefaultToSelf = "Self", DisplayName = "Get Default Options", CompactNodeTitle = "HttpGPT Default Options"))
 	static FHttpGPTOptions GetDefaultOptions();
 
-	UFUNCTION(BlueprintCallable, Category = "AzSpeech | Settings", meta = (HidePin = "Self", DefaultToSelf = "Self", DisplayName = "Set Default Options"))
+	UFUNCTION(BlueprintCallable, Category = "HttpGPT | Settings", meta = (HidePin = "Self", DefaultToSelf = "Self", DisplayName = "Set Default Options"))
 	static void SetDefaultOptions(const FHttpGPTOptions& Value);
 
 protected:
