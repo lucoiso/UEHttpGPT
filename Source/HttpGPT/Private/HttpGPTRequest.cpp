@@ -25,6 +25,16 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTRequest)
 #endif
 
+#if WITH_EDITOR
+UHttpGPTRequest* UHttpGPTRequest::EditorTask(const TArray<FHttpGPTMessage>& Messages, const FHttpGPTOptions Options)
+{
+	UHttpGPTRequest* const NewAsyncTask = SendMessages_CustomOptions(GEditor->GetEditorWorldContext().World(), Messages, Options);
+	NewAsyncTask->bIsEditorTask = true;
+
+	return NewAsyncTask;
+}
+#endif
+
 UHttpGPTRequest* UHttpGPTRequest::SendMessage_DefaultOptions(UObject* WorldContextObject, const FString& Message)
 {
 	return SendMessage_CustomOptions(WorldContextObject, Message, FHttpGPTOptions());
@@ -35,20 +45,20 @@ UHttpGPTRequest* UHttpGPTRequest::SendMessages_DefaultOptions(UObject* WorldCont
 	return SendMessages_CustomOptions(WorldContextObject, Messages, FHttpGPTOptions());
 }
 
-UHttpGPTRequest* UHttpGPTRequest::SendMessage_CustomOptions(UObject* WorldContextObject, const FString& Message, const FHttpGPTOptions& Options)
+UHttpGPTRequest* UHttpGPTRequest::SendMessage_CustomOptions(UObject* WorldContextObject, const FString& Message, const FHttpGPTOptions Options)
 {
 	return SendMessages_CustomOptions(WorldContextObject, { FHttpGPTMessage(EHttpGPTRole::User, Message) }, Options);
 }
 
-UHttpGPTRequest* UHttpGPTRequest::SendMessages_CustomOptions(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages, const FHttpGPTOptions& Options)
+UHttpGPTRequest* UHttpGPTRequest::SendMessages_CustomOptions(UObject* WorldContextObject, const TArray<FHttpGPTMessage>& Messages, const FHttpGPTOptions Options)
 {
-	UHttpGPTRequest* const Task = NewObject<UHttpGPTRequest>();
-	Task->Messages = Messages;
-	Task->TaskOptions = Options;
+	UHttpGPTRequest* const NewAsyncTask = NewObject<UHttpGPTRequest>();
+	NewAsyncTask->Messages = Messages;
+	NewAsyncTask->TaskOptions = Options;
 
-	Task->RegisterWithGameInstance(WorldContextObject);
+	NewAsyncTask->RegisterWithGameInstance(WorldContextObject);
 
-	return Task;
+	return NewAsyncTask;
 }
 
 void UHttpGPTRequest::StopHttpGPTTask()
@@ -102,7 +112,14 @@ void UHttpGPTRequest::Activate()
 	);
 
 #if WITH_EDITOR
-	FEditorDelegates::PrePIEEnded.AddUObject(this, &UHttpGPTRequest::PrePIEEnded);
+	if (bIsEditorTask)
+	{
+		SetFlags(RF_Standalone);
+	}
+	else
+	{
+		FEditorDelegates::PrePIEEnded.AddUObject(this, &UHttpGPTRequest::PrePIEEnded);
+	}
 #endif
 }
 
@@ -118,6 +135,17 @@ void UHttpGPTRequest::SetReadyToDestroy()
 	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Setting task as Ready to Destroy"), *FString(__func__), GetUniqueID());
 
 #if WITH_EDITOR
+	if (bIsEditorTask)
+	{
+		ClearFlags(RF_Standalone);
+
+#if ENGINE_MAJOR_VERSION >= 5
+		MarkAsGarbage();
+#else
+		MarkPendingKill();
+#endif
+	}
+
 	if (FEditorDelegates::PrePIEEnded.IsBoundToObject(this))
 	{
 		FEditorDelegates::PrePIEEnded.RemoveAll(this);
