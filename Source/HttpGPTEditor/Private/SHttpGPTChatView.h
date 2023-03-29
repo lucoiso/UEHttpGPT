@@ -91,12 +91,9 @@ protected:
 private:
 	TSharedPtr<SVerticalBox> ChatBox;
 	TArray<SHttpGPTChatItemPtr> ChatItems;
-
 	TSharedPtr<SScrollBox> ChatScrollBox;
-
 	TSharedPtr<SEditableTextBox> InputTextBox;
 	TSharedPtr<STextComboBox> ModelsComboBox;
-
 	TArray<TSharedPtr<FString>> AvailableModels;
 
 	TWeakObjectPtr<class UHttpGPTRequest> RequestReference;

@@ -71,6 +71,8 @@ void UHttpGPTMessagingHandler::ProcessResponse(const FHttpGPTResponse& Response)
 
 void UHttpGPTMessagingHandler::Destroy()
 {
+	ClearFlags(RF_Standalone);
+
 #if ENGINE_MAJOR_VERSION >= 5
 	MarkAsGarbage();
 #else
@@ -83,6 +85,8 @@ void SHttpGPTChatItem::Construct(const FArguments& InArgs)
 	Message = FHttpGPTMessage(InArgs._MessageRole, InArgs._InputText);
 
 	MessagingHandlerObject = NewObject<UHttpGPTMessagingHandler>();
+	MessagingHandlerObject->SetFlags(RF_Standalone);
+
 	MessagingHandlerObject->OnMessageContentUpdated.BindLambda(
 		[this](FString Content)
 		{
@@ -217,7 +221,7 @@ FReply SHttpGPTChatView::HandleSendMessageButton()
 	Options.Model = UHttpGPTHelper::NameToModel(*(*ModelsComboBox->GetSelectedItem().Get()));
 	Options.bStream = true;
 
-	RequestReference = UHttpGPTRequest::SendMessages_CustomOptions(GEditor->GetEditorWorldContext().World(), GetChatHistory(), Options);
+	RequestReference = UHttpGPTRequest::EditorTask(GetChatHistory(), Options);
 
 	RequestReference->ProgressStarted.AddDynamic(AssistantMessage->MessagingHandlerObject.Get(), &UHttpGPTMessagingHandler::ProcessUpdated);
 	RequestReference->ProgressUpdated.AddDynamic(AssistantMessage->MessagingHandlerObject.Get(), &UHttpGPTMessagingHandler::ProcessUpdated);
