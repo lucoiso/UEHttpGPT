@@ -68,22 +68,19 @@ bool UHttpGPTChatRequest::CanActivateTask() const
 	return Super::CanActivateTask() && !HttpGPT::Internal::HasEmptyParam(Messages);
 }
 
+bool UHttpGPTChatRequest::CanBindProgress() const
+{
+	return GetChatOptions().bStream;
+}
+
+FString UHttpGPTChatRequest::GetEndpointURL() const
+{
+	return FString::Format(TEXT("https://api.openai.com/{0}"), { UHttpGPTHelper::GetEndpointForModel(GetChatOptions().Model).ToString() });
+}
+
 const FHttpGPTChatOptions UHttpGPTChatRequest::GetChatOptions() const
 {
 	return ChatOptions;
-}
-
-void UHttpGPTChatRequest::InitializeRequest()
-{
-	FScopeLock Lock(&Mutex);
-
-	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Initializing request object"), *FString(__func__), GetUniqueID());
-
-	HttpRequest = FHttpModule::Get().CreateRequest();	
-	HttpRequest->SetURL(FString::Format(TEXT("https://api.openai.com/{0}"), { UHttpGPTHelper::GetEndpointForModel(GetChatOptions().Model).ToString() }));
-	HttpRequest->SetVerb("POST");
-	HttpRequest->SetHeader("Content-Type", "application/json");
-	HttpRequest->SetHeader("Authorization", FString::Format(TEXT("Bearer {0}"), { GetCommonOptions().APIKey.ToString()}));
 }
 
 void UHttpGPTChatRequest::SetRequestContent()
@@ -156,50 +153,6 @@ void UHttpGPTChatRequest::SetRequestContent()
 	FJsonSerializer::Serialize(JsonRequest.ToSharedRef(), Writer);
 
 	HttpRequest->SetContentAsString(RequestContentString);
-}
-
-void UHttpGPTChatRequest::BindRequestCallbacks()
-{
-	FScopeLock Lock(&Mutex);
-
-	if (!HttpRequest.IsValid())
-	{
-		return;
-	}
-
-	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Binding callbacks"), *FString(__func__), GetUniqueID());
-
-	if (GetChatOptions().bStream)
-	{
-		HttpRequest->OnRequestProgress().BindLambda(
-			[this](FHttpRequestPtr Request, int32 BytesSent, int32 BytesReceived)
-			{
-				FScopeTryLock Lock(&Mutex);
-
-				if (!Lock.IsLocked() || !IsValid(this) || !bIsTaskActive)
-				{
-					return;
-				}
-
-				OnProgressUpdated(Request->GetResponse()->GetContentAsString(), BytesSent, BytesReceived);
-			}
-		);
-	}
-
-	HttpRequest->OnProcessRequestComplete().BindLambda(
-		[this](FHttpRequestPtr Request, FHttpResponsePtr RequestResponse, bool bWasSuccessful)
-		{
-			FScopeTryLock Lock(&Mutex);
-
-			if (!Lock.IsLocked() || !IsValid(this) || !bIsTaskActive)
-			{
-				return;
-			}
-
-			OnProgressCompleted(RequestResponse->GetContentAsString(), bWasSuccessful);
-			SetReadyToDestroy();
-		}
-	);
 }
 
 void UHttpGPTChatRequest::OnProgressUpdated(const FString& Content, int32 BytesSent, int32 BytesReceived)

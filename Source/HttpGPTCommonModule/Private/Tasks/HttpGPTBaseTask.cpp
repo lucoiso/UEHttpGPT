@@ -6,9 +6,16 @@
 #include "Management/HttpGPTSettings.h"
 #include "HttpGPTInternalFuncs.h"
 #include "LogHttpGPT.h"
+
 #include <HttpModule.h>
-#include <Async/Async.h>
+#include <Interfaces/IHttpRequest.h>
+#include <Interfaces/IHttpResponse.h>
 #include <Dom/JsonObject.h>
+#include <Serialization/JsonWriter.h>
+#include <Serialization/JsonReader.h>
+#include <Serialization/JsonSerializer.h>
+#include <Misc/ScopeTryLock.h>
+#include <Async/Async.h>
 
 #if WITH_EDITOR
 #include <Editor.h>
@@ -133,6 +140,73 @@ void UHttpGPTBaseTask::PrePIEEnded(bool bIsSimulating)
 bool UHttpGPTBaseTask::CanActivateTask() const
 {
 	return !HttpGPT::Internal::HasEmptyParam(GetCommonOptions().APIKey);
+}
+
+bool UHttpGPTBaseTask::CanBindProgress() const
+{
+	return true;
+}
+
+FString UHttpGPTBaseTask::GetEndpointURL() const
+{
+	return FString();
+}
+
+void UHttpGPTBaseTask::InitializeRequest()
+{
+	FScopeLock Lock(&Mutex);
+
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Initializing request object"), *FString(__func__), GetUniqueID());
+
+	HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetURL(GetEndpointURL());
+	HttpRequest->SetVerb("POST");
+	HttpRequest->SetHeader("Content-Type", "application/json");
+	HttpRequest->SetHeader("Authorization", FString::Format(TEXT("Bearer {0}"), { GetCommonOptions().APIKey.ToString() }));
+}
+
+void UHttpGPTBaseTask::BindRequestCallbacks()
+{
+	FScopeLock Lock(&Mutex);
+
+	if (!HttpRequest.IsValid())
+	{
+		return;
+	}
+
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Binding callbacks"), *FString(__func__), GetUniqueID());
+
+	if (CanBindProgress())
+	{
+		HttpRequest->OnRequestProgress().BindLambda(
+			[this](FHttpRequestPtr Request, int32 BytesSent, int32 BytesReceived)
+			{
+				FScopeTryLock Lock(&Mutex);
+
+				if (!Lock.IsLocked() || !IsValid(this) || !bIsTaskActive)
+				{
+					return;
+				}
+
+				OnProgressUpdated(Request->GetResponse()->GetContentAsString(), BytesSent, BytesReceived);
+			}
+		);
+	}
+
+	HttpRequest->OnProcessRequestComplete().BindLambda(
+		[this](FHttpRequestPtr Request, FHttpResponsePtr RequestResponse, bool bWasSuccessful)
+		{
+			FScopeTryLock Lock(&Mutex);
+
+			if (!Lock.IsLocked() || !IsValid(this) || !bIsTaskActive)
+			{
+				return;
+			}
+
+			OnProgressCompleted(RequestResponse->GetContentAsString(), bWasSuccessful);
+			SetReadyToDestroy();
+		}
+	);
 }
 
 void UHttpGPTBaseTask::SendRequest()

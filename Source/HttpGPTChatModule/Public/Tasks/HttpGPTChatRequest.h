@@ -48,7 +48,7 @@ public:
 	static UHttpGPTChatRequest* SendMessage_CustomOptions(UObject* WorldContextObject, const FString& Message, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTChatOptions ChatOptions);
 
 	UFUNCTION(BlueprintCallable, Category = "HttpGPT | Chat | Custom", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages with Custom Options"))
-		static UHttpGPTChatRequest* SendMessages_CustomOptions(UObject* WorldContextObject, const TArray<FHttpGPTChatMessage>& Messages, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTChatOptions ChatOptions);
+	static UHttpGPTChatRequest* SendMessages_CustomOptions(UObject* WorldContextObject, const TArray<FHttpGPTChatMessage>& Messages, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTChatOptions ChatOptions);
 
 	UFUNCTION(BlueprintPure, Category = "HttpGPT | Chat")
 	const FHttpGPTChatOptions GetChatOptions() const;
@@ -58,10 +58,10 @@ protected:
 	FHttpGPTChatOptions ChatOptions;
 
 	virtual bool CanActivateTask() const override;
+	virtual bool CanBindProgress() const override;
+	virtual FString GetEndpointURL() const override;
 
-	virtual void InitializeRequest() override;
 	virtual void SetRequestContent() override;
-	virtual void BindRequestCallbacks() override;
 	virtual void OnProgressUpdated(const FString& Content, int32 BytesSent, int32 BytesReceived) override;
 	virtual void OnProgressCompleted(const FString& Content, const bool bWasSuccessful) override;
 
@@ -80,6 +80,6 @@ class HTTPGPTCHATMODULE_API UHttpGPTChatHelper final : public UBlueprintFunction
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintPure, Category = "HttpGPT | Chat")
+	UFUNCTION(BlueprintPure, Category = "HttpGPT | Chat", Meta = (DisplayName = "Cast to HttpGPT Chat Request"))
 	static UHttpGPTChatRequest* CastToHTTPGPTChatRequest(UObject* Object);
 };

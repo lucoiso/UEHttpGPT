@@ -47,15 +47,18 @@ protected:
 	mutable FCriticalSection Mutex;
 
 	virtual bool CanActivateTask() const;
+	virtual bool CanBindProgress() const;
+	virtual FString GetEndpointURL() const;
 
 	void SendRequest();
 
 	/* Return true if contains error */
 	const bool CheckError(const TSharedPtr<FJsonObject>& JsonObject, FHttpGPTCommonError& OutputError) const;
 
-	virtual void InitializeRequest() {};
+	void InitializeRequest();
+	void BindRequestCallbacks();
+
 	virtual void SetRequestContent() {};
-	virtual void BindRequestCallbacks() {};
 	virtual void OnProgressUpdated(const FString& Content, int32 BytesSent, int32 BytesReceived) {};
 	virtual void OnProgressCompleted(const FString& Content, const bool bWasSuccessful) {};
 

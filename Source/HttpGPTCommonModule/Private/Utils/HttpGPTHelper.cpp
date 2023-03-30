@@ -200,10 +200,10 @@ const FName UHttpGPTHelper::FormatToName(const EHttpGPTResponseFormat& Format)
 	switch (Format)
 	{
 		case EHttpGPTResponseFormat::url:
-			return "URL";
+			return "url";
 
 		case EHttpGPTResponseFormat::b64_json:
-			return "B64";
+			return "b64_json";
 
 		default:
 			break;
@@ -214,11 +214,11 @@ const FName UHttpGPTHelper::FormatToName(const EHttpGPTResponseFormat& Format)
 
 const EHttpGPTResponseFormat UHttpGPTHelper::NameToFormat(const FName Format)
 {
-	if (Format.IsEqual("URL", ENameCase::IgnoreCase))
+	if (Format.IsEqual("url", ENameCase::IgnoreCase))
 	{
 		return EHttpGPTResponseFormat::url;
 	}
-	else if (Format.IsEqual("B64", ENameCase::IgnoreCase))
+	else if (Format.IsEqual("b64_json", ENameCase::IgnoreCase))
 	{
 		return EHttpGPTResponseFormat::b64_json;
 	}
