@@ -74,7 +74,7 @@ private:
 	FHttpGPTChatResponse Response;
 };
 
-UCLASS(NotPlaceable, Category = "HttpGPT | Chat")
+UCLASS(NotPlaceable, Category = "HttpGPT | Chat", Meta = (DisplayName = "HttpGPT Chat Helper"))
 class HTTPGPTCHATMODULE_API UHttpGPTChatHelper final : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()

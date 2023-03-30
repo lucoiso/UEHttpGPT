@@ -25,6 +25,21 @@ enum class EHttpGPTResponseFormat : uint8
 	b64_json	UMETA(DisplayName = "B64")
 };
 
+USTRUCT(BlueprintType, Category = "HttpGPT | Image", Meta = (DisplayName = "HttpGPT Image Data"))
+struct HTTPGPTCOMMONMODULE_API FHttpGPTImageData
+{	
+	GENERATED_BODY()
+
+	FHttpGPTImageData() = default;
+	FHttpGPTImageData(const FString& Data, const EHttpGPTResponseFormat& DataFormat) : Content(Data), Format(DataFormat) {}
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Image")
+	FString Content;
+	
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Image")
+	EHttpGPTResponseFormat Format;
+};
+
 USTRUCT(BlueprintType, Category = "HttpGPT | Image", Meta = (DisplayName = "HttpGPT Image Response"))
 struct HTTPGPTCOMMONMODULE_API FHttpGPTImageResponse
 {
@@ -36,7 +51,7 @@ struct HTTPGPTCOMMONMODULE_API FHttpGPTImageResponse
 	int32 Created = 0;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Image")
-	TArray<FString> Data;
+	TArray<FHttpGPTImageData> Data;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Image")
 	bool bSuccess = false;

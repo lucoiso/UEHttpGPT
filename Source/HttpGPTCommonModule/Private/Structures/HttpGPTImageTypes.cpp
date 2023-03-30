@@ -3,7 +3,7 @@
 // Repo: https://github.com/lucoiso/UEHttpGPT
 
 #include "Structures/HttpGPTImageTypes.h"
-#include <Management/HttpGPTSettings.h>
+#include "Management/HttpGPTSettings.h"
 
 FHttpGPTImageOptions::FHttpGPTImageOptions()
 {

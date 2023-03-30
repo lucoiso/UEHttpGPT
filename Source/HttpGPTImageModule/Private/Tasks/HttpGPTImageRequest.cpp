@@ -17,6 +17,9 @@
 #include <Serialization/JsonSerializer.h>
 #include <Misc/ScopeTryLock.h>
 #include <Async/Async.h>
+#include <Engine/Texture2D.h>
+#include <Misc/Base64.h>
+#include <ImageUtils.h>
 
 #if WITH_EDITOR
 #include <Editor.h>
@@ -172,11 +175,61 @@ void UHttpGPTImageRequest::DeserializeResponse(const FString& Content)
 	}
 
 	Response.bSuccess = true;
+	Response.Created = JsonResponse->GetNumberField("created");
 
-	// Work in Progress ...
+	const TArray<TSharedPtr<FJsonValue>> DataArray = JsonResponse->GetArrayField("data");
+	for (auto Iterator = DataArray.CreateConstIterator(); Iterator; ++Iterator)
+	{
+		Response.Data.Add(FHttpGPTImageData((*Iterator)->AsObject()->GetStringField(UHttpGPTHelper::FormatToName(GetImageOptions().Format).ToString()), GetImageOptions().Format));
+	}
 }
 
 UHttpGPTImageRequest* UHttpGPTImageHelper::CastToHTTPGPTImageRequest(UObject* Object)
 {
 	return Cast<UHttpGPTImageRequest>(Object);
+}
+
+void UHttpGPTImageHelper::GenerateImage(const FHttpGPTImageData& ImageData, const FHttpGPTImageGenerate& Callback)
+{
+	switch (ImageData.Format)
+	{
+		case EHttpGPTResponseFormat::url:
+			GenerateImageFromURL(ImageData, Callback);
+			break;
+
+		case EHttpGPTResponseFormat::b64_json:
+			GenerateImageFromB64(ImageData, Callback);
+			break;
+
+		default:
+			break;
+	}
+}
+
+void UHttpGPTImageHelper::GenerateImageFromURL(const FHttpGPTImageData& ImageData, const FHttpGPTImageGenerate& Callback)
+{
+	TSharedRef<IHttpRequest, ESPMode::ThreadSafe> HttpRequest = FHttpModule::Get().CreateRequest();
+	HttpRequest->SetURL(ImageData.Content);
+	HttpRequest->SetVerb("GET");
+	HttpRequest->OnProcessRequestComplete().BindLambda(
+		[=](FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess)
+		{
+			if (bSuccess && Response.IsValid())
+			{
+				Callback.Execute(FImageUtils::ImportBufferAsTexture2D(Response->GetContent()));
+			}
+			else
+			{
+				Callback.Execute(nullptr);
+			}
+		}
+	);
+	HttpRequest->ProcessRequest();
+}
+
+void UHttpGPTImageHelper::GenerateImageFromB64(const FHttpGPTImageData& ImageData, const FHttpGPTImageGenerate& Callback)
+{
+	TArray<uint8> DecodedBytes;
+	FBase64::Decode(ImageData.Content, DecodedBytes);
+	Callback.Execute(FImageUtils::ImportBufferAsTexture2D(DecodedBytes));
 }

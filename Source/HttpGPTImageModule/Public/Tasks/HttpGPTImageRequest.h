@@ -73,7 +73,9 @@ private:
 	FHttpGPTImageResponse Response;
 };
 
-UCLASS(NotPlaceable, Category = "HttpGPT | Image")
+DECLARE_DYNAMIC_DELEGATE_OneParam(FHttpGPTImageGenerate, class UTexture2D*, Image);
+
+UCLASS(NotPlaceable, Category = "HttpGPT | Image", Meta = (DisplayName = "HttpGPT Image Helper"))
 class HTTPGPTIMAGEMODULE_API UHttpGPTImageHelper final : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
@@ -81,4 +83,11 @@ class HTTPGPTIMAGEMODULE_API UHttpGPTImageHelper final : public UBlueprintFuncti
 public:
 	UFUNCTION(BlueprintPure, Category = "HttpGPT | Image", Meta = (DisplayName = "Cast to HttpGPT Image Request"))
 	static UHttpGPTImageRequest* CastToHTTPGPTImageRequest(UObject* Object);
+
+	UFUNCTION(BlueprintCallable, Category = "HttpGPT | Image")
+	static void GenerateImage(const FHttpGPTImageData& ImageData, const FHttpGPTImageGenerate& Callback);
+
+private:
+	static void GenerateImageFromURL(const FHttpGPTImageData& ImageData, const FHttpGPTImageGenerate& Callback);
+	static void GenerateImageFromB64(const FHttpGPTImageData& ImageData, const FHttpGPTImageGenerate& Callback);
 };
