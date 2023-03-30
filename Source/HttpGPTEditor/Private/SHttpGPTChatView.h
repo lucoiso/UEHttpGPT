@@ -6,7 +6,8 @@
 
 #include <CoreMinimal.h>
 #include <HttpGPTTypes.h>
-#include <Widgets/Input/SEditableTextBox.h>
+#include <Widgets/Text/STextBlock.h>
+#include <Widgets/Text/SMultiLineEditableText.h>
 #include <Widgets/Input/STextComboBox.h>
 #include <Widgets/Layout/SScrollBox.h>
 #include "SHttpGPTChatView.generated.h"
@@ -55,13 +56,14 @@ public:
 
 	void Construct(const FArguments& InArgs);
 
-	FText GetMessageText() const;
+	FString GetRoleText() const;
+	FString GetMessageText() const;
 
 	TWeakObjectPtr<UHttpGPTMessagingHandler> MessagingHandlerObject;
-	FHttpGPTMessage Message;
 
 private:
-	TSharedPtr<STextBlock> MessageBox;
+	TSharedPtr<STextBlock> Role;
+	TSharedPtr<SMultiLineEditableText> Message;
 };
 
 typedef TSharedPtr<SHttpGPTChatItem> SHttpGPTChatItemPtr;

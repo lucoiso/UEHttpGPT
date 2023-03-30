@@ -41,6 +41,12 @@ void UHttpGPTMessagingHandler::ProcessCompleted(const FHttpGPTResponse& Response
 
 void UHttpGPTMessagingHandler::ProcessResponse(const FHttpGPTResponse& Response)
 {	
+	bool bScrollToEnd = false;
+	if (ScrollBoxReference.IsValid())
+	{
+		bScrollToEnd = FMath::Abs(ScrollBoxReference->GetScrollOffsetOfEnd() - ScrollBoxReference->GetScrollOffset()) <= 8.f;
+	}
+
 	if (!Response.bSuccess)
 	{
 		const FStringFormatOrderedArguments Arguments_ErrorDetails{
@@ -63,7 +69,7 @@ void UHttpGPTMessagingHandler::ProcessResponse(const FHttpGPTResponse& Response)
 		return;
 	}
 
-	if (ScrollBoxReference.IsValid())
+	if (ScrollBoxReference.IsValid() && bScrollToEnd)
 	{
 		ScrollBoxReference->ScrollToEnd();
 	}
@@ -82,17 +88,32 @@ void UHttpGPTMessagingHandler::Destroy()
 
 void SHttpGPTChatItem::Construct(const FArguments& InArgs)
 {
-	Message = FHttpGPTMessage(InArgs._MessageRole, InArgs._InputText);
+	if (InArgs._MessageRole == EHttpGPTRole::Assistant)
+	{
+		MessagingHandlerObject = NewObject<UHttpGPTMessagingHandler>();
+		MessagingHandlerObject->SetFlags(RF_Standalone);
 
-	MessagingHandlerObject = NewObject<UHttpGPTMessagingHandler>();
-	MessagingHandlerObject->SetFlags(RF_Standalone);
+		MessagingHandlerObject->OnMessageContentUpdated.BindLambda(
+			[this](FString Content)
+			{
+				if (!Message.IsValid())
+				{
+					return;
+				}
 
-	MessagingHandlerObject->OnMessageContentUpdated.BindLambda(
-		[this](FString Content)
-		{
-			Message.Content = Content;
-		}
-	);
+#if ENGINE_MAJOR_VERSION > 5 || (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1)
+				const FTextSelection SelectedText = Message->GetSelection();
+				Message->SetText(FText::FromString(Content));
+				Message->SelectText(SelectedText.GetBeginning(), SelectedText.GetEnd());
+#else
+				Message->SetText(FText::FromString(Content));
+#endif
+			}
+		);
+	}
+
+	const FText RoleText = FText::FromString(InArgs._MessageRole == EHttpGPTRole::User ? "User:" : "Assistant:");
+	const FMargin SlotPadding = InArgs._MessageRole == EHttpGPTRole::User ? FMargin(Slot_Padding * 16.f, Slot_Padding, Slot_Padding, Slot_Padding) : FMargin(Slot_Padding, Slot_Padding, Slot_Padding * 16.f, Slot_Padding);
 
 #if ENGINE_MAJOR_VERSION < 5
 	using FAppStyle = FEditorStyle;
@@ -104,7 +125,7 @@ void SHttpGPTChatItem::Construct(const FArguments& InArgs)
 	[
 		SNew(SVerticalBox)
 		+ SVerticalBox::Slot()
-		.Padding(Message.Role == EHttpGPTRole::User ? FMargin(Slot_Padding * 16.f, Slot_Padding, Slot_Padding, Slot_Padding) : FMargin(Slot_Padding, Slot_Padding, Slot_Padding * 16.f, Slot_Padding))
+		.Padding(SlotPadding)
 		[
 			SNew(SBorder)
 			.BorderImage(AppStyle.GetBrush("Menu.Background"))
@@ -114,26 +135,34 @@ void SHttpGPTChatItem::Construct(const FArguments& InArgs)
 				.Padding(Slot_Padding)
 				.AutoHeight()
 				[
-					SNew(STextBlock)
+					SAssignNew(Role, STextBlock)
 					.Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
-					.Text(FText::FromString(Message.Role == EHttpGPTRole::User ? "User:" : "Assistant:"))
+					.Text(RoleText)
 				]
 				+ SVerticalBox::Slot()
 				.Padding(FMargin(Slot_Padding * 4, Slot_Padding, Slot_Padding, Slot_Padding))
 				.FillHeight(1.f)
 				[
-					SAssignNew(MessageBox, STextBlock)
+					SAssignNew(Message, SMultiLineEditableText)
+					.AllowMultiLine(true)
 					.AutoWrapText(true)
-					.Text(this, &SHttpGPTChatItem::GetMessageText)
+					.IsReadOnly(true)
+					.AllowContextMenu(true)
+					.Text(FText::FromString(InArgs._InputText))
 				]
 			]
 		]
 	];
 }
 
-FText SHttpGPTChatItem::GetMessageText() const
+FString SHttpGPTChatItem::GetRoleText() const
 {
-	return FText::FromString(Message.Content);
+	return Role.IsValid() ? Role->GetText().ToString() : FString();
+}
+
+FString SHttpGPTChatItem::GetMessageText() const
+{
+	return Message.IsValid() ? Message->GetText().ToString() : FString();
 }
 
 void SHttpGPTChatView::Construct([[maybe_unused]] const FArguments&)
@@ -278,7 +307,7 @@ TArray<FHttpGPTMessage> SHttpGPTChatView::GetChatHistory() const
 
 	for (const auto& Item : ChatItems)
 	{
-		Output.Add(Item->Message);
+		Output.Add(FHttpGPTMessage(*Item->GetRoleText(), Item->GetMessageText()));
 	}
 
 	return Output;
