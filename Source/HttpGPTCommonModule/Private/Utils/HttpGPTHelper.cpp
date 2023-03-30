@@ -156,3 +156,72 @@ const bool UHttpGPTHelper::ModelSupportsChat(const EHttpGPTChatModel& Model)
 
 	return false;
 }
+
+const FName UHttpGPTHelper::SizeToName(const EHttpGPTImageSize& Size)
+{
+	switch (Size)
+	{
+		case EHttpGPTImageSize::x256:
+				return "256x256";
+
+		case EHttpGPTImageSize::x512:
+			return "512x512";
+
+		case EHttpGPTImageSize::x1024:
+			return "1024x1024";
+
+		default:
+			break;
+	}
+
+	return NAME_None;
+}
+
+const EHttpGPTImageSize UHttpGPTHelper::NameToSize(const FName Size)
+{
+	if (Size.IsEqual("256x256", ENameCase::IgnoreCase))
+	{
+		return EHttpGPTImageSize::x256;
+	}
+	else if (Size.IsEqual("512x512", ENameCase::IgnoreCase))
+	{
+		return EHttpGPTImageSize::x512;
+	}
+	else if (Size.IsEqual("1024x1024", ENameCase::IgnoreCase))
+	{
+		return EHttpGPTImageSize::x1024;
+	}
+
+	return EHttpGPTImageSize::x256;
+}
+
+const FName UHttpGPTHelper::FormatToName(const EHttpGPTResponseFormat& Format)
+{
+	switch (Format)
+	{
+		case EHttpGPTResponseFormat::url:
+			return "URL";
+
+		case EHttpGPTResponseFormat::b64_json:
+			return "B64";
+
+		default:
+			break;
+	}
+
+	return NAME_None;
+}
+
+const EHttpGPTResponseFormat UHttpGPTHelper::NameToFormat(const FName Format)
+{
+	if (Format.IsEqual("URL", ENameCase::IgnoreCase))
+	{
+		return EHttpGPTResponseFormat::url;
+	}
+	else if (Format.IsEqual("B64", ENameCase::IgnoreCase))
+	{
+		return EHttpGPTResponseFormat::b64_json;
+	}
+
+	return EHttpGPTResponseFormat::url;
+}

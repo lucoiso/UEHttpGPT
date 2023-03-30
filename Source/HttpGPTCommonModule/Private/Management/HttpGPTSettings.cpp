@@ -10,7 +10,7 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTSettings)
 #endif
 
-UHttpGPTSettings::UHttpGPTSettings(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), APIKey(NAME_None), bEnableInternalLogs(false)
+UHttpGPTSettings::UHttpGPTSettings(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), bEnableInternalLogs(false)
 {
 	CategoryName = TEXT("Plugins");
 
@@ -23,17 +23,17 @@ const UHttpGPTSettings* UHttpGPTSettings::Get()
 	return Instance;
 }
 
-FName UHttpGPTSettings::GetAPIKey()
+FHttpGPTCommonOptions UHttpGPTSettings::GetCommonOptions()
 {
-	return GetDefault<UHttpGPTSettings>()->APIKey;
+	return GetDefault<UHttpGPTSettings>()->CommonOptions;
 }
 
-void UHttpGPTSettings::SetAPIKey(const FName& Value)
+void UHttpGPTSettings::SetCommonOptions(const FHttpGPTCommonOptions& Value)
 {
 	UHttpGPTSettings* const Settings = GetMutableDefault<UHttpGPTSettings>();
-	Settings->APIKey = Value;
+	Settings->CommonOptions = Value;
 
-	Settings->SaveAndReload(GET_MEMBER_NAME_CHECKED(UHttpGPTSettings, APIKey));
+	Settings->SaveAndReload(GET_MEMBER_NAME_CHECKED(UHttpGPTSettings, CommonOptions));
 }
 
 FHttpGPTChatOptions UHttpGPTSettings::GetChatOptions()
@@ -47,6 +47,19 @@ void UHttpGPTSettings::SetChatOptions(const FHttpGPTChatOptions& Value)
 	Settings->ChatOptions = Value;
 
 	Settings->SaveAndReload(GET_MEMBER_NAME_CHECKED(UHttpGPTSettings, ChatOptions));
+}
+
+FHttpGPTImageOptions UHttpGPTSettings::GetImageOptions()
+{
+	return GetDefault<UHttpGPTSettings>()->ImageOptions;
+}
+
+void UHttpGPTSettings::SetImageOptions(const FHttpGPTImageOptions& Value)
+{
+	UHttpGPTSettings* const Settings = GetMutableDefault<UHttpGPTSettings>();
+	Settings->ImageOptions = Value;
+
+	Settings->SaveAndReload(GET_MEMBER_NAME_CHECKED(UHttpGPTSettings, ImageOptions));
 }
 
 #if WITH_EDITOR
@@ -69,7 +82,8 @@ void UHttpGPTSettings::PostInitProperties()
 
 void UHttpGPTSettings::SetToDefaults()
 {
-	APIKey = NAME_None;
+	CommonOptions.APIKey = NAME_None;
+	CommonOptions.User = NAME_None;
 
 	ChatOptions.Model = EHttpGPTChatModel::gpt35turbo;
 	ChatOptions.MaxTokens = 2048;
@@ -81,7 +95,10 @@ void UHttpGPTSettings::SetToDefaults()
 	ChatOptions.PresencePenalty = 0.f;
 	ChatOptions.FrequencyPenalty = 0.f;
 	ChatOptions.LogitBias = TMap<int32, float>();
-	ChatOptions.User = NAME_None;
+
+	ImageOptions.ImagesNum = 1;
+	ImageOptions.Size = EHttpGPTImageSize::x256;
+	ImageOptions.Format = EHttpGPTResponseFormat::url;
 }
 
 void UHttpGPTSettings::SaveAndReload(const FName& PropertyName)

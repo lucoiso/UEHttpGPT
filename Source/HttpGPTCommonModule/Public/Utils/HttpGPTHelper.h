@@ -7,6 +7,7 @@
 #include <CoreMinimal.h>
 #include <Kismet/BlueprintFunctionLibrary.h>
 #include "Structures/HttpGPTChatTypes.h"
+#include "Structures/HttpGPTImageTypes.h"
 #include "HttpGPTHelper.generated.h"
 
 /**
@@ -38,4 +39,17 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "HttpGPT | Chat", meta = (DisplayName = "Model Supports Chat"))
 	static const bool ModelSupportsChat(const EHttpGPTChatModel& Model);
+
+	
+	UFUNCTION(BlueprintPure, Category = "HttpGPT | Image", meta = (DisplayName = "Convert HttpGPT Size to Name"))
+	static const FName SizeToName(const EHttpGPTImageSize& Size);
+
+	UFUNCTION(BlueprintPure, Category = "HttpGPT | Image", meta = (DisplayName = "Convert Name to HttpGPT Size"))
+	static const EHttpGPTImageSize NameToSize(const FName Size);
+
+	UFUNCTION(BlueprintPure, Category = "HttpGPT | Image", meta = (DisplayName = "Convert HttpGPT Format to Name"))
+	static const FName FormatToName(const EHttpGPTResponseFormat& Format);
+
+	UFUNCTION(BlueprintPure, Category = "HttpGPT | Image", meta = (DisplayName = "Convert Name to HttpGPT Format"))
+	static const EHttpGPTResponseFormat NameToFormat(const FName Format);
 };

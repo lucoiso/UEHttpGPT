@@ -8,6 +8,7 @@
 #include <Interfaces/IHttpRequest.h>
 #include <Kismet/BlueprintAsyncActionBase.h>
 #include <Kismet/BlueprintFunctionLibrary.h>
+#include "Structures/HttpGPTCommonTypes.h"
 #include "HttpGPTBaseTask.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FHttpGPTGenericDelegate);
@@ -37,17 +38,20 @@ public:
 	virtual void SetReadyToDestroy() override;
 
 	UFUNCTION(BlueprintPure, Category = "HttpGPT", Meta = (DisplayName = "Get API Key"))
-	const FName GetAPIKey() const;
+	const FHttpGPTCommonOptions GetCommonOptions() const;
 
 protected:
 	TSharedPtr<IHttpRequest, ESPMode::ThreadSafe> HttpRequest;
-	FName APIKey;
+	FHttpGPTCommonOptions CommonOptions;
 
 	mutable FCriticalSection Mutex;
 
 	virtual bool CanActivateTask() const;
 
 	void SendRequest();
+
+	/* Return true if contains error */
+	const bool CheckError(const TSharedPtr<FJsonObject>& JsonObject, FHttpGPTCommonError& OutputError) const;
 
 	virtual void InitializeRequest() {};
 	virtual void SetRequestContent() {};

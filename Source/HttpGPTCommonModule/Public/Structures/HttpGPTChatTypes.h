@@ -8,6 +8,7 @@
 
 #include <CoreMinimal.h>
 #include <Dom/JsonValue.h>
+#include "Structures/HttpGPTCommonTypes.h"
 #include "HttpGPTChatTypes.generated.h"
 
 UENUM(BlueprintType, Category = "HttpGPT | Chat", Meta = (DisplayName = "HttpGPT Chat Role"))
@@ -71,23 +72,6 @@ struct HTTPGPTCOMMONMODULE_API FHttpGPTChatUsage
 	int32 TotalTokens = 0;
 };
 
-USTRUCT(BlueprintType, Category = "HttpGPT | Chat", Meta = (DisplayName = "HttpGPT Chat Error"))
-struct HTTPGPTCOMMONMODULE_API FHttpGPTChatError
-{
-	GENERATED_BODY()
-
-	FHttpGPTChatError() = default;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat")
-	FName Type;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat")
-	FName Code;
-
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat")
-	FString Message;
-};
-
 USTRUCT(BlueprintType, Category = "HttpGPT | Chat", Meta = (DisplayName = "HttpGPT Chat Response"))
 struct HTTPGPTCOMMONMODULE_API FHttpGPTChatResponse
 {
@@ -114,7 +98,7 @@ struct HTTPGPTCOMMONMODULE_API FHttpGPTChatResponse
 	bool bSuccess = false;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat")
-	FHttpGPTChatError Error;
+	FHttpGPTCommonError Error;
 };
 
 UENUM(BlueprintType, Category = "HttpGPT | Chat", Meta = (DisplayName = "HttpGPT Chat Model"))
@@ -164,9 +148,6 @@ struct HTTPGPTCOMMONMODULE_API FHttpGPTChatOptions
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat", Meta = (DisplayName = "Logit Bias"))
 	TMap<int32, float> LogitBias;
-	
-	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat", Meta = (DisplayName = "User", ClampMin = "1", UIMin = "1"))
-	FName User;
 
 private:
 	void SetDefaults();

@@ -6,6 +6,7 @@
 
 #include <CoreMinimal.h>
 #include <Tasks/HttpGPTBaseTask.h>
+#include <Structures/HttpGPTCommonTypes.h>
 #include <Structures/HttpGPTChatTypes.h>
 #include <Kismet/BlueprintFunctionLibrary.h>
 #include "HttpGPTChatRequest.generated.h"
@@ -44,17 +45,17 @@ public:
 	static UHttpGPTChatRequest* SendMessages_DefaultOptions(UObject* WorldContextObject, const TArray<FHttpGPTChatMessage>& Messages);
 
 	UFUNCTION(BlueprintCallable, Category = "HttpGPT | Chat | Custom", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message with Custom Options"))
-	static UHttpGPTChatRequest* SendMessage_CustomOptions(UObject* WorldContextObject, const FString& Message, const FHttpGPTChatOptions Options);
+	static UHttpGPTChatRequest* SendMessage_CustomOptions(UObject* WorldContextObject, const FString& Message, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTChatOptions ChatOptions);
 
 	UFUNCTION(BlueprintCallable, Category = "HttpGPT | Chat | Custom", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages with Custom Options"))
-	static UHttpGPTChatRequest* SendMessages_CustomOptions(UObject* WorldContextObject, const TArray<FHttpGPTChatMessage>& Messages, const FHttpGPTChatOptions Options);
+		static UHttpGPTChatRequest* SendMessages_CustomOptions(UObject* WorldContextObject, const TArray<FHttpGPTChatMessage>& Messages, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTChatOptions ChatOptions);
 
 	UFUNCTION(BlueprintPure, Category = "HttpGPT | Chat")
-	const FHttpGPTChatOptions GetTaskOptions() const;
+	const FHttpGPTChatOptions GetChatOptions() const;
 
 protected:
 	TArray<FHttpGPTChatMessage> Messages;
-	FHttpGPTChatOptions TaskOptions;
+	FHttpGPTChatOptions ChatOptions;
 
 	virtual bool CanActivateTask() const override;
 

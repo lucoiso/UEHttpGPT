@@ -29,7 +29,7 @@
 #if WITH_EDITOR
 UHttpGPTChatRequest* UHttpGPTChatRequest::EditorTask(const TArray<FHttpGPTChatMessage>& Messages, const FHttpGPTChatOptions Options)
 {
-	UHttpGPTChatRequest* const NewAsyncTask = SendMessages_CustomOptions(GEditor->GetEditorWorldContext().World(), Messages, Options);
+	UHttpGPTChatRequest* const NewAsyncTask = SendMessages_CustomOptions(GEditor->GetEditorWorldContext().World(), Messages, FHttpGPTCommonOptions(), Options);
 	NewAsyncTask->bIsEditorTask = true;
 
 	return NewAsyncTask;
@@ -38,24 +38,25 @@ UHttpGPTChatRequest* UHttpGPTChatRequest::EditorTask(const TArray<FHttpGPTChatMe
 
 UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessage_DefaultOptions(UObject* WorldContextObject, const FString& Message)
 {
-	return SendMessage_CustomOptions(WorldContextObject, Message, FHttpGPTChatOptions());
+	return SendMessage_CustomOptions(WorldContextObject, Message, FHttpGPTCommonOptions(), FHttpGPTChatOptions());
 }
 
 UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessages_DefaultOptions(UObject* WorldContextObject, const TArray<FHttpGPTChatMessage>& Messages)
 {
-	return SendMessages_CustomOptions(WorldContextObject, Messages, FHttpGPTChatOptions());
+	return SendMessages_CustomOptions(WorldContextObject, Messages, FHttpGPTCommonOptions(), FHttpGPTChatOptions());
 }
 
-UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessage_CustomOptions(UObject* WorldContextObject, const FString& Message, const FHttpGPTChatOptions Options)
+UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessage_CustomOptions(UObject* WorldContextObject, const FString& Message, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTChatOptions ChatOptions)
 {
-	return SendMessages_CustomOptions(WorldContextObject, { FHttpGPTChatMessage(EHttpGPTChatRole::User, Message) }, Options);
+	return SendMessages_CustomOptions(WorldContextObject, { FHttpGPTChatMessage(EHttpGPTChatRole::User, Message) }, CommonOptions, ChatOptions);
 }
 
-UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessages_CustomOptions(UObject* WorldContextObject, const TArray<FHttpGPTChatMessage>& Messages, const FHttpGPTChatOptions Options)
+UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessages_CustomOptions(UObject* WorldContextObject, const TArray<FHttpGPTChatMessage>& Messages, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTChatOptions ChatOptions)
 {
 	UHttpGPTChatRequest* const NewAsyncTask = NewObject<UHttpGPTChatRequest>();
 	NewAsyncTask->Messages = Messages;
-	NewAsyncTask->TaskOptions = Options;
+	NewAsyncTask->CommonOptions = CommonOptions;
+	NewAsyncTask->ChatOptions = ChatOptions;
 
 	NewAsyncTask->RegisterWithGameInstance(WorldContextObject);
 
@@ -67,9 +68,9 @@ bool UHttpGPTChatRequest::CanActivateTask() const
 	return Super::CanActivateTask() && !HttpGPT::Internal::HasEmptyParam(Messages);
 }
 
-const FHttpGPTChatOptions UHttpGPTChatRequest::GetTaskOptions() const
+const FHttpGPTChatOptions UHttpGPTChatRequest::GetChatOptions() const
 {
-	return TaskOptions;
+	return ChatOptions;
 }
 
 void UHttpGPTChatRequest::InitializeRequest()
@@ -79,10 +80,10 @@ void UHttpGPTChatRequest::InitializeRequest()
 	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Initializing request object"), *FString(__func__), GetUniqueID());
 
 	HttpRequest = FHttpModule::Get().CreateRequest();	
-	HttpRequest->SetURL(FString::Format(TEXT("https://api.openai.com/{0}"), { UHttpGPTHelper::GetEndpointForModel(TaskOptions.Model).ToString() }));
+	HttpRequest->SetURL(FString::Format(TEXT("https://api.openai.com/{0}"), { UHttpGPTHelper::GetEndpointForModel(GetChatOptions().Model).ToString() }));
 	HttpRequest->SetVerb("POST");
 	HttpRequest->SetHeader("Content-Type", "application/json");
-	HttpRequest->SetHeader("Authorization", FString::Format(TEXT("Bearer {0}"), { GetAPIKey().ToString()}));
+	HttpRequest->SetHeader("Authorization", FString::Format(TEXT("Bearer {0}"), { GetCommonOptions().APIKey.ToString()}));
 }
 
 void UHttpGPTChatRequest::SetRequestContent()
@@ -97,35 +98,35 @@ void UHttpGPTChatRequest::SetRequestContent()
 	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Mounting content"), *FString(__func__), GetUniqueID());
 
 	const TSharedPtr<FJsonObject> JsonRequest = MakeShareable(new FJsonObject);
-	JsonRequest->SetStringField("model", UHttpGPTHelper::ModelToName(TaskOptions.Model).ToString().ToLower());
-	JsonRequest->SetNumberField("max_tokens", TaskOptions.MaxTokens);
-	JsonRequest->SetNumberField("temperature", TaskOptions.Temperature);
-	JsonRequest->SetNumberField("top_p", TaskOptions.TopP);
-	JsonRequest->SetNumberField("n", TaskOptions.Choices);
-	JsonRequest->SetBoolField("stream", TaskOptions.bStream);
-	JsonRequest->SetNumberField("presence_penalty", TaskOptions.PresencePenalty);
-	JsonRequest->SetNumberField("frequency_penalty", TaskOptions.FrequencyPenalty);
+	JsonRequest->SetStringField("model", UHttpGPTHelper::ModelToName(GetChatOptions().Model).ToString().ToLower());
+	JsonRequest->SetNumberField("max_tokens", GetChatOptions().MaxTokens);
+	JsonRequest->SetNumberField("temperature", GetChatOptions().Temperature);
+	JsonRequest->SetNumberField("top_p", GetChatOptions().TopP);
+	JsonRequest->SetNumberField("n", GetChatOptions().Choices);
+	JsonRequest->SetBoolField("stream", GetChatOptions().bStream);
+	JsonRequest->SetNumberField("presence_penalty", GetChatOptions().PresencePenalty);
+	JsonRequest->SetNumberField("frequency_penalty", GetChatOptions().FrequencyPenalty);
 
-	if (!HttpGPT::Internal::HasEmptyParam(TaskOptions.User))
+	if (!HttpGPT::Internal::HasEmptyParam(GetCommonOptions().User))
 	{
-		JsonRequest->SetStringField("user", TaskOptions.User.ToString());
+		JsonRequest->SetStringField("user", GetCommonOptions().User.ToString());
 	}
 
-	if (!HttpGPT::Internal::HasEmptyParam(TaskOptions.Stop))
+	if (!HttpGPT::Internal::HasEmptyParam(GetChatOptions().Stop))
 	{
 		TArray<TSharedPtr<FJsonValue>> StopJson;
-			for (const FName& Iterator : TaskOptions.Stop)
-			{
-				StopJson.Add(MakeShareable(new FJsonValueString(Iterator.ToString())));
-			}
+		for (const FName& Iterator : GetChatOptions().Stop)
+		{
+			StopJson.Add(MakeShareable(new FJsonValueString(Iterator.ToString())));
+		}
 
 		JsonRequest->SetArrayField("stop", StopJson);
 	}
 
-	if (!HttpGPT::Internal::HasEmptyParam(TaskOptions.LogitBias))
+	if (!HttpGPT::Internal::HasEmptyParam(GetChatOptions().LogitBias))
 	{
 		TSharedPtr<FJsonObject> LogitBiasJson = MakeShareable(new FJsonObject());
-		for (auto Iterator = TaskOptions.LogitBias.CreateConstIterator(); Iterator; ++Iterator)
+		for (auto Iterator = GetChatOptions().LogitBias.CreateConstIterator(); Iterator; ++Iterator)
 		{
 			LogitBiasJson->SetNumberField(FString::FromInt(Iterator.Key()), Iterator.Value());
 		}
@@ -133,7 +134,7 @@ void UHttpGPTChatRequest::SetRequestContent()
 		JsonRequest->SetObjectField("logit_bias", LogitBiasJson);
 	}
 
-	if (UHttpGPTHelper::ModelSupportsChat(TaskOptions.Model))
+	if (UHttpGPTHelper::ModelSupportsChat(GetChatOptions().Model))
 	{
 		UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Selected model supports Chat API. Mounting section history."), *FString(__func__), GetUniqueID());
 		TArray<TSharedPtr<FJsonValue>> MessagesJson;
@@ -168,7 +169,7 @@ void UHttpGPTChatRequest::BindRequestCallbacks()
 
 	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Binding callbacks"), *FString(__func__), GetUniqueID());
 
-	if (TaskOptions.bStream)
+	if (GetChatOptions().bStream)
 	{
 		HttpRequest->OnRequestProgress().BindLambda(
 			[this](FHttpRequestPtr Request, int32 BytesSent, int32 BytesReceived)
@@ -264,7 +265,7 @@ void UHttpGPTChatRequest::OnProgressCompleted(const FString& Content, const bool
 	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Process Completed"), *FString(__func__), GetUniqueID());
 	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Content: %s"), *FString(__func__), GetUniqueID(), *Content);
 
-	if (!TaskOptions.bStream)
+	if (!GetChatOptions().bStream)
 	{
 		DeserializeSingleResponse(Content);
 	}
@@ -281,7 +282,7 @@ void UHttpGPTChatRequest::OnProgressCompleted(const FString& Content, const bool
 			{
 				FScopeLock Lock(&Mutex);
 
-				if (!TaskOptions.bStream)
+				if (!GetChatOptions().bStream)
 				{
 					ProgressStarted.Broadcast(Response);
 				}
@@ -345,24 +346,9 @@ void UHttpGPTChatRequest::DeserializeSingleResponse(const FString& Content)
 	TSharedPtr<FJsonObject> JsonResponse = MakeShareable(new FJsonObject);
 	FJsonSerializer::Deserialize(Reader, JsonResponse);
 
-	if (JsonResponse->HasField("error"))
+	if (CheckError(JsonResponse, Response.Error))
 	{
 		Response.bSuccess = false;
-
-		const TSharedPtr<FJsonObject> ErrorObj = JsonResponse->GetObjectField("error");
-		if (FString ErrorMessage; ErrorObj->TryGetStringField("message", ErrorMessage))
-		{
-			Response.Error.Message = *ErrorMessage;
-		}
-		if (FString ErrorCode; ErrorObj->TryGetStringField("code", ErrorCode))
-		{
-			Response.Error.Code = *ErrorCode;
-		}
-		if (FString ErrorType; ErrorObj->TryGetStringField("type", ErrorType))
-		{
-			Response.Error.Type = *ErrorType;
-		}
-
 		return;
 	}
 

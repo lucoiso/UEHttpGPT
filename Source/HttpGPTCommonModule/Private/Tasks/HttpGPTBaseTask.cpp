@@ -8,6 +8,7 @@
 #include "LogHttpGPT.h"
 #include <HttpModule.h>
 #include <Async/Async.h>
+#include <Dom/JsonObject.h>
 
 #if WITH_EDITOR
 #include <Editor.h>
@@ -24,7 +25,6 @@ void UHttpGPTBaseTask::Activate()
 	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Activating task"), *FString(__func__), GetUniqueID());
 
 	bIsTaskActive = true;
-	APIKey = UHttpGPTSettings::Get()->APIKey;
 
 	if (!CanActivateTask())
 	{
@@ -110,9 +110,9 @@ void UHttpGPTBaseTask::SetReadyToDestroy()
 	Super::SetReadyToDestroy();
 }
 
-const FName UHttpGPTBaseTask::GetAPIKey() const
+const FHttpGPTCommonOptions UHttpGPTBaseTask::GetCommonOptions() const
 {
-	return APIKey;
+	return CommonOptions;
 }
 
 #if WITH_EDITOR
@@ -132,7 +132,7 @@ void UHttpGPTBaseTask::PrePIEEnded(bool bIsSimulating)
 
 bool UHttpGPTBaseTask::CanActivateTask() const
 {
-	return !HttpGPT::Internal::HasEmptyParam(APIKey);
+	return !HttpGPT::Internal::HasEmptyParam(GetCommonOptions().APIKey);
 }
 
 void UHttpGPTBaseTask::SendRequest()
@@ -182,6 +182,30 @@ void UHttpGPTBaseTask::SendRequest()
 			}
 		);
 	}
+}
+
+const bool UHttpGPTBaseTask::CheckError(const TSharedPtr<FJsonObject>& JsonObject, FHttpGPTCommonError& OutputError) const
+{
+	if (JsonObject->HasField("error"))
+	{
+		const TSharedPtr<FJsonObject> ErrorObj = JsonObject->GetObjectField("error");
+		if (FString ErrorMessage; ErrorObj->TryGetStringField("message", ErrorMessage))
+		{
+			OutputError.Message = *ErrorMessage;
+		}
+		if (FString ErrorCode; ErrorObj->TryGetStringField("code", ErrorCode))
+		{
+			OutputError.Code = *ErrorCode;
+		}
+		if (FString ErrorType; ErrorObj->TryGetStringField("type", ErrorType))
+		{
+			OutputError.Type = *ErrorType;
+		}
+
+		return true;
+	}
+
+	return false;
 }
 
 bool UHttpGPTTaskStatus::IsTaskActive(const UHttpGPTBaseTask* Test)

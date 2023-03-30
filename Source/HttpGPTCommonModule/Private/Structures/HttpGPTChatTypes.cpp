@@ -45,6 +45,5 @@ void FHttpGPTChatOptions::SetDefaults()
 		PresencePenalty = Settings->ChatOptions.PresencePenalty;
 		FrequencyPenalty = Settings->ChatOptions.FrequencyPenalty;
 		LogitBias = Settings->ChatOptions.LogitBias;
-		User = Settings->ChatOptions.User;
 	}
 }
