@@ -101,9 +101,13 @@ void SHttpGPTChatItem::Construct(const FArguments& InArgs)
 					return;
 				}
 
+#if ENGINE_MAJOR_VERSION > 5 || (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 1)
 				const FTextSelection SelectedText = Message->GetSelection();
 				Message->SetText(FText::FromString(Content));
 				Message->SelectText(SelectedText.GetBeginning(), SelectedText.GetEnd());
+#else
+				Message->SetText(FText::FromString(Content));
+#endif
 			}
 		);
 	}
