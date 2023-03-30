@@ -43,7 +43,14 @@ UHttpGPTImageRequest* UHttpGPTImageRequest::RequestImages_DefaultOptions(UObject
 
 UHttpGPTImageRequest* UHttpGPTImageRequest::RequestImages_CustomOptions(UObject* WorldContextObject, const FString& Prompt, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTImageOptions ImageOptions)
 {
-	return nullptr;
+	UHttpGPTImageRequest* const NewAsyncTask = NewObject<UHttpGPTImageRequest>();
+	NewAsyncTask->Prompt = Prompt;
+	NewAsyncTask->CommonOptions = CommonOptions;
+	NewAsyncTask->ImageOptions = ImageOptions;
+
+	NewAsyncTask->RegisterWithGameInstance(WorldContextObject);
+
+	return NewAsyncTask;
 }
 
 const FHttpGPTImageOptions UHttpGPTImageRequest::GetImageOptions() const
