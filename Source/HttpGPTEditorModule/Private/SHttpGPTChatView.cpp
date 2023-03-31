@@ -11,8 +11,6 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(SHttpGPTChatView)
 #endif
 
-constexpr float Slot_Padding = 4.0f;
-
 UHttpGPTMessagingHandler::UHttpGPTMessagingHandler(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 }
@@ -88,6 +86,8 @@ void UHttpGPTMessagingHandler::Destroy()
 
 void SHttpGPTChatItem::Construct(const FArguments& InArgs)
 {
+	constexpr float Slot_Padding = 4.0f;
+
 	if (InArgs._MessageRole == EHttpGPTChatRole::Assistant)
 	{
 		MessagingHandlerObject = NewObject<UHttpGPTMessagingHandler>();
@@ -167,6 +167,8 @@ FString SHttpGPTChatItem::GetMessageText() const
 
 void SHttpGPTChatView::Construct([[maybe_unused]] const FArguments&)
 {
+	constexpr float Slot_Padding = 4.0f;
+
 #if ENGINE_MAJOR_VERSION < 5
 	using FAppStyle = FEditorStyle;
 #endif
