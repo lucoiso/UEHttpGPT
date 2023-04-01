@@ -10,7 +10,7 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTSettings)
 #endif
 
-UHttpGPTSettings::UHttpGPTSettings(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), bUseCustomSystemContext(false), CustomSystemContext(FString()), bEnableInternalLogs(false)
+UHttpGPTSettings::UHttpGPTSettings(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), bUseCustomSystemContext(false), CustomSystemContext(FString()), GeneratedImagesDir("HttpGPT_Generated"), bEnableInternalLogs(false)
 {
 	CategoryName = TEXT("Plugins");
 

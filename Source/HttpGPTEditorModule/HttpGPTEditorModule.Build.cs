@@ -29,6 +29,7 @@ public class HttpGPTEditorModule : ModuleRules
             "EditorStyle",
             "WorkspaceMenuStructure",
             "Projects",
+            "AssetRegistry",
             "HttpGPTCommonModule",
             "HttpGPTChatModule",
             "HttpGPTImageModule"

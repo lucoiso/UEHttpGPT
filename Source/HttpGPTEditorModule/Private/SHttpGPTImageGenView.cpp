@@ -4,8 +4,13 @@
 
 #include "SHttpGPTImageGenView.h"
 #include <Utils/HttpGPTHelper.h>
+#include <Management/HttpGPTSettings.h>
 #include <HttpGPTInternalFuncs.h>
 #include <Brushes/SlateImageBrush.h>
+#include <EditorFramework/AssetImportData.h>
+#include <AssetRegistry/AssetRegistryModule.h>
+#include <UObject/SavePackage.h>
+#include <ImageUtils.h>
 
 #ifdef UE_INLINE_GENERATED_CPP_BY_NAME
 #include UE_INLINE_GENERATED_CPP_BY_NAME(SHttpGPTImageGenView)
@@ -113,6 +118,48 @@ void SHttpGPTImageGenItemData::Construct(const FArguments& InArgs)
 
 FReply SHttpGPTImageGenItemData::HandleSaveButton()
 {
+	const FString AssetName = FString::FromInt(Texture->GetUniqueID());
+	FString TargetFilename = FPaths::Combine("/Game/", UHttpGPTSettings::Get()->GeneratedImagesDir, AssetName);
+	FPaths::NormalizeFilename(TargetFilename);
+	UPackage* const Package = CreatePackage(*TargetFilename);
+
+	UTexture2D* const SavedTexture = NewObject<UTexture2D>(Package, *AssetName, RF_Public | RF_Standalone, Texture.Get(), true);
+	SavedTexture->AssetImportData = Texture->AssetImportData;
+	SavedTexture->Source = Texture->Source;
+	SavedTexture->ResourceMem = Texture->ResourceMem;
+	SavedTexture->CompressionSettings = Texture->CompressionSettings;
+	SavedTexture->SRGB = Texture->SRGB;
+	SavedTexture->MipGenSettings = Texture->MipGenSettings;
+	SavedTexture->LODGroup = Texture->LODGroup;
+	SavedTexture->CompressionNoAlpha = Texture->CompressionNoAlpha;
+	SavedTexture->DeferCompression = Texture->DeferCompression;
+	SavedTexture->CompressionNone = Texture->CompressionNone;
+	SavedTexture->CompressionQuality = Texture->CompressionQuality;
+	SavedTexture->AddressX = Texture->AddressX;
+	SavedTexture->AddressY = Texture->AddressY;
+	SavedTexture->Filter = Texture->Filter;
+	SavedTexture->LODBias = Texture->LODBias;
+	SavedTexture->SetPlatformData(Texture->GetPlatformData());
+	SavedTexture->UpdateResource();
+	SavedTexture->PostEditChange();
+
+	SavedTexture->MarkPackageDirty();
+	FAssetRegistryModule::AssetCreated(SavedTexture);
+
+	const FString TempPackageFilename = FPackageName::LongPackageNameToFilename(Package->GetName(), FPackageName::GetAssetPackageExtension());
+
+#if ENGINE_MAJOR_VERSION >= 5
+	FSavePackageArgs SaveArgs;
+	SaveArgs.SaveFlags = RF_Public | RF_Standalone;
+	UPackage::SavePackage(Package, SavedTexture, *TempPackageFilename, SaveArgs);
+#else
+	UPackage::SavePackage(Package, SavedTexture, RF_Public | RF_Standalone, *TempPackageFilename);
+#endif
+
+	TArray<FAssetData> SyncAssets;
+	SyncAssets.Add(FAssetData(SavedTexture));
+	GEditor->SyncBrowserToObjects(SyncAssets);
+
 	return FReply::Handled();
 }
 
