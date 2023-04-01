@@ -31,7 +31,7 @@ struct HTTPGPTCOMMONMODULE_API FHttpGPTCommonOptions
 
 	FHttpGPTCommonOptions();
 	
-	UPROPERTY(GlobalConfig, EditAnywhere, Category = "HttpGPT | Common", Meta = (DisplayName = "API Key"))
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common", Meta = (DisplayName = "API Key"))
 	FName APIKey;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common", Meta = (DisplayName = "User"))
