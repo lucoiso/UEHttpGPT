@@ -45,7 +45,7 @@ void UHttpGPTImageGetter::ProcessCompleted(const FHttpGPTImageResponse& Response
 	}
 
 	DataSize = Response.Data.Num();
-	OnStatusChanged.ExecuteIfBound("Status: Request Completed.");
+	OnStatusChanged.ExecuteIfBound("Request Completed.");
 
 	OnImageGenerated_Internal.BindUFunction(this, TEXT("ImageGenerated"));
 
