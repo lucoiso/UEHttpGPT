@@ -216,11 +216,11 @@ void UHttpGPTImageHelper::GenerateImageFromURL(const FHttpGPTImageData& ImageDat
 		{
 			if (bSuccess && Response.IsValid())
 			{
-				Callback.Execute(FImageUtils::ImportBufferAsTexture2D(Response->GetContent()));
+				Callback.ExecuteIfBound(FImageUtils::ImportBufferAsTexture2D(Response->GetContent()));
 			}
 			else
 			{
-				Callback.Execute(nullptr);
+				Callback.ExecuteIfBound(nullptr);
 			}
 		}
 	);
@@ -231,5 +231,5 @@ void UHttpGPTImageHelper::GenerateImageFromB64(const FHttpGPTImageData& ImageDat
 {
 	TArray<uint8> DecodedBytes;
 	FBase64::Decode(ImageData.Content, DecodedBytes);
-	Callback.Execute(FImageUtils::ImportBufferAsTexture2D(DecodedBytes));
+	Callback.ExecuteIfBound(FImageUtils::ImportBufferAsTexture2D(DecodedBytes));
 }

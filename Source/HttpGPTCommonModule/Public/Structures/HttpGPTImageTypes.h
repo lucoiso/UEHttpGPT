@@ -71,10 +71,10 @@ struct HTTPGPTCOMMONMODULE_API FHttpGPTImageOptions
 	int32 ImagesNum;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Image", Meta = (DisplayName = "Image Size"))
-	EHttpGPTImageSize Size;
+	EHttpGPTImageSize Size = EHttpGPTImageSize::x256;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Image", Meta = (DisplayName = "Response Format"))
-	EHttpGPTResponseFormat Format;
+	EHttpGPTResponseFormat Format = EHttpGPTResponseFormat::b64_json;
 
 private:
 	void SetDefaults();

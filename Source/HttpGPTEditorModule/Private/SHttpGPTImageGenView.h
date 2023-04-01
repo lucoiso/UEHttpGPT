@@ -14,6 +14,7 @@
 #include "SHttpGPTImageGenView.generated.h"
 
 DECLARE_DELEGATE_OneParam(FImageGenerated, UTexture2D*);
+DECLARE_DELEGATE_OneParam(FImageStatusChanged, FString);
 
 UCLASS(MinimalAPI, NotBlueprintable, NotPlaceable, Category = "Implementation")
 class UHttpGPTImageGetter : public UObject
@@ -24,6 +25,7 @@ public:
 	explicit UHttpGPTImageGetter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 	FImageGenerated OnImageGenerated;
+	FImageStatusChanged OnStatusChanged;
 
 	UFUNCTION()
 	void RequestSent();
@@ -37,7 +39,15 @@ public:
 	void Destroy();
 
 private:
-	void ProcessResponse(const FHttpGPTImageResponse& Response);
+	void ProcessImage(const FHttpGPTImageData& Data);
+
+	FHttpGPTImageGenerate OnImageGenerated_Internal;
+
+	UFUNCTION()
+	void ImageGenerated(UTexture2D* Texture);
+
+	uint8 GeneratedImages = 0u;
+	uint8 DataSize = 0u;
 };
 
 class SHttpGPTImageGenItemData final : public SCompoundWidget
@@ -66,15 +76,16 @@ typedef TSharedPtr<SHttpGPTImageGenItemData> SHttpGPTImageGenItemDataPtr;
 class SHttpGPTImageGenItem final : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SHttpGPTImageGenItem) : _Prompt()
+	SLATE_BEGIN_ARGS(SHttpGPTImageGenItem) : _Prompt(), _Num(), _Size()
 	{
 	}
 	SLATE_ARGUMENT(FString, Prompt)
+	SLATE_ARGUMENT(FString, Num)
+	SLATE_ARGUMENT(FString, Size)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
-
-	FString GetPromptText() const;
+	~SHttpGPTImageGenItem();
 
 	TWeakObjectPtr<UHttpGPTImageGetter> HttpGPTImageGetterObject;
 
@@ -82,7 +93,9 @@ private:
 	TSharedPtr<STextBlock> Prompt;
 	TSharedPtr<STextBlock> Status;
 	TSharedPtr<SScrollBox> ItemScrollBox;
-	TArray<SHttpGPTImageGenItemDataPtr> Images;
+	TSharedPtr<SHorizontalBox> ItemViewBox;
+
+	TWeakObjectPtr<class UHttpGPTImageRequest> RequestReference;
 };
 
 typedef TSharedPtr<SHttpGPTImageGenItem> SHttpGPTImageGenItemPtr;
@@ -105,14 +118,17 @@ public:
 
 protected:
 	void InitializeImageNumOptions();
+	void InitializeImageSizeOptions();
 
 private:
 	TSharedPtr<SVerticalBox> ViewBox;
-	TArray<SHttpGPTImageGenItemPtr> PromptResults;
 	TSharedPtr<SScrollBox> ViewScrollBox;
+
 	TSharedPtr<SEditableTextBox> InputTextBox;
+
 	TSharedPtr<STextComboBox> ImageNumComboBox;
 	TArray<TSharedPtr<FString>> ImageNum;
 
-	TWeakObjectPtr<class UHttpGPTImageRequest> RequestReference;
+	TSharedPtr<STextComboBox> ImageSizeComboBox;
+	TArray<TSharedPtr<FString>> ImageSize;
 };

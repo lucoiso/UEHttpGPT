@@ -3,6 +3,7 @@
 // Repo: https://github.com/lucoiso/UEHttpGPT
 
 #include "SHttpGPTChatView.h"
+#include <Management/HttpGPTSettings.h>
 #include <Utils/HttpGPTHelper.h>
 #include <HttpGPTInternalFuncs.h>
 #include <Interfaces/IPluginManager.h>
@@ -317,6 +318,11 @@ TArray<FHttpGPTChatMessage> SHttpGPTChatView::GetChatHistory() const
 
 FString SHttpGPTChatView::GetSystemContext() const
 {
+	if (const UHttpGPTSettings* const Settings = UHttpGPTSettings::Get(); Settings->bUseCustomSystemContext)
+	{
+		return Settings->CustomSystemContext;
+	}
+
 	FString SupportedModels;
 	for (const TSharedPtr<FString>& Model : AvailableModels)
 	{

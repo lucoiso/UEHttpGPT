@@ -33,6 +33,14 @@ public:
 	UPROPERTY(GlobalConfig, EditAnywhere, Category = "Default Options", Meta = (DisplayName = "Image Options"))
 	FHttpGPTImageOptions ImageOptions;
 
+	/* Enable custom system context in HttpGPT Chat Editor Tool */
+	UPROPERTY(GlobalConfig, EditAnywhere, Category = "Editor | HttpGPT Chat", Meta = (DisplayName = "Use Custom System Context"))
+	bool bUseCustomSystemContext;
+
+	/* Custom system context to use in HttpGPT Chat Editor Tool */
+	UPROPERTY(GlobalConfig, EditAnywhere, Category = "Editor | HttpGPT Chat", Meta = (DisplayName = "Custom System Context", EditCondition = "bUseCustomSystemContext"))
+	FString CustomSystemContext;
+
 	/* Will print extra internal informations in log */
 	UPROPERTY(GlobalConfig, EditAnywhere, Category = "Logging", Meta = (DisplayName = "Enable Internal Logs"))
 	bool bEnableInternalLogs;
