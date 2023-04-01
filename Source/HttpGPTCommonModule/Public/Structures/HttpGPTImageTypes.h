@@ -37,7 +37,7 @@ struct HTTPGPTCOMMONMODULE_API FHttpGPTImageData
 	FString Content;
 	
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Image")
-	EHttpGPTResponseFormat Format;
+	EHttpGPTResponseFormat Format = EHttpGPTResponseFormat::b64_json;
 };
 
 USTRUCT(BlueprintType, Category = "HttpGPT | Image", Meta = (DisplayName = "HttpGPT Image Response"))

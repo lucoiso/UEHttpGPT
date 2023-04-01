@@ -121,26 +121,15 @@ FReply SHttpGPTImageGenItemData::HandleSaveButton()
 	const FString AssetName = FString::FromInt(Texture->GetUniqueID());
 	FString TargetFilename = FPaths::Combine("/Game/", UHttpGPTSettings::Get()->GeneratedImagesDir, AssetName);
 	FPaths::NormalizeFilename(TargetFilename);
-	UPackage* const Package = CreatePackage(*TargetFilename);
 
-	UTexture2D* const SavedTexture = NewObject<UTexture2D>(Package, *AssetName, RF_Public | RF_Standalone, Texture.Get(), true);
-	SavedTexture->AssetImportData = Texture->AssetImportData;
-	SavedTexture->Source = Texture->Source;
-	SavedTexture->ResourceMem = Texture->ResourceMem;
-	SavedTexture->CompressionSettings = Texture->CompressionSettings;
-	SavedTexture->SRGB = Texture->SRGB;
-	SavedTexture->MipGenSettings = Texture->MipGenSettings;
-	SavedTexture->LODGroup = Texture->LODGroup;
-	SavedTexture->CompressionNoAlpha = Texture->CompressionNoAlpha;
-	SavedTexture->DeferCompression = Texture->DeferCompression;
-	SavedTexture->CompressionNone = Texture->CompressionNone;
-	SavedTexture->CompressionQuality = Texture->CompressionQuality;
-	SavedTexture->AddressX = Texture->AddressX;
-	SavedTexture->AddressY = Texture->AddressY;
-	SavedTexture->Filter = Texture->Filter;
-	SavedTexture->LODBias = Texture->LODBias;
+	UPackage* const Package = CreatePackage(*TargetFilename);
+	UTexture2D* const SavedTexture = NewObject<UTexture2D>(Package, *AssetName, RF_Public | RF_Standalone);
+
 	SavedTexture->SetPlatformData(Texture->GetPlatformData());
+
 	SavedTexture->UpdateResource();
+	SavedTexture->Source.Init(Texture->GetSizeX(), Texture->GetSizeY(), 1, Texture->GetPlatformData()->Mips.Num(), ETextureSourceFormat::TSF_BGRA8);
+
 	SavedTexture->PostEditChange();
 
 	SavedTexture->MarkPackageDirty();
