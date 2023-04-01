@@ -53,7 +53,7 @@ protected:
 	void SendRequest();
 
 	/* Return true if contains error */
-	const bool CheckError(const TSharedPtr<FJsonObject>& JsonObject, FHttpGPTCommonError& OutputError) const;
+	const bool CheckError(const TSharedPtr<class FJsonObject>& JsonObject, FHttpGPTCommonError& OutputError) const;
 
 	void InitializeRequest();
 	void BindRequestCallbacks();

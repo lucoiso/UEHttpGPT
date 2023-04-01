@@ -184,7 +184,7 @@ void UHttpGPTImageRequest::DeserializeResponse(const FString& Content)
 	}
 }
 
-UHttpGPTImageRequest* UHttpGPTImageHelper::CastToHTTPGPTImageRequest(UObject* Object)
+UHttpGPTImageRequest* UHttpGPTImageHelper::CastToHttpGPTImageRequest(UObject* Object)
 {
 	return Cast<UHttpGPTImageRequest>(Object);
 }

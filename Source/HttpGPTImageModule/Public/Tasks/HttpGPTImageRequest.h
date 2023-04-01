@@ -82,7 +82,7 @@ class HTTPGPTIMAGEMODULE_API UHttpGPTImageHelper final : public UBlueprintFuncti
 
 public:
 	UFUNCTION(BlueprintPure, Category = "HttpGPT | Image", Meta = (DisplayName = "Cast to HttpGPT Image Request"))
-	static UHttpGPTImageRequest* CastToHTTPGPTImageRequest(UObject* Object);
+	static UHttpGPTImageRequest* CastToHttpGPTImageRequest(UObject* Object);
 
 	UFUNCTION(BlueprintCallable, Category = "HttpGPT | Image")
 	static void GenerateImage(const FHttpGPTImageData& ImageData, const FHttpGPTImageGenerate& Callback);

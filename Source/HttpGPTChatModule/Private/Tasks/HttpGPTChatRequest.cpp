@@ -370,7 +370,7 @@ void UHttpGPTChatRequest::DeserializeSingleResponse(const FString& Content)
 	}
 }
 
-UHttpGPTChatRequest* UHttpGPTChatHelper::CastToHTTPGPTChatRequest(UObject* Object)
+UHttpGPTChatRequest* UHttpGPTChatHelper::CastToHttpGPTChatRequest(UObject* Object)
 {
 	return Cast<UHttpGPTChatRequest>(Object);
 }

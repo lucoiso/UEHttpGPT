@@ -81,5 +81,5 @@ class HTTPGPTCHATMODULE_API UHttpGPTChatHelper final : public UBlueprintFunction
 
 public:
 	UFUNCTION(BlueprintPure, Category = "HttpGPT | Chat", Meta = (DisplayName = "Cast to HttpGPT Chat Request"))
-	static UHttpGPTChatRequest* CastToHTTPGPTChatRequest(UObject* Object);
+	static UHttpGPTChatRequest* CastToHttpGPTChatRequest(UObject* Object);
 };
