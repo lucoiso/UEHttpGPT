@@ -119,7 +119,7 @@ void SHttpGPTImageGenItemData::Construct(const FArguments& InArgs)
 FReply SHttpGPTImageGenItemData::HandleSaveButton()
 {
 	const FString AssetName = FString::FromInt(Texture->GetUniqueID());
-	FString TargetFilename = FPaths::Combine("/Game/", UHttpGPTSettings::Get()->GeneratedImagesDir, AssetName);
+	FString TargetFilename = FPaths::Combine(TEXT("/Game/"), UHttpGPTSettings::Get()->GeneratedImagesDir, AssetName);
 	FPaths::NormalizeFilename(TargetFilename);
 
 	UPackage* const Package = CreatePackage(*TargetFilename);
