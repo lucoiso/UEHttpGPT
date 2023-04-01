@@ -2,7 +2,7 @@
 
 ![Banner1](https://user-images.githubusercontent.com/77353979/226219720-150abd31-487c-474f-ab14-576ff2efbdde.png)
 
-HttpGPT is an Unreal Engine plugin that facilitates integration with OpenAI's GPT based services (ChatGPT and DALL-E) through asynchronous REST requests, making it easy for developers to communicate with the chatbot. 
+HttpGPT is an Unreal Engine plugin that facilitates integration with OpenAI's GPT based services (ChatGPT and DALL-E) through asynchronous REST requests, making it easy for developers to communicate with these services. 
 
 HttpGPT also includes Editor Tools to integrate Chat GPT and DALL-E image generation directly in the Engine.
 
