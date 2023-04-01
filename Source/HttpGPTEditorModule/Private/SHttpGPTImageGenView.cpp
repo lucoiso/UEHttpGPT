@@ -125,10 +125,19 @@ FReply SHttpGPTImageGenItemData::HandleSaveButton()
 	UPackage* const Package = CreatePackage(*TargetFilename);
 	UTexture2D* const SavedTexture = NewObject<UTexture2D>(Package, *AssetName, RF_Public | RF_Standalone);
 
+#if ENGINE_MAJOR_VERSION >= 5
 	SavedTexture->SetPlatformData(Texture->GetPlatformData());
+#else
+	SavedTexture->PlatformData = Texture->PlatformData;
+#endif
 
 	SavedTexture->UpdateResource();
+
+#if ENGINE_MAJOR_VERSION >= 5
 	SavedTexture->Source.Init(Texture->GetSizeX(), Texture->GetSizeY(), 1, Texture->GetPlatformData()->Mips.Num(), ETextureSourceFormat::TSF_BGRA8);
+#else
+	SavedTexture->Source.Init(Texture->GetSizeX(), Texture->GetSizeY(), 1, Texture->PlatformData->Mips.Num(), ETextureSourceFormat::TSF_BGRA8);
+#endif
 
 	SavedTexture->PostEditChange();
 
