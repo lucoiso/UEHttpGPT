@@ -314,6 +314,9 @@ FReply SHttpGPTImageGenView::HandleSendRequestButton()
 			.Size(*ImageSizeComboBox->GetSelectedItem().Get())
 		];
 
+	ViewScrollBox->ScrollToEnd();
+	InputTextBox->SetText(FText::GetEmpty());
+
 	return FReply::Handled();
 }
 
