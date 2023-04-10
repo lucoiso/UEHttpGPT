@@ -20,7 +20,7 @@ FHttpGPTChatMessage::FHttpGPTChatMessage(const FName& Role, const FString& Conte
 TSharedPtr<FJsonValue> FHttpGPTChatMessage::GetMessage() const
 {
 	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
-	JsonObject->SetStringField("role", UHttpGPTHelper::RoleToName(Role).ToString());
+	JsonObject->SetStringField("role", UHttpGPTHelper::RoleToName(Role).ToString().ToLower());
 	JsonObject->SetStringField("content", Content);
 
 	return MakeShareable(new FJsonValueObject(JsonObject));
