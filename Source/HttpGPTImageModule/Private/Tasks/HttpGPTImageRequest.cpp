@@ -68,7 +68,18 @@ const FString UHttpGPTImageRequest::GetPrompt() const
 
 bool UHttpGPTImageRequest::CanActivateTask() const
 {
-	return Super::CanActivateTask() && !HttpGPT::Internal::HasEmptyParam(Prompt);
+	if (!Super::CanActivateTask())
+	{
+		return false;
+	}
+
+	if (HttpGPT::Internal::HasEmptyParam(Prompt))
+	{
+		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Can't activate task: Invalid Prompt."), *FString(__func__), GetUniqueID());
+		return false;
+	}
+
+	return true;
 }
 
 bool UHttpGPTImageRequest::CanBindProgress() const
@@ -81,13 +92,13 @@ FString UHttpGPTImageRequest::GetEndpointURL() const
 	return "https://api.openai.com/v1/images/generations";
 }
 
-void UHttpGPTImageRequest::SetRequestContent()
+FString UHttpGPTImageRequest::SetRequestContent()
 {
 	FScopeLock Lock(&Mutex);
 
 	if (!HttpRequest.IsValid())
 	{
-		return;
+		return FString();
 	}
 
 	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Mounting content"), *FString(__func__), GetUniqueID());
@@ -108,6 +119,8 @@ void UHttpGPTImageRequest::SetRequestContent()
 	FJsonSerializer::Serialize(JsonRequest.ToSharedRef(), Writer);
 
 	HttpRequest->SetContentAsString(RequestContentString);
+
+	return RequestContentString;
 }
 
 void UHttpGPTImageRequest::OnProgressCompleted(const FString& Content, const bool bWasSuccessful)

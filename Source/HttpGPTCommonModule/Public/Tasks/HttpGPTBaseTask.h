@@ -58,7 +58,7 @@ protected:
 	void InitializeRequest();
 	void BindRequestCallbacks();
 
-	virtual void SetRequestContent() {};
+	virtual FString SetRequestContent() { return FString(); };
 	virtual void OnProgressUpdated(const FString& Content, int32 BytesSent, int32 BytesReceived) {};
 	virtual void OnProgressCompleted(const FString& Content, const bool bWasSuccessful) {};
 

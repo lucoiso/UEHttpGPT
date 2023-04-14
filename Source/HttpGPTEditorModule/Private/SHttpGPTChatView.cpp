@@ -339,10 +339,11 @@ FString SHttpGPTChatView::GetSystemContext() const
 		EngineVersion,
 		PluginShortName,
 		PluginInterface->GetDescriptor().VersionName,
-		PluginInterface->GetDescriptor().CreatedBy
+		PluginInterface->GetDescriptor().CreatedBy,
+		PluginInterface->GetDescriptor().Description
 	};
 
-	const FString PluginInformation = FString::Format(TEXT("You are in the Unreal Engine {0} plugin {1} version {2}, which was developed by {3}."), Arguments_PluginInfo);
+	const FString PluginInformation = FString::Format(TEXT("You are in the Unreal Engine {0} plugin {1} version {2}, which was developed by {3}. The description of HttpGPT is: \"{4}\""), Arguments_PluginInfo);
 
 	const FStringFormatOrderedArguments Arguments_SupportInfo{
 		PluginInterface->GetDescriptor().DocsURL,
