@@ -64,7 +64,7 @@ protected:
 	virtual bool CanBindProgress() const override;
 	virtual FString GetEndpointURL() const override;
 
-	virtual void SetRequestContent() override;
+	virtual FString SetRequestContent() override;
 	virtual void OnProgressCompleted(const FString& Content, const bool bWasSuccessful) override;
 
 	void DeserializeResponse(const FString& Content);

@@ -65,7 +65,18 @@ UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessages_CustomOptions(UObject* Wo
 
 bool UHttpGPTChatRequest::CanActivateTask() const
 {
-	return Super::CanActivateTask() && !HttpGPT::Internal::HasEmptyParam(Messages);
+	if (!Super::CanActivateTask())
+	{
+		return false;
+	}
+
+	if (HttpGPT::Internal::HasEmptyParam(Messages))
+	{
+		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Can't activate task: Invalid Messages."), *FString(__func__), GetUniqueID());
+		return false;
+	}
+
+	return true;
 }
 
 bool UHttpGPTChatRequest::CanBindProgress() const
@@ -83,13 +94,13 @@ const FHttpGPTChatOptions UHttpGPTChatRequest::GetChatOptions() const
 	return ChatOptions;
 }
 
-void UHttpGPTChatRequest::SetRequestContent()
+FString UHttpGPTChatRequest::SetRequestContent()
 {
 	FScopeLock Lock(&Mutex);
 
 	if (!HttpRequest.IsValid())
 	{
-		return;
+		return FString();
 	}
 
 	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Mounting content"), *FString(__func__), GetUniqueID());
@@ -100,9 +111,9 @@ void UHttpGPTChatRequest::SetRequestContent()
 	JsonRequest->SetNumberField("temperature", GetChatOptions().Temperature);
 	JsonRequest->SetNumberField("top_p", GetChatOptions().TopP);
 	JsonRequest->SetNumberField("n", GetChatOptions().Choices);
-	JsonRequest->SetBoolField("stream", GetChatOptions().bStream);
 	JsonRequest->SetNumberField("presence_penalty", GetChatOptions().PresencePenalty);
 	JsonRequest->SetNumberField("frequency_penalty", GetChatOptions().FrequencyPenalty);
+	JsonRequest->SetBoolField("stream", GetChatOptions().bStream);
 
 	if (!HttpGPT::Internal::HasEmptyParam(GetCommonOptions().User))
 	{
@@ -123,9 +134,9 @@ void UHttpGPTChatRequest::SetRequestContent()
 	if (!HttpGPT::Internal::HasEmptyParam(GetChatOptions().LogitBias))
 	{
 		TSharedPtr<FJsonObject> LogitBiasJson = MakeShareable(new FJsonObject());
-		for (auto Iterator = GetChatOptions().LogitBias.CreateConstIterator(); Iterator; ++Iterator)
+		for (const TPair<int32, float>& Iterator : GetChatOptions().LogitBias)
 		{
-			LogitBiasJson->SetNumberField(FString::FromInt(Iterator.Key()), Iterator.Value());
+			LogitBiasJson->SetNumberField(FString::FromInt(Iterator.Key), Iterator.Value);
 		}
 
 		JsonRequest->SetObjectField("logit_bias", LogitBiasJson);
@@ -134,6 +145,7 @@ void UHttpGPTChatRequest::SetRequestContent()
 	if (UHttpGPTHelper::ModelSupportsChat(GetChatOptions().Model))
 	{
 		UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Selected model supports Chat API. Mounting section history."), *FString(__func__), GetUniqueID());
+
 		TArray<TSharedPtr<FJsonValue>> MessagesJson;
 		for (const FHttpGPTChatMessage& Iterator : Messages)
 		{
@@ -153,6 +165,8 @@ void UHttpGPTChatRequest::SetRequestContent()
 	FJsonSerializer::Serialize(JsonRequest.ToSharedRef(), Writer);
 
 	HttpRequest->SetContentAsString(RequestContentString);
+
+	return RequestContentString;
 }
 
 void UHttpGPTChatRequest::OnProgressUpdated(const FString& Content, int32 BytesSent, int32 BytesReceived)

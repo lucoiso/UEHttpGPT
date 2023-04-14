@@ -139,7 +139,13 @@ void UHttpGPTBaseTask::PrePIEEnded(bool bIsSimulating)
 
 bool UHttpGPTBaseTask::CanActivateTask() const
 {
-	return !HttpGPT::Internal::HasEmptyParam(GetCommonOptions().APIKey);
+	if (HttpGPT::Internal::HasEmptyParam(GetCommonOptions().APIKey))
+	{
+		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Can't activate task: Invalid API Key."), *FString(__func__), GetUniqueID());
+		return false;
+	}
+
+	return true;
 }
 
 bool UHttpGPTBaseTask::CanBindProgress() const
@@ -214,7 +220,7 @@ void UHttpGPTBaseTask::SendRequest()
 	FScopeLock Lock(&Mutex);
 
 	InitializeRequest();
-	SetRequestContent();
+	const FString ContentString = SetRequestContent();
 	BindRequestCallbacks();
 
 	if (!HttpRequest.IsValid())
@@ -237,6 +243,7 @@ void UHttpGPTBaseTask::SendRequest()
 	if (HttpRequest->ProcessRequest())
 	{
 		UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Request sent"), *FString(__func__), GetUniqueID());
+		UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Request content body:\n%s"), *FString(__func__), GetUniqueID(), *ContentString);
 
 		AsyncTask(ENamedThreads::GameThread,
 			[this]
