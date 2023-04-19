@@ -107,7 +107,7 @@ FString UHttpGPTImageRequest::SetRequestContent()
 	JsonRequest->SetStringField("prompt", Prompt);
 	JsonRequest->SetNumberField("n", GetImageOptions().ImagesNum);
 	JsonRequest->SetStringField("size", UHttpGPTHelper::SizeToName(GetImageOptions().Size).ToString());
-	JsonRequest->SetStringField("response_format", UHttpGPTHelper::FormatToName(GetImageOptions().Format).ToString());
+	JsonRequest->SetStringField("response_format", UHttpGPTHelper::FormatToName(GetImageOptions().Format).ToString().ToLower());
 
 	if (!HttpGPT::Internal::HasEmptyParam(GetCommonOptions().User))
 	{
