@@ -17,70 +17,70 @@ static const FName HttpGPTImageGeneratorTabName("HttpGPTImageGenerator");
 
 void FHttpGPTEditorModule::StartupModule()
 {
-	const auto RegisterDelegate = FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FHttpGPTEditorModule::RegisterMenus);
-	UToolMenus::RegisterStartupCallback(RegisterDelegate);
+    const auto RegisterDelegate = FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FHttpGPTEditorModule::RegisterMenus);
+    UToolMenus::RegisterStartupCallback(RegisterDelegate);
 }
 
 void FHttpGPTEditorModule::ShutdownModule()
 {
-	UToolMenus::UnRegisterStartupCallback(this);
-	UToolMenus::UnregisterOwner(this);
+    UToolMenus::UnRegisterStartupCallback(this);
+    UToolMenus::UnregisterOwner(this);
 
-	FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(HttpGPTChatTabName);
+    FGlobalTabmanager::Get()->UnregisterNomadTabSpawner(HttpGPTChatTabName);
 }
 
 TSharedRef<SDockTab> FHttpGPTEditorModule::OnSpawnTab(const FSpawnTabArgs& SpawnTabArgs) const
 {
-	const FName TabId = *SpawnTabArgs.GetTabId().ToString();
+    const FName TabId = *SpawnTabArgs.GetTabId().ToString();
 
-	TSharedPtr<SWidget> OutContent;
-	if (TabId.IsEqual(HttpGPTChatTabName))
-	{
-		OutContent = SNew(SHttpGPTChatView);
-	}
-	else if (TabId.IsEqual(HttpGPTImageGeneratorTabName))
-	{
-		OutContent = SNew(SHttpGPTImageGenView);
-	}
+    TSharedPtr<SWidget> OutContent;
+    if (TabId.IsEqual(HttpGPTChatTabName))
+    {
+        OutContent = SNew(SHttpGPTChatView);
+    }
+    else if (TabId.IsEqual(HttpGPTImageGeneratorTabName))
+    {
+        OutContent = SNew(SHttpGPTImageGenView);
+    }
 
-	if (OutContent.IsValid())
-	{
-		return SNew(SDockTab)
-			.TabRole(NomadTab)
-			[
-				OutContent.ToSharedRef()
-			];
-	}
+    if (OutContent.IsValid())
+    {
+        return SNew(SDockTab)
+            .TabRole(NomadTab)
+            [
+                OutContent.ToSharedRef()
+            ];
+    }
 
-	return SNew(SDockTab);
+    return SNew(SDockTab);
 }
 
 void FHttpGPTEditorModule::RegisterMenus()
 {
-	FToolMenuOwnerScoped OwnerScoped(this);
-	const auto EditorTabSpawnerDelegate = FOnSpawnTab::CreateRaw(this, &FHttpGPTEditorModule::OnSpawnTab);
+    FToolMenuOwnerScoped OwnerScoped(this);
+    const auto EditorTabSpawnerDelegate = FOnSpawnTab::CreateRaw(this, &FHttpGPTEditorModule::OnSpawnTab);
 
 #if ENGINE_MAJOR_VERSION < 5
-	const FName AppStyleName = FEditorStyle::GetStyleSetName();
+    const FName AppStyleName = FEditorStyle::GetStyleSetName();
 #else
-	const FName AppStyleName = FAppStyle::GetAppStyleSetName();
+    const FName AppStyleName = FAppStyle::GetAppStyleSetName();
 #endif
 
-	const TSharedPtr<FWorkspaceItem> Menu = WorkspaceMenu::GetMenuStructure().GetToolsCategory()->AddGroup(LOCTEXT("HttpGPTCategory", "HttpGPT"), LOCTEXT("HttpGPTCategoryTooltip", "HttpGPT Plugin Tabs"), FSlateIcon(AppStyleName, "Icons.Documentation"));
-	
-	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(HttpGPTChatTabName, EditorTabSpawnerDelegate)
-		.SetDisplayName(FText::FromString("HttpGPT Chat"))
-		.SetTooltipText(FText::FromString("Open HttpGPT Chat"))
-		.SetIcon(FSlateIcon(AppStyleName, "DerivedData.ResourceUsage"))
-		.SetGroup(Menu.ToSharedRef());
+    const TSharedPtr<FWorkspaceItem> Menu = WorkspaceMenu::GetMenuStructure().GetToolsCategory()->AddGroup(LOCTEXT("HttpGPTCategory", "HttpGPT"), LOCTEXT("HttpGPTCategoryTooltip", "HttpGPT Plugin Tabs"), FSlateIcon(AppStyleName, "Icons.Documentation"));
 
-	FGlobalTabmanager::Get()->RegisterNomadTabSpawner(HttpGPTImageGeneratorTabName, EditorTabSpawnerDelegate)
-		.SetDisplayName(FText::FromString("HttpGPT Image Generator"))
-		.SetTooltipText(FText::FromString("Open HttpGPT Image Generator"))
-		.SetIcon(FSlateIcon(AppStyleName, "LevelEditor.Tabs.Viewports"))
-		.SetGroup(Menu.ToSharedRef());
+    FGlobalTabmanager::Get()->RegisterNomadTabSpawner(HttpGPTChatTabName, EditorTabSpawnerDelegate)
+        .SetDisplayName(FText::FromString("HttpGPT Chat"))
+        .SetTooltipText(FText::FromString("Open HttpGPT Chat"))
+        .SetIcon(FSlateIcon(AppStyleName, "DerivedData.ResourceUsage"))
+        .SetGroup(Menu.ToSharedRef());
+
+    FGlobalTabmanager::Get()->RegisterNomadTabSpawner(HttpGPTImageGeneratorTabName, EditorTabSpawnerDelegate)
+        .SetDisplayName(FText::FromString("HttpGPT Image Generator"))
+        .SetTooltipText(FText::FromString("Open HttpGPT Image Generator"))
+        .SetIcon(FSlateIcon(AppStyleName, "LevelEditor.Tabs.Viewports"))
+        .SetGroup(Menu.ToSharedRef());
 }
 
 #undef LOCTEXT_NAMESPACE
-	
+
 IMPLEMENT_MODULE(FHttpGPTEditorModule, HttpGPTEditor)

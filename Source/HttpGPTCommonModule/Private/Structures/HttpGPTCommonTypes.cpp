@@ -11,14 +11,14 @@
 
 FHttpGPTCommonOptions::FHttpGPTCommonOptions()
 {
-	SetDefaults();
+    SetDefaults();
 }
 
 void FHttpGPTCommonOptions::SetDefaults()
 {
-	if (const UHttpGPTSettings* const Settings = GetDefault<UHttpGPTSettings>())
-	{
-		APIKey = Settings->CommonOptions.APIKey;
-		User = Settings->CommonOptions.User;
-	}
+    if (const UHttpGPTSettings* const Settings = GetDefault<UHttpGPTSettings>())
+    {
+        APIKey = Settings->CommonOptions.APIKey;
+        User = Settings->CommonOptions.User;
+    }
 }

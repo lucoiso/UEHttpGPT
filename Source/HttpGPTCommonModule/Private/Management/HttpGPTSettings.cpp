@@ -12,113 +12,113 @@
 
 UHttpGPTSettings::UHttpGPTSettings(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer), bUseCustomSystemContext(false), CustomSystemContext(FString()), GeneratedImagesDir("HttpGPT_Generated"), bEnableInternalLogs(false)
 {
-	CategoryName = TEXT("Plugins");
+    CategoryName = TEXT("Plugins");
 
-	SetToDefaults();
+    SetToDefaults();
 }
 
 const UHttpGPTSettings* UHttpGPTSettings::Get()
 {
-	const UHttpGPTSettings* const Instance = GetDefault<UHttpGPTSettings>();
-	return Instance;
+    const UHttpGPTSettings* const Instance = GetDefault<UHttpGPTSettings>();
+    return Instance;
 }
 
 FHttpGPTCommonOptions UHttpGPTSettings::GetCommonOptions()
 {
-	return GetDefault<UHttpGPTSettings>()->CommonOptions;
+    return GetDefault<UHttpGPTSettings>()->CommonOptions;
 }
 
 void UHttpGPTSettings::SetCommonOptions(const FHttpGPTCommonOptions& Value)
 {
-	UHttpGPTSettings* const Settings = GetMutableDefault<UHttpGPTSettings>();
-	Settings->CommonOptions = Value;
+    UHttpGPTSettings* const Settings = GetMutableDefault<UHttpGPTSettings>();
+    Settings->CommonOptions = Value;
 
-	Settings->SaveAndReload(GET_MEMBER_NAME_CHECKED(UHttpGPTSettings, CommonOptions));
+    Settings->SaveAndReload(GET_MEMBER_NAME_CHECKED(UHttpGPTSettings, CommonOptions));
 }
 
 FHttpGPTChatOptions UHttpGPTSettings::GetChatOptions()
 {
-	return GetDefault<UHttpGPTSettings>()->ChatOptions;
+    return GetDefault<UHttpGPTSettings>()->ChatOptions;
 }
 
 void UHttpGPTSettings::SetChatOptions(const FHttpGPTChatOptions& Value)
 {
-	UHttpGPTSettings* const Settings = GetMutableDefault<UHttpGPTSettings>();
-	Settings->ChatOptions = Value;
+    UHttpGPTSettings* const Settings = GetMutableDefault<UHttpGPTSettings>();
+    Settings->ChatOptions = Value;
 
-	Settings->SaveAndReload(GET_MEMBER_NAME_CHECKED(UHttpGPTSettings, ChatOptions));
+    Settings->SaveAndReload(GET_MEMBER_NAME_CHECKED(UHttpGPTSettings, ChatOptions));
 }
 
 FHttpGPTImageOptions UHttpGPTSettings::GetImageOptions()
 {
-	return GetDefault<UHttpGPTSettings>()->ImageOptions;
+    return GetDefault<UHttpGPTSettings>()->ImageOptions;
 }
 
 void UHttpGPTSettings::SetImageOptions(const FHttpGPTImageOptions& Value)
 {
-	UHttpGPTSettings* const Settings = GetMutableDefault<UHttpGPTSettings>();
-	Settings->ImageOptions = Value;
+    UHttpGPTSettings* const Settings = GetMutableDefault<UHttpGPTSettings>();
+    Settings->ImageOptions = Value;
 
-	Settings->SaveAndReload(GET_MEMBER_NAME_CHECKED(UHttpGPTSettings, ImageOptions));
+    Settings->SaveAndReload(GET_MEMBER_NAME_CHECKED(UHttpGPTSettings, ImageOptions));
 }
 
 #if WITH_EDITOR
 void UHttpGPTSettings::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent)
 {
-	Super::PostEditChangeProperty(PropertyChangedEvent);
+    Super::PostEditChangeProperty(PropertyChangedEvent);
 
-	if (PropertyChangedEvent.Property->GetFName() == GET_MEMBER_NAME_CHECKED(UHttpGPTSettings, bEnableInternalLogs))
-	{
-		ToggleInternalLogs();
-	}
+    if (PropertyChangedEvent.Property->GetFName() == GET_MEMBER_NAME_CHECKED(UHttpGPTSettings, bEnableInternalLogs))
+    {
+        ToggleInternalLogs();
+    }
 }
 #endif
 
 void UHttpGPTSettings::PostInitProperties()
 {
-	Super::PostInitProperties();
-	ToggleInternalLogs();
+    Super::PostInitProperties();
+    ToggleInternalLogs();
 }
 
 void UHttpGPTSettings::SetToDefaults()
 {
-	CommonOptions.APIKey = NAME_None;
-	CommonOptions.User = NAME_None;
+    CommonOptions.APIKey = NAME_None;
+    CommonOptions.User = NAME_None;
 
-	ChatOptions.Model = EHttpGPTChatModel::gpt35turbo;
-	ChatOptions.MaxTokens = 2048;
-	ChatOptions.Temperature = 1.f;
-	ChatOptions.TopP = 1.f;
-	ChatOptions.Choices = 1;
-	ChatOptions.bStream = true;
-	ChatOptions.Stop = TArray<FName>();
-	ChatOptions.PresencePenalty = 0.f;
-	ChatOptions.FrequencyPenalty = 0.f;
-	ChatOptions.LogitBias = TMap<int32, float>();
+    ChatOptions.Model = EHttpGPTChatModel::gpt35turbo;
+    ChatOptions.MaxTokens = 2048;
+    ChatOptions.Temperature = 1.f;
+    ChatOptions.TopP = 1.f;
+    ChatOptions.Choices = 1;
+    ChatOptions.bStream = true;
+    ChatOptions.Stop = TArray<FName>();
+    ChatOptions.PresencePenalty = 0.f;
+    ChatOptions.FrequencyPenalty = 0.f;
+    ChatOptions.LogitBias = TMap<int32, float>();
 
-	ImageOptions.ImagesNum = 1;
-	ImageOptions.Size = EHttpGPTImageSize::x256;
-	ImageOptions.Format = EHttpGPTResponseFormat::url;
+    ImageOptions.ImagesNum = 1;
+    ImageOptions.Size = EHttpGPTImageSize::x256;
+    ImageOptions.Format = EHttpGPTResponseFormat::url;
 }
 
 void UHttpGPTSettings::SaveAndReload(const FName& PropertyName)
 {
-	SaveConfig();
+    SaveConfig();
 
-	uint32 PropagationFlags = 0u;
+    uint32 PropagationFlags = 0u;
 
 #if ENGINE_MAJOR_VERSION >= 5
-	PropagationFlags = UE::ELoadConfigPropagationFlags::LCPF_PropagateToChildDefaultObjects;
+    PropagationFlags = UE::ELoadConfigPropagationFlags::LCPF_PropagateToChildDefaultObjects;
 #else
-	PropagationFlags = UE4::ELoadConfigPropagationFlags::LCPF_PropagateToChildDefaultObjects;
+    PropagationFlags = UE4::ELoadConfigPropagationFlags::LCPF_PropagateToChildDefaultObjects;
 #endif
 
-	ReloadConfig(GetClass(), *GetDefaultConfigFilename(), PropagationFlags, GetClass()->FindPropertyByName(PropertyName));
+    ReloadConfig(GetClass(), *GetDefaultConfigFilename(), PropagationFlags, GetClass()->FindPropertyByName(PropertyName));
 }
 
 void UHttpGPTSettings::ToggleInternalLogs()
 {
 #if !UE_BUILD_SHIPPING
-	LogHttpGPT_Internal.SetVerbosity(bEnableInternalLogs ? ELogVerbosity::Display : ELogVerbosity::NoLogging);
+    LogHttpGPT_Internal.SetVerbosity(bEnableInternalLogs ? ELogVerbosity::Display : ELogVerbosity::NoLogging);
 #endif
 }

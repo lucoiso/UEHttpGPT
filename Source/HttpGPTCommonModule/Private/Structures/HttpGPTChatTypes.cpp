@@ -13,37 +13,37 @@
 
 FHttpGPTChatMessage::FHttpGPTChatMessage(const FName& Role, const FString& Content)
 {
-	this->Role = UHttpGPTHelper::NameToRole(Role);
-	this->Content = Content;
+    this->Role = UHttpGPTHelper::NameToRole(Role);
+    this->Content = Content;
 }
 
 TSharedPtr<FJsonValue> FHttpGPTChatMessage::GetMessage() const
 {
-	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
-	JsonObject->SetStringField("role", UHttpGPTHelper::RoleToName(Role).ToString().ToLower());
-	JsonObject->SetStringField("content", Content);
+    TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
+    JsonObject->SetStringField("role", UHttpGPTHelper::RoleToName(Role).ToString().ToLower());
+    JsonObject->SetStringField("content", Content);
 
-	return MakeShareable(new FJsonValueObject(JsonObject));
+    return MakeShareable(new FJsonValueObject(JsonObject));
 }
 
 FHttpGPTChatOptions::FHttpGPTChatOptions()
 {
-	SetDefaults();
+    SetDefaults();
 }
 
 void FHttpGPTChatOptions::SetDefaults()
 {
-	if (const UHttpGPTSettings* const Settings = GetDefault<UHttpGPTSettings>())
-	{
-		Model = Settings->ChatOptions.Model;
-		MaxTokens = Settings->ChatOptions.MaxTokens;
-		Temperature = Settings->ChatOptions.Temperature;
-		TopP = Settings->ChatOptions.TopP;
-		Choices = Settings->ChatOptions.Choices;
-		bStream = Settings->ChatOptions.bStream;
-		Stop = Settings->ChatOptions.Stop;
-		PresencePenalty = Settings->ChatOptions.PresencePenalty;
-		FrequencyPenalty = Settings->ChatOptions.FrequencyPenalty;
-		LogitBias = Settings->ChatOptions.LogitBias;
-	}
+    if (const UHttpGPTSettings* const Settings = GetDefault<UHttpGPTSettings>())
+    {
+        Model = Settings->ChatOptions.Model;
+        MaxTokens = Settings->ChatOptions.MaxTokens;
+        Temperature = Settings->ChatOptions.Temperature;
+        TopP = Settings->ChatOptions.TopP;
+        Choices = Settings->ChatOptions.Choices;
+        bStream = Settings->ChatOptions.bStream;
+        Stop = Settings->ChatOptions.Stop;
+        PresencePenalty = Settings->ChatOptions.PresencePenalty;
+        FrequencyPenalty = Settings->ChatOptions.FrequencyPenalty;
+        LogitBias = Settings->ChatOptions.LogitBias;
+    }
 }
