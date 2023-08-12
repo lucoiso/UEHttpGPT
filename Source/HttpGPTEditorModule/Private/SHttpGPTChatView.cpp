@@ -123,37 +123,37 @@ void SHttpGPTChatItem::Construct(const FArguments& InArgs)
     const ISlateStyle& AppStyle = FAppStyle::Get();
 
     ChildSlot
+    [
+        SNew(SVerticalBox)
+        + SVerticalBox::Slot()
+        .Padding(SlotPadding)
         [
-            SNew(SVerticalBox)
+            SNew(SBorder)
+            .BorderImage(AppStyle.GetBrush("Menu.Background"))
+            [
+                SNew(SVerticalBox)
                 + SVerticalBox::Slot()
-                .Padding(SlotPadding)
+                .Padding(Slot_Padding)
+                .AutoHeight()
                 [
-                    SNew(SBorder)
-                        .BorderImage(AppStyle.GetBrush("Menu.Background"))
-                        [
-                            SNew(SVerticalBox)
-                                + SVerticalBox::Slot()
-                                .Padding(Slot_Padding)
-                                .AutoHeight()
-                                [
-                                    SAssignNew(Role, STextBlock)
-                                        .Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
-                                        .Text(RoleText)
-                                ]
-                                + SVerticalBox::Slot()
-                                .Padding(FMargin(Slot_Padding * 4, Slot_Padding, Slot_Padding, Slot_Padding))
-                                .FillHeight(1.f)
-                                [
-                                    SAssignNew(Message, SMultiLineEditableText)
-                                        .AllowMultiLine(true)
-                                        .AutoWrapText(true)
-                                        .IsReadOnly(true)
-                                        .AllowContextMenu(true)
-                                        .Text(FText::FromString(InArgs._InputText))
-                                ]
-                        ]
+                    SAssignNew(Role, STextBlock)
+                    .Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+                    .Text(RoleText)
                 ]
-        ];
+                + SVerticalBox::Slot()
+                .Padding(FMargin(Slot_Padding * 4, Slot_Padding, Slot_Padding, Slot_Padding))
+                .FillHeight(1.f)
+                [
+                    SAssignNew(Message, SMultiLineEditableText)
+                    .AllowMultiLine(true)
+                    .AutoWrapText(true)
+                    .IsReadOnly(true)
+                    .AllowContextMenu(true)
+                    .Text(FText::FromString(InArgs._InputText))
+                ]
+            ]
+        ]
+    ];
 }
 
 FString SHttpGPTChatItem::GetRoleText() const
@@ -183,61 +183,61 @@ void SHttpGPTChatView::Construct([[maybe_unused]] const FArguments&)
     InitializeModelsOptions();
 
     ChildSlot
+    [
+        SNew(SVerticalBox)
+        + SVerticalBox::Slot()
+        .Padding(Slot_Padding)
+        .FillHeight(1.f)
         [
-            SNew(SVerticalBox)
-                + SVerticalBox::Slot()
-                .Padding(Slot_Padding)
-                .FillHeight(1.f)
+            SNew(SBorder)
+            .BorderImage(AppStyle.GetBrush("NoBorder"))
+            [
+                SAssignNew(ChatScrollBox, SScrollBox)
+                + SScrollBox::Slot()
                 [
-                    SNew(SBorder)
-                        .BorderImage(AppStyle.GetBrush("NoBorder"))
-                        [
-                            SAssignNew(ChatScrollBox, SScrollBox)
-                                + SScrollBox::Slot()
-                                [
-                                    SAssignNew(ChatBox, SVerticalBox)
-                                ]
-                        ]
+                    SAssignNew(ChatBox, SVerticalBox)
                 ]
-                + SVerticalBox::Slot()
-                .Padding(Slot_Padding)
-                .AutoHeight()
-                [
-                    SNew(SHorizontalBox)
-                        + SHorizontalBox::Slot()
-                        .Padding(Slot_Padding)
-                        .FillWidth(1.f)
-                        [
-                            SAssignNew(InputTextBox, SEditableTextBox)
-                        ]
-                        + SHorizontalBox::Slot()
-                        .Padding(Slot_Padding)
-                        .AutoWidth()
-                        [
-                            SNew(SButton)
-                                .Text(FText::FromString("Send"))
-                                .ToolTipText(FText::FromString("Send Message"))
-                                .OnClicked(this, &SHttpGPTChatView::HandleSendMessageButton)
-                                .IsEnabled(this, &SHttpGPTChatView::IsSendMessageEnabled)
-                        ]
-                        + SHorizontalBox::Slot()
-                        .Padding(Slot_Padding)
-                        .AutoWidth()
-                        [
-                            ModelsComboBox.ToSharedRef()
-                        ]
-                        + SHorizontalBox::Slot()
-                        .Padding(Slot_Padding)
-                        .AutoWidth()
-                        [
-                            SNew(SButton)
-                                .Text(FText::FromString("Clear"))
-                                .ToolTipText(FText::FromString("Clear Chat History"))
-                                .OnClicked(this, &SHttpGPTChatView::HandleClearChatButton)
-                                .IsEnabled(this, &SHttpGPTChatView::IsClearChatEnabled)
-                        ]
-                ]
-        ];
+            ]
+        ]
+        + SVerticalBox::Slot()
+        .Padding(Slot_Padding)
+        .AutoHeight()
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot()
+            .Padding(Slot_Padding)
+            .FillWidth(1.f)
+            [
+                SAssignNew(InputTextBox, SEditableTextBox)
+            ]
+            + SHorizontalBox::Slot()
+            .Padding(Slot_Padding)
+            .AutoWidth()
+            [
+                SNew(SButton)
+                .Text(FText::FromString("Send"))
+                .ToolTipText(FText::FromString("Send Message"))
+                .OnClicked(this, &SHttpGPTChatView::HandleSendMessageButton)
+                .IsEnabled(this, &SHttpGPTChatView::IsSendMessageEnabled)
+            ]
+            + SHorizontalBox::Slot()
+            .Padding(Slot_Padding)
+            .AutoWidth()
+            [
+                ModelsComboBox.ToSharedRef()
+            ]
+            + SHorizontalBox::Slot()
+            .Padding(Slot_Padding)
+            .AutoWidth()
+            [
+                SNew(SButton)
+                .Text(FText::FromString("Clear"))
+                .ToolTipText(FText::FromString("Clear Chat History"))
+                .OnClicked(this, &SHttpGPTChatView::HandleClearChatButton)
+                .IsEnabled(this, &SHttpGPTChatView::IsClearChatEnabled)
+            ]
+        ]
+    ];
 }
 
 FReply SHttpGPTChatView::HandleSendMessageButton()

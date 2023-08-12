@@ -46,10 +46,10 @@ TSharedRef<SDockTab> FHttpGPTEditorModule::OnSpawnTab(const FSpawnTabArgs& Spawn
     if (OutContent.IsValid())
     {
         return SNew(SDockTab)
-            .TabRole(NomadTab)
-            [
-                OutContent.ToSharedRef()
-            ];
+        .TabRole(NomadTab)
+        [
+            OutContent.ToSharedRef()
+        ];
     }
 
     return SNew(SDockTab);

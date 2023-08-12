@@ -94,26 +94,26 @@ void SHttpGPTImageGenItemData::Construct(const FArguments& InArgs)
     constexpr float Slot_Padding = 4.0f;
 
     ChildSlot
+    [
+        SNew(SVerticalBox)
+        + SVerticalBox::Slot()
+        .Padding(Slot_Padding)
+        .FillHeight(1.f)
         [
-            SNew(SVerticalBox)
-                + SVerticalBox::Slot()
-                .Padding(Slot_Padding)
-                .FillHeight(1.f)
-                [
-                    SAssignNew(Image, SImage)
-                        .Image(Texture.IsValid() ? new FSlateImageBrush(Texture.Get(), FVector2D(256, 256)) : nullptr)
-                ]
-                + SVerticalBox::Slot()
-                .Padding(Slot_Padding)
-                .AutoHeight()
-                [
-                    SAssignNew(SaveButton, SButton)
-                        .Text(FText::FromString("Save"))
-                        .HAlign(HAlign_Center)
-                        .OnClicked(this, &SHttpGPTImageGenItemData::HandleSaveButton)
-                        .IsEnabled(this, &SHttpGPTImageGenItemData::IsSaveEnabled)
-                ]
-        ];
+            SAssignNew(Image, SImage)
+            .Image(Texture.IsValid() ? new FSlateImageBrush(Texture.Get(), FVector2D(256, 256)) : nullptr)
+        ]
+        + SVerticalBox::Slot()
+        .Padding(Slot_Padding)
+        .AutoHeight()
+        [
+            SAssignNew(SaveButton, SButton)
+            .Text(FText::FromString("Save"))
+            .HAlign(HAlign_Center)
+            .OnClicked(this, &SHttpGPTImageGenItemData::HandleSaveButton)
+            .IsEnabled(this, &SHttpGPTImageGenItemData::IsSaveEnabled)
+        ]
+    ];
 }
 
 FReply SHttpGPTImageGenItemData::HandleSaveButton()
@@ -216,48 +216,48 @@ void SHttpGPTImageGenItem::Construct(const FArguments& InArgs)
     const ISlateStyle& AppStyle = FAppStyle::Get();
 
     ChildSlot
+    [
+        SNew(SVerticalBox)
+        + SVerticalBox::Slot()
+        .Padding(Slot_Padding)
         [
-            SNew(SVerticalBox)
+            SNew(SBorder)
+            .BorderImage(AppStyle.GetBrush("Menu.Background"))
+            [
+                SNew(SVerticalBox)
                 + SVerticalBox::Slot()
                 .Padding(Slot_Padding)
+                .AutoHeight()
                 [
-                    SNew(SBorder)
-                        .BorderImage(AppStyle.GetBrush("Menu.Background"))
-                        [
-                            SNew(SVerticalBox)
-                                + SVerticalBox::Slot()
-                                .Padding(Slot_Padding)
-                                .AutoHeight()
-                                [
-                                    SNew(SVerticalBox)
-                                        + SVerticalBox::Slot()
-                                        .AutoHeight()
-                                        [
-                                            SAssignNew(Prompt, STextBlock)
-                                                .Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
-                                                .Text(FText::FromString("Prompt: " + InArgs._Prompt))
-                                        ]
-                                        + SVerticalBox::Slot()
-                                        .AutoHeight()
-                                        [
-                                            SAssignNew(Status, STextBlock)
-                                                .Text(FText::FromString("Status: Sending request..."))
-                                        ]
-                                ]
-                                + SVerticalBox::Slot()
-                                .Padding(Slot_Padding)
-                                .FillHeight(1.f)
-                                [
-                                    SAssignNew(ItemScrollBox, SScrollBox)
-                                        .Orientation(EOrientation::Orient_Horizontal)
-                                        + SScrollBox::Slot()
-                                        [
-                                            SAssignNew(ItemViewBox, SHorizontalBox)
-                                        ]
-                                ]
-                        ]
+                    SNew(SVerticalBox)
+                    + SVerticalBox::Slot()
+                    .AutoHeight()
+                    [
+                        SAssignNew(Prompt, STextBlock)
+                        .Font(FCoreStyle::GetDefaultFontStyle("Bold", 10))
+                        .Text(FText::FromString("Prompt: " + InArgs._Prompt))
+                    ]
+                    + SVerticalBox::Slot()
+                    .AutoHeight()
+                    [
+                        SAssignNew(Status, STextBlock)
+                        .Text(FText::FromString("Status: Sending request..."))
+                    ]
                 ]
-        ];
+                + SVerticalBox::Slot()
+                .Padding(Slot_Padding)
+                .FillHeight(1.f)
+                [
+                    SAssignNew(ItemScrollBox, SScrollBox)
+                    .Orientation(EOrientation::Orient_Horizontal)
+                    + SScrollBox::Slot()
+                    [
+                        SAssignNew(ItemViewBox, SHorizontalBox)
+                    ]
+                ]
+            ]
+        ]
+    ];
 }
 
 SHttpGPTImageGenItem::~SHttpGPTImageGenItem()
@@ -285,79 +285,79 @@ void SHttpGPTImageGenView::Construct(const FArguments& InArgs)
     ImageSizeComboBox = SNew(STextComboBox).OptionsSource(&ImageSize).InitiallySelectedItem(ImageSize[0]).ToolTipText(FText::FromString("Size of Generated Images"));
 
     ChildSlot
+    [
+        SNew(SVerticalBox)
+        + SVerticalBox::Slot()
+        .Padding(Slot_Padding)
+        .FillHeight(1.f)
         [
-            SNew(SVerticalBox)
-                + SVerticalBox::Slot()
-                .Padding(Slot_Padding)
-                .FillHeight(1.f)
+            SNew(SBorder)
+            .BorderImage(AppStyle.GetBrush("NoBorder"))
+            [
+                SAssignNew(ViewScrollBox, SScrollBox)
+                + SScrollBox::Slot()
                 [
-                    SNew(SBorder)
-                        .BorderImage(AppStyle.GetBrush("NoBorder"))
-                        [
-                            SAssignNew(ViewScrollBox, SScrollBox)
-                                + SScrollBox::Slot()
-                                [
-                                    SAssignNew(ViewBox, SVerticalBox)
-                                ]
-                        ]
+                    SAssignNew(ViewBox, SVerticalBox)
                 ]
-                + SVerticalBox::Slot()
-                .Padding(Slot_Padding)
-                .AutoHeight()
-                [
-                    SNew(SHorizontalBox)
-                        + SHorizontalBox::Slot()
-                        .Padding(Slot_Padding)
-                        .FillWidth(1.f)
-                        [
-                            SAssignNew(InputTextBox, SEditableTextBox)
-                        ]
-                        + SHorizontalBox::Slot()
-                        .Padding(Slot_Padding)
-                        .AutoWidth()
-                        [
-                            SNew(SButton)
-                                .Text(FText::FromString("Generate"))
-                                .ToolTipText(FText::FromString("Request Images Generation"))
-                                .OnClicked(this, &SHttpGPTImageGenView::HandleSendRequestButton)
-                                .IsEnabled(this, &SHttpGPTImageGenView::IsSendRequestEnabled)
-                        ]
-                        + SHorizontalBox::Slot()
-                        .Padding(Slot_Padding)
-                        .AutoWidth()
-                        [
-                            ImageNumComboBox.ToSharedRef()
-                        ]
-                        + SHorizontalBox::Slot()
-                        .Padding(Slot_Padding)
-                        .AutoWidth()
-                        [
-                            ImageSizeComboBox.ToSharedRef()
-                        ]
-                        + SHorizontalBox::Slot()
-                        .Padding(Slot_Padding)
-                        .AutoWidth()
-                        [
-                            SNew(SButton)
-                                .Text(FText::FromString("Clear"))
-                                .ToolTipText(FText::FromString("Clear Generation History"))
-                                .OnClicked(this, &SHttpGPTImageGenView::HandleClearViewButton)
-                                .IsEnabled(this, &SHttpGPTImageGenView::IsClearViewEnabled)
-                        ]
-                ]
-        ];
+            ]
+        ]
+        + SVerticalBox::Slot()
+        .Padding(Slot_Padding)
+        .AutoHeight()
+        [
+            SNew(SHorizontalBox)
+            + SHorizontalBox::Slot()
+            .Padding(Slot_Padding)
+            .FillWidth(1.f)
+            [
+                SAssignNew(InputTextBox, SEditableTextBox)
+            ]
+            + SHorizontalBox::Slot()
+            .Padding(Slot_Padding)
+            .AutoWidth()
+            [
+                SNew(SButton)
+                .Text(FText::FromString("Generate"))
+                .ToolTipText(FText::FromString("Request Images Generation"))
+                .OnClicked(this, &SHttpGPTImageGenView::HandleSendRequestButton)
+                .IsEnabled(this, &SHttpGPTImageGenView::IsSendRequestEnabled)
+            ]
+            + SHorizontalBox::Slot()
+            .Padding(Slot_Padding)
+            .AutoWidth()
+            [
+                ImageNumComboBox.ToSharedRef()
+            ]
+            + SHorizontalBox::Slot()
+            .Padding(Slot_Padding)
+            .AutoWidth()
+            [
+                ImageSizeComboBox.ToSharedRef()
+            ]
+            + SHorizontalBox::Slot()
+            .Padding(Slot_Padding)
+            .AutoWidth()
+            [
+                SNew(SButton)
+                .Text(FText::FromString("Clear"))
+                .ToolTipText(FText::FromString("Clear Generation History"))
+                .OnClicked(this, &SHttpGPTImageGenView::HandleClearViewButton)
+                .IsEnabled(this, &SHttpGPTImageGenView::IsClearViewEnabled)
+            ]
+        ]
+    ];
 }
 
 FReply SHttpGPTImageGenView::HandleSendRequestButton()
 {
     ViewBox->AddSlot()
-        .AutoHeight()
-        [
-            SNew(SHttpGPTImageGenItem)
-                .Prompt(InputTextBox->GetText().ToString())
-                .Num(*ImageNumComboBox->GetSelectedItem().Get())
-                .Size(*ImageSizeComboBox->GetSelectedItem().Get())
-        ];
+    .AutoHeight()
+    [
+        SNew(SHttpGPTImageGenItem)
+        .Prompt(InputTextBox->GetText().ToString())
+        .Num(*ImageNumComboBox->GetSelectedItem().Get())
+        .Size(*ImageSizeComboBox->GetSelectedItem().Get())
+    ];
 
     ViewScrollBox->ScrollToEnd();
     InputTextBox->SetText(FText::GetEmpty());
