@@ -107,6 +107,7 @@ enum class EHttpGPTChatModel : uint8
     gpt4			UMETA(DisplayName = "gpt-4"),
     gpt432k			UMETA(DisplayName = "gpt-4-32k"),
     gpt35turbo		UMETA(DisplayName = "gpt-3.5-turbo"),
+    gpt35turbo16k   UMETA(DisplayName = "gpt-3.5-turbo-16k"),
     textdavinci003	UMETA(DisplayName = "text-davinci-003"),
     textdavinci002	UMETA(DisplayName = "text-davinci-002"),
     codedavinci002	UMETA(DisplayName = "code-davinci-002"),

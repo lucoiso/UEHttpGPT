@@ -22,6 +22,9 @@ const FName UHttpGPTHelper::ModelToName(const EHttpGPTChatModel& Model)
     case EHttpGPTChatModel::gpt35turbo:
         return "gpt-3.5-turbo";
 
+    case EHttpGPTChatModel::gpt35turbo16k:
+        return "gpt-3.5-turbo-16k";
+
     case EHttpGPTChatModel::textdavinci003:
         return "text-davinci-003";
 
@@ -50,6 +53,10 @@ const EHttpGPTChatModel UHttpGPTHelper::NameToModel(const FName Model)
     else if (Model.IsEqual("gpt-3.5-turbo", ENameCase::IgnoreCase))
     {
         return EHttpGPTChatModel::gpt35turbo;
+    }
+    else if (Model.IsEqual("gpt-3.5-turbo-16k", ENameCase::IgnoreCase))
+    {
+        return EHttpGPTChatModel::gpt35turbo16k;
     }
     else if (Model.IsEqual("text-davinci-003", ENameCase::IgnoreCase))
     {
