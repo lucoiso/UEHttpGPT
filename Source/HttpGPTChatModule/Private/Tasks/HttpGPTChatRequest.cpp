@@ -206,8 +206,12 @@ void UHttpGPTChatRequest::OnProgressUpdated(const FString& Content, int32 BytesS
     AsyncTask(ENamedThreads::GameThread,
         [this]
         {
-            FScopeLock Lock(&Mutex);
-            ProgressUpdated.Broadcast(Response);
+            FScopeTryLock Lock(&Mutex);
+
+            if (Lock.IsLocked())
+            {
+                ProgressUpdated.Broadcast(Response);
+            }
         }
     );
 }
