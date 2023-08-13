@@ -189,12 +189,15 @@ void UHttpGPTBaseTask::BindRequestCallbacks()
             {
                 FScopeTryLock Lock(&Mutex);
 
-                if (!Lock.IsLocked() || !IsValid(this) || !bIsTaskActive)
+                if (!Lock.IsLocked() || !IsValid(this) || !bIsTaskActive || !Request.IsValid())
                 {
                     return;
                 }
 
-                OnProgressUpdated(Request->GetResponse()->GetContentAsString(), BytesSent, BytesReceived);
+                if (const FHttpResponsePtr Response = Request->GetResponse(); Response.IsValid())
+                {
+                    OnProgressUpdated(Response->GetContentAsString(), BytesSent, BytesReceived);
+                }
             }
         );
     }
