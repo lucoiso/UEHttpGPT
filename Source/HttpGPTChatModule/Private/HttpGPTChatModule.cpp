@@ -15,5 +15,5 @@ void FHttpGPTChatModule::ShutdownModule()
 }
 
 #undef LOCTEXT_NAMESPACE
-	
+
 IMPLEMENT_MODULE(FHttpGPTChatModule, HttpGPTChatModule)

@@ -19,56 +19,56 @@ DECLARE_DELEGATE_OneParam(FImageStatusChanged, FString);
 UCLASS(MinimalAPI, NotBlueprintable, NotPlaceable, Category = "Implementation")
 class UHttpGPTImageGetter : public UObject
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
-	explicit UHttpGPTImageGetter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+    explicit UHttpGPTImageGetter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	FImageGenerated OnImageGenerated;
-	FImageStatusChanged OnStatusChanged;
+    FImageGenerated OnImageGenerated;
+    FImageStatusChanged OnStatusChanged;
 
-	UFUNCTION()
-	void RequestSent();
+    UFUNCTION()
+    void RequestSent();
 
-	UFUNCTION()
-	void RequestFailed();
-	
-	UFUNCTION()
-	void ProcessCompleted(const FHttpGPTImageResponse& Response);
+    UFUNCTION()
+    void RequestFailed();
 
-	void Destroy();
+    UFUNCTION()
+    void ProcessCompleted(const FHttpGPTImageResponse& Response);
+
+    void Destroy();
 
 private:
-	void ProcessImage(const FHttpGPTImageData& Data);
+    void ProcessImage(const FHttpGPTImageData& Data);
 
-	FHttpGPTImageGenerate OnImageGenerated_Internal;
+    FHttpGPTImageGenerate OnImageGenerated_Internal;
 
-	UFUNCTION()
-	void ImageGenerated(UTexture2D* Texture);
+    UFUNCTION()
+    void ImageGenerated(UTexture2D* Texture);
 
-	uint8 GeneratedImages = 0u;
-	uint8 DataSize = 0u;
+    uint8 GeneratedImages = 0u;
+    uint8 DataSize = 0u;
 };
 
 class SHttpGPTImageGenItemData final : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SHttpGPTImageGenItemData) : _Texture()
-	{
-	}
-	SLATE_ARGUMENT(UTexture2D*, Texture)
-	SLATE_END_ARGS()
+    SLATE_BEGIN_ARGS(SHttpGPTImageGenItemData) : _Texture()
+        {
+        }
+        SLATE_ARGUMENT(UTexture2D*, Texture)
+    SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs);
+    void Construct(const FArguments& InArgs);
 
-	FReply HandleSaveButton();
-	bool IsSaveEnabled() const;
+    FReply HandleSaveButton();
+    bool IsSaveEnabled() const;
 
 private:
-	TSharedPtr<SImage> Image;
-	TSharedPtr<SButton> SaveButton;
+    TSharedPtr<SImage> Image;
+    TSharedPtr<SButton> SaveButton;
 
-	TWeakObjectPtr<UTexture2D> Texture;
+    TWeakObjectPtr<UTexture2D> Texture;
 };
 
 typedef TSharedPtr<SHttpGPTImageGenItemData> SHttpGPTImageGenItemDataPtr;
@@ -76,26 +76,26 @@ typedef TSharedPtr<SHttpGPTImageGenItemData> SHttpGPTImageGenItemDataPtr;
 class SHttpGPTImageGenItem final : public SCompoundWidget
 {
 public:
-	SLATE_BEGIN_ARGS(SHttpGPTImageGenItem) : _Prompt(), _Num(), _Size()
-	{
-	}
-	SLATE_ARGUMENT(FString, Prompt)
-	SLATE_ARGUMENT(FString, Num)
-	SLATE_ARGUMENT(FString, Size)
-	SLATE_END_ARGS()
+    SLATE_BEGIN_ARGS(SHttpGPTImageGenItem) : _Prompt(), _Num(), _Size()
+        {
+        }
+        SLATE_ARGUMENT(FString, Prompt)
+        SLATE_ARGUMENT(FString, Num)
+        SLATE_ARGUMENT(FString, Size)
+    SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs);
-	~SHttpGPTImageGenItem();
+    void Construct(const FArguments& InArgs);
+    ~SHttpGPTImageGenItem();
 
-	TWeakObjectPtr<UHttpGPTImageGetter> HttpGPTImageGetterObject;
+    TWeakObjectPtr<UHttpGPTImageGetter> HttpGPTImageGetterObject;
 
 private:
-	TSharedPtr<STextBlock> Prompt;
-	TSharedPtr<STextBlock> Status;
-	TSharedPtr<SScrollBox> ItemScrollBox;
-	TSharedPtr<SHorizontalBox> ItemViewBox;
+    TSharedPtr<STextBlock> Prompt;
+    TSharedPtr<STextBlock> Status;
+    TSharedPtr<SScrollBox> ItemScrollBox;
+    TSharedPtr<SHorizontalBox> ItemViewBox;
 
-	TWeakObjectPtr<class UHttpGPTImageRequest> RequestReference;
+    TWeakObjectPtr<class UHttpGPTImageRequest> RequestReference;
 };
 
 typedef TSharedPtr<SHttpGPTImageGenItem> SHttpGPTImageGenItemPtr;
@@ -103,32 +103,32 @@ typedef TSharedPtr<SHttpGPTImageGenItem> SHttpGPTImageGenItemPtr;
 class SHttpGPTImageGenView final : public SCompoundWidget
 {
 public:
-	SLATE_USER_ARGS(SHttpGPTImageGenView)
-	{
-	}
-	SLATE_END_ARGS()
+    SLATE_USER_ARGS(SHttpGPTImageGenView)
+        {
+        }
+    SLATE_END_ARGS()
 
-	void Construct(const FArguments& InArgs);
+    void Construct(const FArguments& InArgs);
 
-	FReply HandleSendRequestButton();
-	bool IsSendRequestEnabled() const;
+    FReply HandleSendRequestButton();
+    bool IsSendRequestEnabled() const;
 
-	FReply HandleClearViewButton();
-	bool IsClearViewEnabled() const;
+    FReply HandleClearViewButton();
+    bool IsClearViewEnabled() const;
 
 protected:
-	void InitializeImageNumOptions();
-	void InitializeImageSizeOptions();
+    void InitializeImageNumOptions();
+    void InitializeImageSizeOptions();
 
 private:
-	TSharedPtr<SVerticalBox> ViewBox;
-	TSharedPtr<SScrollBox> ViewScrollBox;
+    TSharedPtr<SVerticalBox> ViewBox;
+    TSharedPtr<SScrollBox> ViewScrollBox;
 
-	TSharedPtr<SEditableTextBox> InputTextBox;
+    TSharedPtr<SEditableTextBox> InputTextBox;
 
-	TSharedPtr<STextComboBox> ImageNumComboBox;
-	TArray<TSharedPtr<FString>> ImageNum;
+    TSharedPtr<STextComboBox> ImageNumComboBox;
+    TArray<TSharedPtr<FString>> ImageNum;
 
-	TSharedPtr<STextComboBox> ImageSizeComboBox;
-	TArray<TSharedPtr<FString>> ImageSize;
+    TSharedPtr<STextComboBox> ImageSizeComboBox;
+    TArray<TSharedPtr<FString>> ImageSize;
 };
