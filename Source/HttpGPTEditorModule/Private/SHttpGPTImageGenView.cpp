@@ -397,13 +397,13 @@ void SHttpGPTImageGenView::InitializeImageNumOptions()
     constexpr uint8 MaxNum = 10u;
     for (uint8 Iterator = 1u; Iterator <= MaxNum; ++Iterator)
     {
-        ImageNum.Add(MakeShareable(new FString(FString::FromInt(Iterator))));
+        ImageNum.Add(MakeShared<FString>(FString::FromInt(Iterator)));
     }
 }
 
 void SHttpGPTImageGenView::InitializeImageSizeOptions()
 {
-    ImageSize.Add(MakeShareable(new FString(UHttpGPTHelper::SizeToName(EHttpGPTImageSize::x256).ToString())));
-    ImageSize.Add(MakeShareable(new FString(UHttpGPTHelper::SizeToName(EHttpGPTImageSize::x512).ToString())));
-    ImageSize.Add(MakeShareable(new FString(UHttpGPTHelper::SizeToName(EHttpGPTImageSize::x1024).ToString())));
+    ImageSize.Add(MakeShared<FString>(UHttpGPTHelper::SizeToName(EHttpGPTImageSize::x256).ToString()));
+    ImageSize.Add(MakeShared<FString>(UHttpGPTHelper::SizeToName(EHttpGPTImageSize::x512).ToString()));
+    ImageSize.Add(MakeShared<FString>(UHttpGPTHelper::SizeToName(EHttpGPTImageSize::x1024).ToString()));
 }
