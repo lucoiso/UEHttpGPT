@@ -78,6 +78,7 @@ public:
     SLATE_END_ARGS()
 
     void Construct(const FArguments& InArgs);
+    ~SHttpGPTChatView();
 
     FReply HandleSendMessageButton();
     bool IsSendMessageEnabled() const;
@@ -88,6 +89,11 @@ public:
 protected:
     TArray<FHttpGPTChatMessage> GetChatHistory() const;
     FString GetSystemContext() const;
+
+    void LoadChatHistory();
+    void SaveChatHistory() const;
+
+    FString GetHistoryPath() const;
 
     void InitializeModelsOptions();
 

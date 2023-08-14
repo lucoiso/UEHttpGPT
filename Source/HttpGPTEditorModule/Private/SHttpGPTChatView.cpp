@@ -7,6 +7,11 @@
 #include <Utils/HttpGPTHelper.h>
 #include <HttpGPTInternalFuncs.h>
 #include <Interfaces/IPluginManager.h>
+#include <Dom/JsonObject.h>
+#include <Serialization/JsonWriter.h>
+#include <Serialization/JsonReader.h>
+#include <Serialization/JsonSerializer.h>
+#include <Misc/FileHelper.h>
 
 #ifdef UE_INLINE_GENERATED_CPP_BY_NAME
 #include UE_INLINE_GENERATED_CPP_BY_NAME(SHttpGPTChatView)
@@ -249,6 +254,13 @@ void SHttpGPTChatView::Construct([[maybe_unused]] const FArguments&)
                         ]
                 ]
         ];
+
+    LoadChatHistory();
+}
+
+SHttpGPTChatView::~SHttpGPTChatView()
+{
+    SaveChatHistory();
 }
 
 FReply SHttpGPTChatView::HandleSendMessageButton()
@@ -319,9 +331,11 @@ TArray<FHttpGPTChatMessage> SHttpGPTChatView::GetChatHistory() const
         FHttpGPTChatMessage(EHttpGPTChatRole::System, GetSystemContext())
     };
 
-    for (const auto& Item : ChatItems)
+    for (const SHttpGPTChatItemPtr& Item : ChatItems)
     {
-        Output.Add(FHttpGPTChatMessage(*Item->GetRoleText(), Item->GetMessageText()));
+        FString RoleText = Item->GetRoleText();
+        RoleText.RemoveFromEnd(TEXT(":"));
+        Output.Add(FHttpGPTChatMessage(*RoleText, Item->GetMessageText()));
     }
 
     return Output;
@@ -388,6 +402,76 @@ FString SHttpGPTChatView::GetSystemContext() const
     };
 
     return FString::Format(TEXT("You are an assistant that will help with the development of projects in Unreal Engine in general.\n{0}\n{1}\n{2}\n{3}\n{4}\n{5}"), Arguments_SystemContext);
+}
+
+void SHttpGPTChatView::LoadChatHistory()
+{
+    if (const FString LoadPath = GetHistoryPath(); FPaths::FileExists(LoadPath))
+    {
+        FString FileContent;
+        if (!FFileHelper::LoadFileToString(FileContent, *LoadPath))
+        {
+            return;
+        }
+
+        TSharedPtr<FJsonObject> JsonParsed;
+        TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(FileContent);
+        if (FJsonSerializer::Deserialize(Reader, JsonParsed))
+        {
+            const TArray<TSharedPtr<FJsonValue>> Data = JsonParsed->GetArrayField("Data");
+            for (const TSharedPtr<FJsonValue>& Item : Data)
+            {
+                if (const TSharedPtr<FJsonObject> MessageItObj = Item->AsObject())
+                {
+                    const FString RoleString = MessageItObj->GetStringField("role");
+                    const EHttpGPTChatRole Role = UHttpGPTHelper::NameToRole(*RoleString);
+                    if (Role == EHttpGPTChatRole::System)
+                    {
+                        continue;
+                    }
+
+                    const FString Message = MessageItObj->GetStringField("content");
+
+                    ChatItems.Add(
+                        SNew(SHttpGPTChatItem)
+                        .MessageRole(Role)
+                        .InputText(Message)
+                    );
+                }
+            }
+        }
+    }
+
+    for (const SHttpGPTChatItemPtr& Item : ChatItems)
+    {
+        ChatBox->AddSlot().AutoHeight()[Item.ToSharedRef()];
+    }
+}
+
+void SHttpGPTChatView::SaveChatHistory() const
+{
+    const TSharedPtr<FJsonObject> JsonRequest = MakeShared<FJsonObject>();
+
+    TArray<TSharedPtr<FJsonValue>> Data;
+    for (const FHttpGPTChatMessage& Item : GetChatHistory())
+    {
+        Data.Add(Item.GetMessage());
+    }
+
+    JsonRequest->SetArrayField("Data", Data);
+
+    FString RequestContentString;
+    const TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&RequestContentString);
+
+    if (FJsonSerializer::Serialize(JsonRequest.ToSharedRef(), Writer))
+    {
+        FFileHelper::SaveStringToFile(RequestContentString, *GetHistoryPath());
+    }
+}
+
+FString SHttpGPTChatView::GetHistoryPath() const
+{
+    return FPaths::Combine(FPaths::ProjectSavedDir(), "HttpGPT", "HttpGPTChatHistory.json");
 }
 
 void SHttpGPTChatView::InitializeModelsOptions()

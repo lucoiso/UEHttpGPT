@@ -103,7 +103,7 @@ FString UHttpGPTImageRequest::SetRequestContent()
 
     UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Mounting content"), *FString(__func__), GetUniqueID());
 
-    const TSharedPtr<FJsonObject> JsonRequest = MakeShareable(new FJsonObject);
+    const TSharedPtr<FJsonObject> JsonRequest = MakeShared<FJsonObject>();
     JsonRequest->SetStringField("prompt", Prompt);
     JsonRequest->SetNumberField("n", GetImageOptions().ImagesNum);
     JsonRequest->SetStringField("size", UHttpGPTHelper::SizeToName(GetImageOptions().Size).ToString());
@@ -178,7 +178,7 @@ void UHttpGPTImageRequest::DeserializeResponse(const FString& Content)
     }
 
     const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Content);
-    TSharedPtr<FJsonObject> JsonResponse = MakeShareable(new FJsonObject);
+    TSharedPtr<FJsonObject> JsonResponse = MakeShared<FJsonObject>();
     FJsonSerializer::Deserialize(Reader, JsonResponse);
 
     if (CheckError(JsonResponse, Response.Error))
