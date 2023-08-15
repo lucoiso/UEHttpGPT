@@ -105,7 +105,7 @@ FString UHttpGPTChatRequest::SetRequestContent()
 
     UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Mounting content"), *FString(__func__), GetUniqueID());
 
-    const TSharedPtr<FJsonObject> JsonRequest = MakeShareable(new FJsonObject);
+    const TSharedPtr<FJsonObject> JsonRequest = MakeShared<FJsonObject>();
     JsonRequest->SetStringField("model", UHttpGPTHelper::ModelToName(GetChatOptions().Model).ToString().ToLower());
     JsonRequest->SetNumberField("max_tokens", GetChatOptions().MaxTokens);
     JsonRequest->SetNumberField("temperature", GetChatOptions().Temperature);
@@ -125,7 +125,7 @@ FString UHttpGPTChatRequest::SetRequestContent()
         TArray<TSharedPtr<FJsonValue>> StopJson;
         for (const FName& Iterator : GetChatOptions().Stop)
         {
-            StopJson.Add(MakeShareable(new FJsonValueString(Iterator.ToString())));
+            StopJson.Add(MakeShared<FJsonValueString>(Iterator.ToString()));
         }
 
         JsonRequest->SetArrayField("stop", StopJson);
@@ -133,7 +133,7 @@ FString UHttpGPTChatRequest::SetRequestContent()
 
     if (!HttpGPT::Internal::HasEmptyParam(GetChatOptions().LogitBias))
     {
-        TSharedPtr<FJsonObject> LogitBiasJson = MakeShareable(new FJsonObject());
+        TSharedPtr<FJsonObject> LogitBiasJson = MakeShared<FJsonObject>();
         for (const TPair<int32, float>& Iterator : GetChatOptions().LogitBias)
         {
             LogitBiasJson->SetNumberField(FString::FromInt(Iterator.Key), Iterator.Value);
@@ -314,7 +314,7 @@ void UHttpGPTChatRequest::DeserializeSingleResponse(const FString& Content)
     }
 
     const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(Content);
-    TSharedPtr<FJsonObject> JsonResponse = MakeShareable(new FJsonObject);
+    TSharedPtr<FJsonObject> JsonResponse = MakeShared<FJsonObject>();
     FJsonSerializer::Deserialize(Reader, JsonResponse);
 
     if (CheckError(JsonResponse, Response.Error))

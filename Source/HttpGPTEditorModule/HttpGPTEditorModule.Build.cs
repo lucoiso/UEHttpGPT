@@ -32,7 +32,8 @@ public class HttpGPTEditorModule : ModuleRules
             "AssetRegistry",
             "HttpGPTCommonModule",
             "HttpGPTChatModule",
-            "HttpGPTImageModule"
+            "HttpGPTImageModule",
+            "Json"
         });
     }
 }
