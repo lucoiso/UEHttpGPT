@@ -153,6 +153,9 @@ FReply SHttpGPTChatView::HandleSendMessageButton(const EHttpGPTChatRole Role)
 
     if (Role == EHttpGPTChatRole::System)
     {
+        ChatScrollBox->ScrollToEnd();
+        InputTextBox->SetText(FText::GetEmpty());
+
         return FReply::Handled();
     }
 
