@@ -3,8 +3,8 @@
 // Repo: https://github.com/lucoiso/UEHttpGPT
 
 #include "HttpGPTEditorModule.h"
-#include "SHttpGPTChatView.h"
-#include "SHttpGPTImageGenView.h"
+#include "Chat/SHttpGPTChatView.h"
+#include "ImageGen/SHttpGPTImageGenView.h"
 #include <ToolMenus.h>
 #include <Widgets/Docking/SDockTab.h>
 #include <WorkspaceMenuStructure.h>
@@ -69,14 +69,14 @@ void FHttpGPTEditorModule::RegisterMenus()
     const TSharedPtr<FWorkspaceItem> Menu = WorkspaceMenu::GetMenuStructure().GetToolsCategory()->AddGroup(LOCTEXT("HttpGPTCategory", "HttpGPT"), LOCTEXT("HttpGPTCategoryTooltip", "HttpGPT Plugin Tabs"), FSlateIcon(AppStyleName, "Icons.Documentation"));
 
     FGlobalTabmanager::Get()->RegisterNomadTabSpawner(HttpGPTChatTabName, EditorTabSpawnerDelegate)
-        .SetDisplayName(FText::FromString("HttpGPT Chat"))
-        .SetTooltipText(FText::FromString("Open HttpGPT Chat"))
+        .SetDisplayName(FText::FromString(TEXT("HttpGPT Chat")))
+        .SetTooltipText(FText::FromString(TEXT("Open HttpGPT Chat")))
         .SetIcon(FSlateIcon(AppStyleName, "DerivedData.ResourceUsage"))
         .SetGroup(Menu.ToSharedRef());
 
     FGlobalTabmanager::Get()->RegisterNomadTabSpawner(HttpGPTImageGeneratorTabName, EditorTabSpawnerDelegate)
-        .SetDisplayName(FText::FromString("HttpGPT Image Generator"))
-        .SetTooltipText(FText::FromString("Open HttpGPT Image Generator"))
+        .SetDisplayName(FText::FromString(TEXT("HttpGPT Image Generator")))
+        .SetTooltipText(FText::FromString(TEXT("Open HttpGPT Image Generator")))
         .SetIcon(FSlateIcon(AppStyleName, "LevelEditor.Tabs.Viewports"))
         .SetGroup(Menu.ToSharedRef());
 }
