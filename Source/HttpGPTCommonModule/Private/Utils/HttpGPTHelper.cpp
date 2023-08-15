@@ -131,6 +131,7 @@ const FName UHttpGPTHelper::GetEndpointForModel(const EHttpGPTChatModel& Model)
     case EHttpGPTChatModel::gpt4:
     case EHttpGPTChatModel::gpt432k:
     case EHttpGPTChatModel::gpt35turbo:
+    case EHttpGPTChatModel::gpt35turbo16k:
         return "v1/chat/completions";
 
     case EHttpGPTChatModel::textdavinci003:
@@ -151,6 +152,7 @@ const bool UHttpGPTHelper::ModelSupportsChat(const EHttpGPTChatModel& Model)
     case EHttpGPTChatModel::gpt4:
     case EHttpGPTChatModel::gpt432k:
     case EHttpGPTChatModel::gpt35turbo:
+    case EHttpGPTChatModel::gpt35turbo16k:
         return true;
 
     case EHttpGPTChatModel::textdavinci003:
