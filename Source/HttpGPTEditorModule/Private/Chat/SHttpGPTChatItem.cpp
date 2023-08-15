@@ -52,17 +52,17 @@ TSharedRef<SWidget> SHttpGPTChatItem::ConstructContent()
     if (MessageRole == EHttpGPTChatRole::User)
     {
         RoleText = FText::FromString(TEXT("User:"));
-        BoxMargin = FMargin(0.f, 0.f, 0.f, SlotPadding * 16.f);
+        BoxMargin = FMargin(SlotPadding, SlotPadding, SlotPadding * 16.f, SlotPadding);
     }
     else if (MessageRole == EHttpGPTChatRole::Assistant)
     {
         RoleText = FText::FromString(TEXT("Assistant:"));
-        BoxMargin = FMargin(SlotPadding * 16.f, 0.f, 0.f, 0.f);
+        BoxMargin = FMargin(SlotPadding * 16.f, SlotPadding, SlotPadding, SlotPadding);
     }
     else if (MessageRole == EHttpGPTChatRole::System)
     {
         RoleText = FText::FromString(TEXT("System:"));
-        BoxMargin = FMargin(SlotPadding * 8.f, 0.f);
+        BoxMargin = FMargin(SlotPadding * 8.f, SlotPadding);
     }
 
     const FMargin MessageMargin(SlotPadding * 4.f, SlotPadding, SlotPadding, SlotPadding);

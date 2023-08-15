@@ -18,8 +18,6 @@
 #include <Widgets/Input/STextComboBox.h>
 #include "SHttpGPTChatItem.h"
 
-constexpr float SlotPadding = 4.0f;
-
 void SHttpGPTChatView::Construct([[maybe_unused]] const FArguments&)
 {
     ModelsComboBox = SNew(STextComboBox)
@@ -66,6 +64,8 @@ FString SHttpGPTChatView::GetHistoryPath() const
 
 TSharedRef<SWidget> SHttpGPTChatView::ConstructContent()
 {
+    constexpr float SlotPadding = 4.0f;
+
     return SNew(SVerticalBox)
         + SVerticalBox::Slot()
         .Padding(SlotPadding)
@@ -150,6 +150,11 @@ FReply SHttpGPTChatView::HandleSendMessageButton(const EHttpGPTChatRole Role)
             NewMessage.ToSharedRef()
         ];
     ChatItems.Add(NewMessage);
+
+    if (Role == EHttpGPTChatRole::System)
+    {
+        return FReply::Handled();
+    }
 
     const SHttpGPTChatItemPtr AssistantMessage = SNew(SHttpGPTChatItem)
         .MessageRole(EHttpGPTChatRole::Assistant)
