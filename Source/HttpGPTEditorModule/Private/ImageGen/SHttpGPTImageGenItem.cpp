@@ -17,6 +17,7 @@ void SHttpGPTImageGenItem::Construct(const FArguments& InArgs)
 
     HttpGPTImageGetterObject = NewObject<UHttpGPTImageGetter>();
     HttpGPTImageGetterObject->SetFlags(RF_Standalone);
+    HttpGPTImageGetterObject->OutScrollBox = InArgs._OutScrollBox;
 
     HttpGPTImageGetterObject->OnImageGenerated.BindLambda(
         [this](UTexture2D* const Texture)

@@ -10,9 +10,10 @@
 class SHttpGPTImageGenItem final : public SCompoundWidget
 {
 public:
-    SLATE_BEGIN_ARGS(SHttpGPTImageGenItem) : _Prompt(), _Num(), _Size()
+    SLATE_BEGIN_ARGS(SHttpGPTImageGenItem) : _OutScrollBox(), _Prompt(), _Num(), _Size()
         {
         }
+        SLATE_ARGUMENT(TSharedPtr<class SScrollBox>, OutScrollBox)
         SLATE_ARGUMENT(FString, Prompt)
         SLATE_ARGUMENT(FString, Num)
         SLATE_ARGUMENT(FString, Size)

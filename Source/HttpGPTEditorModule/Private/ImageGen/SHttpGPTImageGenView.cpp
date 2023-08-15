@@ -107,6 +107,7 @@ FReply SHttpGPTImageGenView::HandleSendRequestButton()
         .AutoHeight()
         [
             SNew(SHttpGPTImageGenItem)
+                .OutScrollBox(ViewScrollBox)
                 .Prompt(InputTextBox->GetText().ToString())
                 .Num(*ImageNumComboBox->GetSelectedItem().Get())
                 .Size(*ImageSizeComboBox->GetSelectedItem().Get())

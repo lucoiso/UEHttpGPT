@@ -4,6 +4,7 @@
 
 #include "HttpGPTImageGetter.h"
 #include <Utils/HttpGPTHelper.h>
+#include <Widgets/Layout/SScrollBox.h>
 
 #ifdef UE_INLINE_GENERATED_CPP_BY_NAME
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTImageGetter)
@@ -65,6 +66,11 @@ void UHttpGPTImageGetter::ImageGenerated(UTexture2D* const Texture)
     ++GeneratedImages;
     if (GeneratedImages >= DataSize)
     {
+        if (OutScrollBox.IsValid())
+        {
+            OutScrollBox->ScrollToEnd();
+        }
+
         Destroy();
     }
 }

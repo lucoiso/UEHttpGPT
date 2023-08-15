@@ -34,6 +34,8 @@ public:
 
     void Destroy();
 
+    TSharedPtr<class SScrollBox> OutScrollBox;
+
 private:
     void ProcessImage(const FHttpGPTImageData& Data);
 
