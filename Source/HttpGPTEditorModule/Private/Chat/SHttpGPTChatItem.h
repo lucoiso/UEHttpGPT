@@ -6,7 +6,9 @@
 
 #include <CoreMinimal.h>
 #include <Widgets/SCompoundWidget.h>
-#include "Structures/HttpGPTChatTypes.h"
+#include <Structures/HttpGPTChatTypes.h>
+
+static const FName NewSessionName = TEXT("New Session");
 
 class SHttpGPTChatItem final : public SCompoundWidget
 {

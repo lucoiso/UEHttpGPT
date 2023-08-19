@@ -35,8 +35,8 @@ private:
     TSharedPtr<class SEditableTextBox> InputTextBox;
 
     TSharedPtr<class STextComboBox> ImageNumComboBox;
-    TArray<TSharedPtr<FString>> ImageNum;
+    TArray<FTextDisplayStringPtr> ImageNum;
 
     TSharedPtr<class STextComboBox> ImageSizeComboBox;
-    TArray<TSharedPtr<FString>> ImageSize;
+    TArray<FTextDisplayStringPtr> ImageSize;
 };
