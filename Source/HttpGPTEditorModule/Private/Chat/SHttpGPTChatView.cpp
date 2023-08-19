@@ -102,9 +102,6 @@ void SHttpGPTChatView::ClearChat()
     if (RequestReference.IsValid())
     {
         RequestReference->StopHttpGPTTask();
-    }
-    else
-    {
         RequestReference.Reset();
     }
 }
@@ -382,7 +379,7 @@ void SHttpGPTChatView::LoadChatHistory()
 
 void SHttpGPTChatView::SaveChatHistory() const
 {
-    if (SessionID.IsNone())
+    if (SessionID.IsNone() || ChatItems.IsEmpty())
     {
         return;
     }

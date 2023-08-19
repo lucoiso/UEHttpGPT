@@ -253,7 +253,7 @@ FReply SHttpGPTChatShell::OnChatSessionKeyDown(const FGeometry& MyGeometry, cons
         return FReply::Unhandled();
     }
 
-    if (FMessageDialog::Open(EAppMsgType::YesNo, FText::FromString("Are you sure you want to delete this Session?")) == EAppReturnType::No)
+    if (FMessageDialog::Open(EAppMsgType::YesNo, FText::FromString("Are you sure you want to delete this session?")) == EAppReturnType::No)
     {
         return FReply::Unhandled();
     }
@@ -264,14 +264,14 @@ FReply SHttpGPTChatShell::OnChatSessionKeyDown(const FGeometry& MyGeometry, cons
         return FReply::Unhandled();
     }
 
-    if (const FString SessionPath = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("HttpGPT"), SelectedItem->ToString() + TEXT(".json")); FPaths::FileExists(SessionPath))
-    {
-        IFileManager::Get().Delete(*SessionPath, true, true);
-    }
-
     if (CurrentView.IsValid())
     {
         CurrentView->ClearChat();
+    }
+
+    if (const FString SessionPath = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("HttpGPT"), SelectedItem->ToString() + TEXT(".json")); FPaths::FileExists(SessionPath))
+    {
+        IFileManager::Get().Delete(*SessionPath, true, true);
     }
 
     if (SelectedItem->IsEqual(NewSessionName) || !ChatSessions.ContainsByPredicate([](const FNamePtr& Item) { return Item->IsEqual(NewSessionName); }))
