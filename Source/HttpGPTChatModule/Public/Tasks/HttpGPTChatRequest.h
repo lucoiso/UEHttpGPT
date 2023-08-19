@@ -39,16 +39,16 @@ public:
 #endif
 
     UFUNCTION(BlueprintCallable, Category = "HttpGPT | Chat | Default", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message with Default Options"))
-    static UHttpGPTChatRequest* SendMessage_DefaultOptions(UObject* WorldContextObject, const FString& Message);
+    static UHttpGPTChatRequest* SendMessage_DefaultOptions(UObject* const WorldContextObject, const FString& Message);
 
     UFUNCTION(BlueprintCallable, Category = "HttpGPT | Chat | Default", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages with Default Options"))
-    static UHttpGPTChatRequest* SendMessages_DefaultOptions(UObject* WorldContextObject, const TArray<FHttpGPTChatMessage>& Messages);
+    static UHttpGPTChatRequest* SendMessages_DefaultOptions(UObject* const WorldContextObject, const TArray<FHttpGPTChatMessage>& Messages);
 
     UFUNCTION(BlueprintCallable, Category = "HttpGPT | Chat | Custom", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Message with Custom Options"))
-    static UHttpGPTChatRequest* SendMessage_CustomOptions(UObject* WorldContextObject, const FString& Message, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTChatOptions ChatOptions);
+    static UHttpGPTChatRequest* SendMessage_CustomOptions(UObject* const WorldContextObject, const FString& Message, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTChatOptions ChatOptions);
 
     UFUNCTION(BlueprintCallable, Category = "HttpGPT | Chat | Custom", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Send Messages with Custom Options"))
-    static UHttpGPTChatRequest* SendMessages_CustomOptions(UObject* WorldContextObject, const TArray<FHttpGPTChatMessage>& Messages, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTChatOptions ChatOptions);
+    static UHttpGPTChatRequest* SendMessages_CustomOptions(UObject* const WorldContextObject, const TArray<FHttpGPTChatMessage>& Messages, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTChatOptions ChatOptions);
 
     UFUNCTION(BlueprintPure, Category = "HttpGPT | Chat")
     const FHttpGPTChatOptions GetChatOptions() const;
@@ -81,5 +81,5 @@ class HTTPGPTCHATMODULE_API UHttpGPTChatHelper final : public UBlueprintFunction
 
 public:
     UFUNCTION(BlueprintPure, Category = "HttpGPT | Chat", Meta = (DisplayName = "Cast to HttpGPT Chat Request"))
-    static UHttpGPTChatRequest* CastToHttpGPTChatRequest(UObject* Object);
+    static UHttpGPTChatRequest* CastToHttpGPTChatRequest(UObject* const Object);
 };
