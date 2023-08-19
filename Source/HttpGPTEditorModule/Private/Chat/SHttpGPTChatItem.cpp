@@ -42,6 +42,15 @@ void SHttpGPTChatItem::Construct(const FArguments& InArgs)
         ];
 }
 
+static FSlateColor& operator*=(FSlateColor& Lhs, const float Rhs)
+{
+    FLinearColor NewColor = Lhs.GetSpecifiedColor() * Rhs;
+    NewColor.A = 1.f;
+    Lhs = FSlateColor(NewColor);
+
+    return Lhs;
+}
+
 TSharedRef<SWidget> SHttpGPTChatItem::ConstructContent()
 {
     constexpr float SlotPadding = 4.0f;
@@ -55,13 +64,13 @@ TSharedRef<SWidget> SHttpGPTChatItem::ConstructContent()
     {
         RoleText = FText::FromString(TEXT("Assistant:"));
         BoxMargin = FMargin(SlotPadding, SlotPadding, SlotPadding * PaddingMultiplier, SlotPadding);
-        MessageColor = FLinearColor::Gray;
+        MessageColor *= 0.3f;
     }
     else if (MessageRole == EHttpGPTChatRole::System)
     {
         RoleText = FText::FromString(TEXT("System:"));
         BoxMargin = FMargin(SlotPadding * PaddingMultiplier * 0.5f, SlotPadding);
-        MessageColor = FLinearColor::Black;
+        MessageColor *= 0.f;
     }
 
     const FMargin MessageMargin(SlotPadding * 4.f, SlotPadding, SlotPadding, SlotPadding);
