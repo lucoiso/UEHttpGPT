@@ -19,7 +19,7 @@
 			"Name": "HttpGPTChatModule",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [
+			"PlatformAllowList": [
 				"Win64",
 				"Mac",
 				"Linux",
@@ -32,7 +32,7 @@
 			"Name": "HttpGPTImageModule",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [
+			"PlatformAllowList": [
 				"Win64",
 				"Mac",
 				"Linux",
@@ -45,7 +45,7 @@
 			"Name": "HttpGPTCommonModule",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms": [
+			"PlatformAllowList": [
 				"Win64",
 				"Mac",
 				"Linux",
@@ -57,7 +57,7 @@
 		{
 			"Name": "HttpGPTEditorModule",
 			"Type": "Editor",
-			"WhitelistPlatforms": [
+			"PlatformAllowList": [
 				"Win64",
 				"Mac",
 				"Linux"
