@@ -36,22 +36,22 @@ UHttpGPTChatRequest* UHttpGPTChatRequest::EditorTask(const TArray<FHttpGPTChatMe
 }
 #endif
 
-UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessage_DefaultOptions(UObject* WorldContextObject, const FString& Message)
+UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessage_DefaultOptions(UObject* const WorldContextObject, const FString& Message)
 {
     return SendMessage_CustomOptions(WorldContextObject, Message, FHttpGPTCommonOptions(), FHttpGPTChatOptions());
 }
 
-UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessages_DefaultOptions(UObject* WorldContextObject, const TArray<FHttpGPTChatMessage>& Messages)
+UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessages_DefaultOptions(UObject* const WorldContextObject, const TArray<FHttpGPTChatMessage>& Messages)
 {
     return SendMessages_CustomOptions(WorldContextObject, Messages, FHttpGPTCommonOptions(), FHttpGPTChatOptions());
 }
 
-UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessage_CustomOptions(UObject* WorldContextObject, const FString& Message, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTChatOptions ChatOptions)
+UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessage_CustomOptions(UObject* const WorldContextObject, const FString& Message, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTChatOptions ChatOptions)
 {
     return SendMessages_CustomOptions(WorldContextObject, { FHttpGPTChatMessage(EHttpGPTChatRole::User, Message) }, CommonOptions, ChatOptions);
 }
 
-UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessages_CustomOptions(UObject* WorldContextObject, const TArray<FHttpGPTChatMessage>& Messages, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTChatOptions ChatOptions)
+UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessages_CustomOptions(UObject* const WorldContextObject, const TArray<FHttpGPTChatMessage>& Messages, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTChatOptions ChatOptions)
 {
     UHttpGPTChatRequest* const NewAsyncTask = NewObject<UHttpGPTChatRequest>();
     NewAsyncTask->Messages = Messages;
@@ -388,7 +388,7 @@ void UHttpGPTChatRequest::DeserializeSingleResponse(const FString& Content)
     }
 }
 
-UHttpGPTChatRequest* UHttpGPTChatHelper::CastToHttpGPTChatRequest(UObject* Object)
+UHttpGPTChatRequest* UHttpGPTChatHelper::CastToHttpGPTChatRequest(UObject* const Object)
 {
     return Cast<UHttpGPTChatRequest>(Object);
 }

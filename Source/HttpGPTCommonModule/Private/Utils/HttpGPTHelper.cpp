@@ -9,7 +9,7 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTHelper)
 #endif
 
-const FName UHttpGPTHelper::ModelToName(const EHttpGPTChatModel& Model)
+const FName UHttpGPTHelper::ModelToName(const EHttpGPTChatModel Model)
 {
     switch (Model)
     {
@@ -74,7 +74,7 @@ const EHttpGPTChatModel UHttpGPTHelper::NameToModel(const FName Model)
     return EHttpGPTChatModel::gpt35turbo;
 }
 
-const FName UHttpGPTHelper::RoleToName(const EHttpGPTChatRole& Role)
+const FName UHttpGPTHelper::RoleToName(const EHttpGPTChatRole Role)
 {
     switch (Role)
     {
@@ -124,7 +124,7 @@ const TArray<FName> UHttpGPTHelper::GetAvailableGPTModels()
     return Output;
 }
 
-const FName UHttpGPTHelper::GetEndpointForModel(const EHttpGPTChatModel& Model)
+const FName UHttpGPTHelper::GetEndpointForModel(const EHttpGPTChatModel Model)
 {
     switch (Model)
     {
@@ -145,7 +145,7 @@ const FName UHttpGPTHelper::GetEndpointForModel(const EHttpGPTChatModel& Model)
     return NAME_None;
 }
 
-const bool UHttpGPTHelper::ModelSupportsChat(const EHttpGPTChatModel& Model)
+const bool UHttpGPTHelper::ModelSupportsChat(const EHttpGPTChatModel Model)
 {
     switch (Model)
     {
@@ -166,7 +166,7 @@ const bool UHttpGPTHelper::ModelSupportsChat(const EHttpGPTChatModel& Model)
     return false;
 }
 
-const FName UHttpGPTHelper::SizeToName(const EHttpGPTImageSize& Size)
+const FName UHttpGPTHelper::SizeToName(const EHttpGPTImageSize Size)
 {
     switch (Size)
     {
@@ -204,7 +204,7 @@ const EHttpGPTImageSize UHttpGPTHelper::NameToSize(const FName Size)
     return EHttpGPTImageSize::x256;
 }
 
-const FName UHttpGPTHelper::FormatToName(const EHttpGPTResponseFormat& Format)
+const FName UHttpGPTHelper::FormatToName(const EHttpGPTResponseFormat Format)
 {
     switch (Format)
     {

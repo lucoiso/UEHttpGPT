@@ -45,10 +45,10 @@ public:
 #endif
 
     UFUNCTION(BlueprintCallable, Category = "HttpGPT | Image | Default", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Request Images with Default Options"))
-    static UHttpGPTImageRequest* RequestImages_DefaultOptions(UObject* WorldContextObject, const FString& Prompt);
+    static UHttpGPTImageRequest* RequestImages_DefaultOptions(UObject* const WorldContextObject, const FString& Prompt);
 
     UFUNCTION(BlueprintCallable, Category = "HttpGPT | Image | Custom", meta = (BlueprintInternalUseOnly = "true", WorldContext = "WorldContextObject", DisplayName = "Request Images with Custom Options"))
-    static UHttpGPTImageRequest* RequestImages_CustomOptions(UObject* WorldContextObject, const FString& Prompt, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTImageOptions ImageOptions);
+    static UHttpGPTImageRequest* RequestImages_CustomOptions(UObject* const WorldContextObject, const FString& Prompt, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTImageOptions ImageOptions);
 
     UFUNCTION(BlueprintPure, Category = "HttpGPT | Image")
     const FHttpGPTImageOptions GetImageOptions() const;
@@ -82,7 +82,7 @@ class HTTPGPTIMAGEMODULE_API UHttpGPTImageHelper final : public UBlueprintFuncti
 
 public:
     UFUNCTION(BlueprintPure, Category = "HttpGPT | Image", Meta = (DisplayName = "Cast to HttpGPT Image Request"))
-    static UHttpGPTImageRequest* CastToHttpGPTImageRequest(UObject* Object);
+    static UHttpGPTImageRequest* CastToHttpGPTImageRequest(UObject* const Object);
 
     UFUNCTION(BlueprintCallable, Category = "HttpGPT | Image")
     static void GenerateImage(const FHttpGPTImageData& ImageData, const FHttpGPTImageGenerate& Callback);

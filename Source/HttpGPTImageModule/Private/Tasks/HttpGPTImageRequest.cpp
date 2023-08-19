@@ -39,12 +39,12 @@ UHttpGPTImageRequest* UHttpGPTImageRequest::EditorTask(const FString& Prompt, co
 }
 #endif
 
-UHttpGPTImageRequest* UHttpGPTImageRequest::RequestImages_DefaultOptions(UObject* WorldContextObject, const FString& Prompt)
+UHttpGPTImageRequest* UHttpGPTImageRequest::RequestImages_DefaultOptions(UObject* const WorldContextObject, const FString& Prompt)
 {
     return RequestImages_CustomOptions(WorldContextObject, Prompt, FHttpGPTCommonOptions(), FHttpGPTImageOptions());
 }
 
-UHttpGPTImageRequest* UHttpGPTImageRequest::RequestImages_CustomOptions(UObject* WorldContextObject, const FString& Prompt, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTImageOptions ImageOptions)
+UHttpGPTImageRequest* UHttpGPTImageRequest::RequestImages_CustomOptions(UObject* const WorldContextObject, const FString& Prompt, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTImageOptions ImageOptions)
 {
     UHttpGPTImageRequest* const NewAsyncTask = NewObject<UHttpGPTImageRequest>();
     NewAsyncTask->Prompt = Prompt;
@@ -197,7 +197,7 @@ void UHttpGPTImageRequest::DeserializeResponse(const FString& Content)
     }
 }
 
-UHttpGPTImageRequest* UHttpGPTImageHelper::CastToHttpGPTImageRequest(UObject* Object)
+UHttpGPTImageRequest* UHttpGPTImageHelper::CastToHttpGPTImageRequest(UObject* const Object)
 {
     return Cast<UHttpGPTImageRequest>(Object);
 }
