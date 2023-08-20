@@ -3,7 +3,6 @@
 // Repo: https://github.com/lucoiso/UEHttpGPT
 
 #include "HttpGPTMessagingHandler.h"
-#include <Structures/HttpGPTChatTypes.h>
 #include <HttpGPTInternalFuncs.h>
 #include <Widgets/Layout/SScrollBox.h>
 
