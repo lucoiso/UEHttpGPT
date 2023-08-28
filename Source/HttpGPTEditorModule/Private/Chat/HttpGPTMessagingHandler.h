@@ -6,6 +6,7 @@
 
 #include <CoreMinimal.h>
 #include <UObject/Object.h>
+#include <Structures/HttpGPTChatTypes.h>
 #include "HttpGPTMessagingHandler.generated.h"
 
 DECLARE_DELEGATE_OneParam(FMessageContentUpdated, FString);

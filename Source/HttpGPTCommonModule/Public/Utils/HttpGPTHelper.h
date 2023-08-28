@@ -31,11 +31,17 @@ public:
     UFUNCTION(BlueprintPure, Category = "HttpGPT | Chat", meta = (DisplayName = "Convert Name to HttpGPT Role"))
     static const EHttpGPTChatRole NameToRole(const FName Role);
 
+    UFUNCTION(BlueprintPure, Category = "HttpGPT | Chat", meta = (DisplayName = "Convert HttpGPT Param Type to Name"))
+    static const FName PropertyTypeToName(const EHttpGPTPropertyType Type);
+
+    UFUNCTION(BlueprintPure, Category = "HttpGPT | Chat", meta = (DisplayName = "Convert Name to HttpGPT Param Type"))
+    static const EHttpGPTPropertyType NameToPropertyType(const FName Type);
+
     UFUNCTION(BlueprintPure, Category = "HttpGPT | Chat", meta = (DisplayName = "Get Available GPT Models"))
     static const TArray<FName> GetAvailableGPTModels();
 
     UFUNCTION(BlueprintPure, Category = "HttpGPT | Chat", meta = (DisplayName = "Get Endpoint for Model"))
-    static const FName GetEndpointForModel(const EHttpGPTChatModel Model);
+    static const FString GetEndpointForModel(const EHttpGPTChatModel Model, const bool bIsAzureOpenAI = false, const FString& AzureOpenAIAPIVersion = TEXT("None"));
 
     UFUNCTION(BlueprintPure, Category = "HttpGPT | Chat", meta = (DisplayName = "Model Supports Chat"))
     static const bool ModelSupportsChat(const EHttpGPTChatModel Model);

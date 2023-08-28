@@ -32,6 +32,10 @@ void UHttpGPTBaseTask::Activate()
     UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Activating task"), *FString(__func__), GetUniqueID());
 
     bIsTaskActive = true;
+    if (!CommonOptions.Endpoint.EndsWith(TEXT("/")))
+    {
+        CommonOptions.Endpoint += TEXT("/");
+    }
 
     if (!CanActivateTask())
     {

@@ -145,6 +145,11 @@ void SHttpGPTChatShell::InitializeChatSessionOptions()
 
         InitializeChatSession(ChatSessions[0]);
     }
+    else if (IFileManager::Get().MakeDirectory(*SessionsPath, true))
+    {
+        InitializeChatSessionOptions();
+        return;
+    }
 
     if (ChatSessionListView.IsValid())
     {
