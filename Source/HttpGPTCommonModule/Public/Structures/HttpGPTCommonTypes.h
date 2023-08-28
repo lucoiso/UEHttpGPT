@@ -37,6 +37,15 @@ struct HTTPGPTCOMMONMODULE_API FHttpGPTCommonOptions
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common", Meta = (DisplayName = "User"))
     FName User;
 
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common", Meta = (DisplayName = "Is Azure OpenAI"))
+    bool bIsAzureOpenAI;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common", Meta = (DisplayName = "Endpoint", EditCondition = "bIsAzureOpenAI"))
+    FString Endpoint;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common", Meta = (DisplayName = "Azure OpenAI API Version", EditCondition = "bIsAzureOpenAI"))
+    FString AzureOpenAIAPIVersion;
+
 private:
     void SetDefaults();
 };

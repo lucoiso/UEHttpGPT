@@ -89,7 +89,14 @@ bool UHttpGPTImageRequest::CanBindProgress() const
 
 FString UHttpGPTImageRequest::GetEndpointURL() const
 {
-    return "https://api.openai.com/v1/images/generations";
+    if (CommonOptions.bIsAzureOpenAI)
+    {
+        return FString::Format(TEXT("{0}/openai/images/generations:submit?api-version={1}"), { GetCommonOptions().Endpoint, GetCommonOptions().AzureOpenAIAPIVersion });
+    }
+    else
+    {
+        return FString::Format(TEXT("{0}/v1/images/generations"), { GetCommonOptions().Endpoint });
+    }
 }
 
 FString UHttpGPTImageRequest::SetRequestContent()
