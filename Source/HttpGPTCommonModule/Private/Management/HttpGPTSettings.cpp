@@ -84,6 +84,9 @@ void UHttpGPTSettings::SetToDefaults()
 {
     CommonOptions.APIKey = NAME_None;
     CommonOptions.User = NAME_None;
+    CommonOptions.bIsAzureOpenAI = false;
+    CommonOptions.Endpoint = TEXT("https://api.openai.com/");
+    CommonOptions.AzureOpenAIAPIVersion = TEXT("2023-05-15");
 
     ChatOptions.Model = EHttpGPTChatModel::gpt35turbo;
     ChatOptions.MaxTokens = 2048;
