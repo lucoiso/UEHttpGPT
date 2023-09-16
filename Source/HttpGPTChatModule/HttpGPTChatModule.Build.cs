@@ -11,11 +11,6 @@ public class HttpGPTChatModule : ModuleRules
         PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         CppStandard = CppStandardVersion.Cpp17;
 
-        if (Target.Platform == UnrealTargetPlatform.HoloLens)
-        {
-            PrecompileForTargets = PrecompileTargetsType.Any;
-        }
-
         PublicDependencyModuleNames.AddRange(new[]
         {
             "Core",
