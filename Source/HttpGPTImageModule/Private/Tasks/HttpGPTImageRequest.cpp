@@ -39,12 +39,12 @@ UHttpGPTImageRequest* UHttpGPTImageRequest::EditorTask(const FString& Prompt, co
 }
 #endif
 
-UHttpGPTImageRequest* UHttpGPTImageRequest::RequestImages_DefaultOptions(UObject* WorldContextObject, const FString& Prompt)
+UHttpGPTImageRequest* UHttpGPTImageRequest::RequestImages_DefaultOptions(UObject* const WorldContextObject, const FString& Prompt)
 {
     return RequestImages_CustomOptions(WorldContextObject, Prompt, FHttpGPTCommonOptions(), FHttpGPTImageOptions());
 }
 
-UHttpGPTImageRequest* UHttpGPTImageRequest::RequestImages_CustomOptions(UObject* WorldContextObject, const FString& Prompt, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTImageOptions ImageOptions)
+UHttpGPTImageRequest* UHttpGPTImageRequest::RequestImages_CustomOptions(UObject* const WorldContextObject, const FString& Prompt, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTImageOptions ImageOptions)
 {
     UHttpGPTImageRequest* const NewAsyncTask = NewObject<UHttpGPTImageRequest>();
     NewAsyncTask->Prompt = Prompt;
@@ -89,7 +89,14 @@ bool UHttpGPTImageRequest::CanBindProgress() const
 
 FString UHttpGPTImageRequest::GetEndpointURL() const
 {
-    return "https://api.openai.com/v1/images/generations";
+    if (CommonOptions.bIsAzureOpenAI)
+    {
+        return FString::Format(TEXT("{0}/openai/images/generations:submit?api-version={1}"), { GetCommonOptions().Endpoint, GetCommonOptions().AzureOpenAIAPIVersion });
+    }
+    else
+    {
+        return FString::Format(TEXT("{0}/v1/images/generations"), { GetCommonOptions().Endpoint });
+    }
 }
 
 FString UHttpGPTImageRequest::SetRequestContent()
@@ -197,7 +204,7 @@ void UHttpGPTImageRequest::DeserializeResponse(const FString& Content)
     }
 }
 
-UHttpGPTImageRequest* UHttpGPTImageHelper::CastToHttpGPTImageRequest(UObject* Object)
+UHttpGPTImageRequest* UHttpGPTImageHelper::CastToHttpGPTImageRequest(UObject* const Object)
 {
     return Cast<UHttpGPTImageRequest>(Object);
 }

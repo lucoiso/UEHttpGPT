@@ -16,10 +16,11 @@
 #include <Misc/FileHelper.h>
 #include <Widgets/Layout/SScrollBox.h>
 #include <Widgets/Input/STextComboBox.h>
-#include "SHttpGPTChatItem.h"
 
-void SHttpGPTChatView::Construct([[maybe_unused]] const FArguments&)
+void SHttpGPTChatView::Construct(const FArguments& InArgs)
 {
+    SetSessionID(InArgs._SessionID);
+
     ModelsComboBox = SNew(STextComboBox)
         .OptionsSource(&AvailableModels)
         .ToolTipText(FText::FromString(TEXT("GPT Model")));
@@ -59,7 +60,50 @@ bool SHttpGPTChatView::IsClearChatEnabled() const
 
 FString SHttpGPTChatView::GetHistoryPath() const
 {
-    return FPaths::Combine(FPaths::ProjectSavedDir(), "HttpGPT", "HttpGPTChatHistory.json");
+    return FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("HttpGPT"), SessionID.ToString() + TEXT(".json"));
+}
+
+void SHttpGPTChatView::SetSessionID(const FName& NewSessionID)
+{
+    const FName NewValidSessionID = *FPaths::MakeValidFileName(NewSessionID.ToString());
+    if (SessionID == NewValidSessionID)
+    {
+        return;
+    }
+
+    if (SessionID.IsNone())
+    {
+        SessionID = NewValidSessionID;
+        return;
+    }
+
+    if (const FString OldPath = GetHistoryPath(); FPaths::FileExists(OldPath))
+    {
+        IFileManager::Get().Delete(*OldPath, true, true, true);
+    }
+
+    SessionID = NewValidSessionID;
+    SaveChatHistory();
+}
+
+FName SHttpGPTChatView::GetSessionID() const
+{
+    return SessionID;
+}
+
+void SHttpGPTChatView::ClearChat()
+{
+    ChatItems.Empty();
+    if (ChatBox.IsValid())
+    {
+        ChatBox->ClearChildren();
+    }
+
+    if (RequestReference.IsValid())
+    {
+        RequestReference->StopHttpGPTTask();
+        RequestReference.Reset();
+    }
 }
 
 TSharedRef<SWidget> SHttpGPTChatView::ConstructContent()
@@ -191,18 +235,7 @@ FReply SHttpGPTChatView::HandleSendMessageButton(const EHttpGPTChatRole Role)
 
 FReply SHttpGPTChatView::HandleClearChatButton()
 {
-    ChatItems.Empty();
-    ChatBox->ClearChildren();
-
-    if (RequestReference.IsValid())
-    {
-        RequestReference->StopHttpGPTTask();
-    }
-    else
-    {
-        RequestReference.Reset();
-    }
-
+    ClearChat();
     return FReply::Handled();
 }
 
@@ -231,7 +264,7 @@ FString SHttpGPTChatView::GetDefaultSystemContext() const
     }
 
     FString SupportedModels;
-    for (const TSharedPtr<FString>& Model : AvailableModels)
+    for (const FTextDisplayStringPtr& Model : AvailableModels)
     {
         SupportedModels.Append(*Model.Get() + ", ");
     }
@@ -288,6 +321,11 @@ FString SHttpGPTChatView::GetDefaultSystemContext() const
 
 void SHttpGPTChatView::LoadChatHistory()
 {
+    if (SessionID.IsNone())
+    {
+        return;
+    }
+
     if (const FString LoadPath = GetHistoryPath(); FPaths::FileExists(LoadPath))
     {
         FString FileContent;
@@ -300,8 +338,8 @@ void SHttpGPTChatView::LoadChatHistory()
         TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(FileContent);
         if (FJsonSerializer::Deserialize(Reader, JsonParsed))
         {
-            const TArray<TSharedPtr<FJsonValue>> Data = JsonParsed->GetArrayField("Data");
-            for (const TSharedPtr<FJsonValue>& Item : Data)
+            const TArray<TSharedPtr<FJsonValue>> SessionData = JsonParsed->GetArrayField("Data");
+            for (const TSharedPtr<FJsonValue>& Item : SessionData)
             {
                 if (const TSharedPtr<FJsonObject> MessageItObj = Item->AsObject())
                 {
@@ -316,10 +354,11 @@ void SHttpGPTChatView::LoadChatHistory()
                                 continue;
                             }
 
-                            ChatItems.Add(
+                            ChatItems.Emplace(
                                 SNew(SHttpGPTChatItem)
                                 .MessageRole(Role)
                                 .InputText(Message)
+                                .ScrollBox(ChatScrollBox)
                             );
                         }
                     }
@@ -330,12 +369,21 @@ void SHttpGPTChatView::LoadChatHistory()
 
     for (const SHttpGPTChatItemPtr& Item : ChatItems)
     {
-        ChatBox->AddSlot().AutoHeight()[Item.ToSharedRef()];
+        ChatBox->AddSlot()
+            .AutoHeight()
+            [
+                Item.ToSharedRef()
+            ];
     }
 }
 
 void SHttpGPTChatView::SaveChatHistory() const
 {
+    if (SessionID.IsNone() || ChatItems.IsEmpty())
+    {
+        return;
+    }
+
     const TSharedPtr<FJsonObject> JsonRequest = MakeShared<FJsonObject>();
 
     TArray<TSharedPtr<FJsonValue>> Data;

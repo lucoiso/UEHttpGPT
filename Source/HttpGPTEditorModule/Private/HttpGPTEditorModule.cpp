@@ -3,7 +3,7 @@
 // Repo: https://github.com/lucoiso/UEHttpGPT
 
 #include "HttpGPTEditorModule.h"
-#include "Chat/SHttpGPTChatView.h"
+#include "Chat/SHttpGPTChatShell.h"
 #include "ImageGen/SHttpGPTImageGenView.h"
 #include <ToolMenus.h>
 #include <Widgets/Docking/SDockTab.h>
@@ -17,7 +17,7 @@ static const FName HttpGPTImageGeneratorTabName("HttpGPTImageGenerator");
 
 void FHttpGPTEditorModule::StartupModule()
 {
-    const auto RegisterDelegate = FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FHttpGPTEditorModule::RegisterMenus);
+    const FSimpleDelegate RegisterDelegate = FSimpleMulticastDelegate::FDelegate::CreateRaw(this, &FHttpGPTEditorModule::RegisterMenus);
     UToolMenus::RegisterStartupCallback(RegisterDelegate);
 }
 
@@ -36,7 +36,7 @@ TSharedRef<SDockTab> FHttpGPTEditorModule::OnSpawnTab(const FSpawnTabArgs& Spawn
     TSharedPtr<SWidget> OutContent;
     if (TabId.IsEqual(HttpGPTChatTabName))
     {
-        OutContent = SNew(SHttpGPTChatView);
+        OutContent = SNew(SHttpGPTChatShell);
     }
     else if (TabId.IsEqual(HttpGPTImageGeneratorTabName))
     {
@@ -58,7 +58,7 @@ TSharedRef<SDockTab> FHttpGPTEditorModule::OnSpawnTab(const FSpawnTabArgs& Spawn
 void FHttpGPTEditorModule::RegisterMenus()
 {
     FToolMenuOwnerScoped OwnerScoped(this);
-    const auto EditorTabSpawnerDelegate = FOnSpawnTab::CreateRaw(this, &FHttpGPTEditorModule::OnSpawnTab);
+    const FOnSpawnTab EditorTabSpawnerDelegate = FOnSpawnTab::CreateRaw(this, &FHttpGPTEditorModule::OnSpawnTab);
 
 #if ENGINE_MAJOR_VERSION < 5
     const FName AppStyleName = FEditorStyle::GetStyleSetName();
@@ -66,19 +66,19 @@ void FHttpGPTEditorModule::RegisterMenus()
     const FName AppStyleName = FAppStyle::GetAppStyleSetName();
 #endif
 
-    const TSharedPtr<FWorkspaceItem> Menu = WorkspaceMenu::GetMenuStructure().GetToolsCategory()->AddGroup(LOCTEXT("HttpGPTCategory", "HttpGPT"), LOCTEXT("HttpGPTCategoryTooltip", "HttpGPT Plugin Tabs"), FSlateIcon(AppStyleName, "Icons.Documentation"));
+    const TSharedRef<FWorkspaceItem> Menu = WorkspaceMenu::GetMenuStructure().GetToolsCategory()->AddGroup(LOCTEXT("HttpGPTCategory", "HttpGPT"), LOCTEXT("HttpGPTCategoryTooltip", "HttpGPT Plugin Tabs"), FSlateIcon(AppStyleName, "Icons.Documentation"));
 
     FGlobalTabmanager::Get()->RegisterNomadTabSpawner(HttpGPTChatTabName, EditorTabSpawnerDelegate)
         .SetDisplayName(FText::FromString(TEXT("HttpGPT Chat")))
         .SetTooltipText(FText::FromString(TEXT("Open HttpGPT Chat")))
         .SetIcon(FSlateIcon(AppStyleName, "DerivedData.ResourceUsage"))
-        .SetGroup(Menu.ToSharedRef());
+        .SetGroup(Menu);
 
     FGlobalTabmanager::Get()->RegisterNomadTabSpawner(HttpGPTImageGeneratorTabName, EditorTabSpawnerDelegate)
         .SetDisplayName(FText::FromString(TEXT("HttpGPT Image Generator")))
         .SetTooltipText(FText::FromString(TEXT("Open HttpGPT Image Generator")))
         .SetIcon(FSlateIcon(AppStyleName, "LevelEditor.Tabs.Viewports"))
-        .SetGroup(Menu.ToSharedRef());
+        .SetGroup(Menu);
 }
 
 #undef LOCTEXT_NAMESPACE

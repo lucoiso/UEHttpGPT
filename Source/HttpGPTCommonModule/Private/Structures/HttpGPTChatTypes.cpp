@@ -11,17 +11,66 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTChatTypes)
 #endif
 
-FHttpGPTChatMessage::FHttpGPTChatMessage(const FName& Role, const FString& Content)
+TSharedPtr<FJsonValue> FHttpGPTFunction::GetFunction() const
 {
-    this->Role = UHttpGPTHelper::NameToRole(Role);
-    this->Content = Content;
+    TSharedPtr<FJsonObject> JsonObject = MakeShared<FJsonObject>();
+    JsonObject->SetStringField("name", Name.ToString());
+    JsonObject->SetStringField("description", Description);
+
+    TSharedPtr<FJsonObject> ParametersObject = MakeShared<FJsonObject>();
+    ParametersObject->SetStringField("type", "object");
+
+    TSharedPtr<FJsonObject> PropertiesObject = MakeShared<FJsonObject>();
+    for (const FHttpGPTFunctionProperty& PropIt : Properties)
+    {
+        TSharedPtr<FJsonObject> PropertyObject = MakeShared<FJsonObject>();
+        PropertyObject->SetStringField("type", UHttpGPTHelper::PropertyTypeToName(PropIt.Type).ToString().ToLower());
+        PropertyObject->SetStringField("description", PropIt.Description);
+
+        TArray<TSharedPtr<FJsonValue>> EnumArr;
+        for (const FName& EnumIt : PropIt.Enum)
+        {
+            EnumArr.Emplace(MakeShared<FJsonValueString>(EnumIt.ToString()));
+        }
+        PropertyObject->SetArrayField("enum", EnumArr);
+
+        PropertiesObject->SetObjectField(PropIt.Name.ToString(), PropertyObject);
+    }
+
+    ParametersObject->SetObjectField("properties", PropertiesObject);
+
+    TArray<TSharedPtr<FJsonValue>> RequiredParams;
+    for (const FName& ReqIt : RequiredProperties)
+    {
+        RequiredParams.Emplace(MakeShared<FJsonValueString>(ReqIt.ToString()));
+    }
+
+    ParametersObject->SetArrayField("required", RequiredParams);
+    JsonObject->SetObjectField("parameters", ParametersObject);
+
+    return MakeShared<FJsonValueObject>(JsonObject);
+}
+
+FHttpGPTChatMessage::FHttpGPTChatMessage(const FName& InRole, const FString& InContent)
+{
+    Role = UHttpGPTHelper::NameToRole(InRole);
+    Content = InContent;
 }
 
 TSharedPtr<FJsonValue> FHttpGPTChatMessage::GetMessage() const
 {
     TSharedPtr<FJsonObject> JsonObject = MakeShared<FJsonObject>();
     JsonObject->SetStringField("role", UHttpGPTHelper::RoleToName(Role).ToString().ToLower());
-    JsonObject->SetStringField("content", Content);
+
+    if (Role == EHttpGPTChatRole::Function)
+    {
+        JsonObject->SetStringField("name", FunctionCall.Name.ToString());
+        JsonObject->SetStringField("content", FunctionCall.Arguments);
+    }
+    else
+    {
+        JsonObject->SetStringField("content", Content);
+    }
 
     return MakeShared<FJsonValueObject>(JsonObject);
 }

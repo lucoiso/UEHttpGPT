@@ -29,34 +29,35 @@
 #if WITH_EDITOR
 UHttpGPTChatRequest* UHttpGPTChatRequest::EditorTask(const TArray<FHttpGPTChatMessage>& Messages, const FHttpGPTChatOptions Options)
 {
-    UHttpGPTChatRequest* const NewAsyncTask = SendMessages_CustomOptions(GEditor->GetEditorWorldContext().World(), Messages, FHttpGPTCommonOptions(), Options);
+    UHttpGPTChatRequest* const NewAsyncTask = SendMessages_CustomOptions(GEditor->GetEditorWorldContext().World(), Messages, TArray<FHttpGPTFunction>(), FHttpGPTCommonOptions(), Options);
     NewAsyncTask->bIsEditorTask = true;
 
     return NewAsyncTask;
 }
 #endif
 
-UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessage_DefaultOptions(UObject* WorldContextObject, const FString& Message)
+UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessage_DefaultOptions(UObject* const WorldContextObject, const FString& Message, const TArray<FHttpGPTFunction>& Functions)
 {
-    return SendMessage_CustomOptions(WorldContextObject, Message, FHttpGPTCommonOptions(), FHttpGPTChatOptions());
+    return SendMessage_CustomOptions(WorldContextObject, Message, Functions, FHttpGPTCommonOptions(), FHttpGPTChatOptions());
 }
 
-UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessages_DefaultOptions(UObject* WorldContextObject, const TArray<FHttpGPTChatMessage>& Messages)
+UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessages_DefaultOptions(UObject* const WorldContextObject, const TArray<FHttpGPTChatMessage>& Messages, const TArray<FHttpGPTFunction>& Functions)
 {
-    return SendMessages_CustomOptions(WorldContextObject, Messages, FHttpGPTCommonOptions(), FHttpGPTChatOptions());
+    return SendMessages_CustomOptions(WorldContextObject, Messages, Functions, FHttpGPTCommonOptions(), FHttpGPTChatOptions());
 }
 
-UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessage_CustomOptions(UObject* WorldContextObject, const FString& Message, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTChatOptions ChatOptions)
+UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessage_CustomOptions(UObject* const WorldContextObject, const FString& Message, const TArray<FHttpGPTFunction>& Functions, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTChatOptions ChatOptions)
 {
-    return SendMessages_CustomOptions(WorldContextObject, { FHttpGPTChatMessage(EHttpGPTChatRole::User, Message) }, CommonOptions, ChatOptions);
+    return SendMessages_CustomOptions(WorldContextObject, { FHttpGPTChatMessage(EHttpGPTChatRole::User, Message) }, Functions, CommonOptions, ChatOptions);
 }
 
-UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessages_CustomOptions(UObject* WorldContextObject, const TArray<FHttpGPTChatMessage>& Messages, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTChatOptions ChatOptions)
+UHttpGPTChatRequest* UHttpGPTChatRequest::SendMessages_CustomOptions(UObject* const WorldContextObject, const TArray<FHttpGPTChatMessage>& Messages, const TArray<FHttpGPTFunction>& Functions, const FHttpGPTCommonOptions CommonOptions, const FHttpGPTChatOptions ChatOptions)
 {
     UHttpGPTChatRequest* const NewAsyncTask = NewObject<UHttpGPTChatRequest>();
     NewAsyncTask->Messages = Messages;
     NewAsyncTask->CommonOptions = CommonOptions;
     NewAsyncTask->ChatOptions = ChatOptions;
+    NewAsyncTask->Functions = Functions;
 
     NewAsyncTask->RegisterWithGameInstance(WorldContextObject);
 
@@ -86,7 +87,7 @@ bool UHttpGPTChatRequest::CanBindProgress() const
 
 FString UHttpGPTChatRequest::GetEndpointURL() const
 {
-    return FString::Format(TEXT("https://api.openai.com/{0}"), { UHttpGPTHelper::GetEndpointForModel(GetChatOptions().Model).ToString() });
+    return FString::Format(TEXT("{0}/{1}"), { GetCommonOptions().Endpoint, UHttpGPTHelper::GetEndpointForModel(GetChatOptions().Model, GetCommonOptions().bIsAzureOpenAI, GetCommonOptions().AzureOpenAIAPIVersion) });
 }
 
 const FHttpGPTChatOptions UHttpGPTChatRequest::GetChatOptions() const
@@ -153,6 +154,17 @@ FString UHttpGPTChatRequest::SetRequestContent()
         }
 
         JsonRequest->SetArrayField("messages", MessagesJson);
+
+        if (!Functions.IsEmpty())
+        {
+            TArray<TSharedPtr<FJsonValue>> FunctionsJson;
+            for (const FHttpGPTFunction& Iterator : Functions)
+            {
+                FunctionsJson.Add(Iterator.GetFunction());
+            }
+
+            JsonRequest->SetArrayField("functions", FunctionsJson);
+        }
     }
     else
     {
@@ -352,17 +364,49 @@ void UHttpGPTChatRequest::DeserializeSingleResponse(const FString& Content)
 
         if (const TSharedPtr<FJsonObject>* MessageObj; ChoiceObj->TryGetObjectField("message", MessageObj))
         {
-            Choice->Message = FHttpGPTChatMessage(*(*MessageObj)->GetStringField("role"), *(*MessageObj)->GetStringField("content"));
+            if (FString RoleStr; (*MessageObj)->TryGetStringField("role", RoleStr))
+            {
+                Choice->Message.Role = RoleStr == "user" ? EHttpGPTChatRole::User : EHttpGPTChatRole::Assistant;
+            }
+            
+            if (FString ContentStr; (*MessageObj)->TryGetStringField("content", ContentStr))
+            {
+                Choice->Message.Content = ContentStr;
+            }
+
+            if (const TSharedPtr<FJsonObject>* FunctionObj; (*MessageObj)->TryGetObjectField("function_call", FunctionObj))
+            {
+                if (FString FunctionNameStr; (*FunctionObj)->TryGetStringField("name", FunctionNameStr))
+                {
+                    Choice->Message.FunctionCall.Name = *FunctionNameStr;
+                }
+                if (FString FunctionArgumentsStr; (*FunctionObj)->TryGetStringField("arguments", FunctionArgumentsStr))
+                {
+                    Choice->Message.FunctionCall.Arguments = FunctionArgumentsStr;
+                }
+            }
         }
         else if (const TSharedPtr<FJsonObject>* DeltaObj; ChoiceObj->TryGetObjectField("delta", DeltaObj))
         {
             if (FString RoleStr; (*DeltaObj)->TryGetStringField("role", RoleStr))
             {
-                Choice->Message.Role = RoleStr == "user" ? EHttpGPTChatRole::User : EHttpGPTChatRole::Assistant;
+                Choice->Message.Role = UHttpGPTHelper::NameToRole(*RoleStr);
             }
             else if (FString ContentStr; (*DeltaObj)->TryGetStringField("content", ContentStr))
             {
                 Choice->Message.Content += ContentStr;
+            }
+
+            if (const TSharedPtr<FJsonObject>* FunctionObj; (*DeltaObj)->TryGetObjectField("function_call", FunctionObj))
+            {
+                if (FString FunctionNameStr; (*FunctionObj)->TryGetStringField("name", FunctionNameStr))
+                {
+                    Choice->Message.FunctionCall.Name = *FunctionNameStr;
+                }
+                if (FString FunctionArgumentsStr; (*FunctionObj)->TryGetStringField("arguments", FunctionArgumentsStr))
+                {
+                    Choice->Message.FunctionCall.Arguments += FunctionArgumentsStr;
+                }
             }
         }
         else if (FString MessageText; ChoiceObj->TryGetStringField("text", MessageText))
@@ -388,7 +432,7 @@ void UHttpGPTChatRequest::DeserializeSingleResponse(const FString& Content)
     }
 }
 
-UHttpGPTChatRequest* UHttpGPTChatHelper::CastToHttpGPTChatRequest(UObject* Object)
+UHttpGPTChatRequest* UHttpGPTChatHelper::CastToHttpGPTChatRequest(UObject* const Object)
 {
     return Cast<UHttpGPTChatRequest>(Object);
 }

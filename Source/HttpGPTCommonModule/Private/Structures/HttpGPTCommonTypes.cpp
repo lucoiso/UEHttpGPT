@@ -20,5 +20,8 @@ void FHttpGPTCommonOptions::SetDefaults()
     {
         APIKey = Settings->CommonOptions.APIKey;
         User = Settings->CommonOptions.User;
+        bIsAzureOpenAI = Settings->CommonOptions.bIsAzureOpenAI;
+        Endpoint = Settings->CommonOptions.Endpoint;
+        AzureOpenAIAPIVersion = Settings->CommonOptions.AzureOpenAIAPIVersion;
     }
 }

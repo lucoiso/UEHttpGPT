@@ -11,12 +11,71 @@
 #include "Structures/HttpGPTCommonTypes.h"
 #include "HttpGPTChatTypes.generated.h"
 
+UENUM(BlueprintType, Category = "HttpGPT | Chat", Meta = (DisplayName = "HttpGPT Property Type"))
+enum class EHttpGPTPropertyType : uint8
+{
+    Number,
+    Boolean,
+    String
+};
+
+USTRUCT(BlueprintType, Category = "HttpGPT | Chat", Meta = (DisplayName = "HttpGPT Function Parameter"))
+struct HTTPGPTCOMMONMODULE_API FHttpGPTFunctionProperty
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat", Meta = (DisplayName = "Name"))
+    FName Name;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat", Meta = (DisplayName = "Type"))
+    EHttpGPTPropertyType Type;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat", Meta = (DisplayName = "Description"))
+    FString Description;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat", Meta = (DisplayName = "Enum"))
+    TArray<FName> Enum;
+};
+
+USTRUCT(BlueprintType, Category = "HttpGPT | Chat", Meta = (DisplayName = "HttpGPT Function"))
+struct HTTPGPTCOMMONMODULE_API FHttpGPTFunction
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat", Meta = (DisplayName = "Name"))
+    FName Name;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat", Meta = (DisplayName = "Description"))
+    FString Description;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat", Meta = (DisplayName = "Properties"))
+    TArray<FHttpGPTFunctionProperty> Properties;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat", Meta = (DisplayName = "Required Properties"))
+    TArray<FName> RequiredProperties;
+
+    TSharedPtr<FJsonValue> GetFunction() const;
+};
+
+USTRUCT(BlueprintType, Category = "HttpGPT | Chat", Meta = (DisplayName = "HttpGPT Function Call"))
+struct HTTPGPTCOMMONMODULE_API FHttpGPTFunctionCall
+{
+    GENERATED_BODY()
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat", Meta = (DisplayName = "Name"))
+    FName Name;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat", Meta = (DisplayName = "Arguments"))
+    FString Arguments;
+};
+
 UENUM(BlueprintType, Category = "HttpGPT | Chat", Meta = (DisplayName = "HttpGPT Chat Role"))
 enum class EHttpGPTChatRole : uint8
 {
     User,
     Assistant,
-    System
+    System,
+    Function
 };
 
 USTRUCT(BlueprintType, Category = "HttpGPT | Chat", Meta = (DisplayName = "HttpGPT Chat Message"))
@@ -25,14 +84,17 @@ struct HTTPGPTCOMMONMODULE_API FHttpGPTChatMessage
     GENERATED_BODY()
 
     FHttpGPTChatMessage() = default;
-    FHttpGPTChatMessage(const EHttpGPTChatRole& Role, const FString& Content) : Role(Role), Content(Content) {}
-    FHttpGPTChatMessage(const FName& Role, const FString& Content);
+    FHttpGPTChatMessage(const EHttpGPTChatRole& InRole, const FString& InContent) : Role(InRole), Content(InContent) {}
+    FHttpGPTChatMessage(const FName& InRole, const FString& InContent);
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat")
     EHttpGPTChatRole Role = EHttpGPTChatRole::User;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat")
     FString Content;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat", Meta = (EditCondition = "Role == EHttpGPTChatRole::Function"))
+    FHttpGPTFunctionCall FunctionCall;
 
     TSharedPtr<FJsonValue> GetMessage() const;
 };

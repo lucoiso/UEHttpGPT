@@ -9,7 +9,7 @@
 #include UE_INLINE_GENERATED_CPP_BY_NAME(HttpGPTHelper)
 #endif
 
-const FName UHttpGPTHelper::ModelToName(const EHttpGPTChatModel& Model)
+const FName UHttpGPTHelper::ModelToName(const EHttpGPTChatModel Model)
 {
     switch (Model)
     {
@@ -74,7 +74,7 @@ const EHttpGPTChatModel UHttpGPTHelper::NameToModel(const FName Model)
     return EHttpGPTChatModel::gpt35turbo;
 }
 
-const FName UHttpGPTHelper::RoleToName(const EHttpGPTChatRole& Role)
+const FName UHttpGPTHelper::RoleToName(const EHttpGPTChatRole Role)
 {
     switch (Role)
     {
@@ -86,6 +86,12 @@ const FName UHttpGPTHelper::RoleToName(const EHttpGPTChatRole& Role)
 
     case EHttpGPTChatRole::System:
         return "system";
+
+    case EHttpGPTChatRole::Function:
+        return "function";
+
+    default:
+        break;
     }
 
     return NAME_None;
@@ -105,8 +111,50 @@ const EHttpGPTChatRole UHttpGPTHelper::NameToRole(const FName Role)
     {
         return EHttpGPTChatRole::System;
     }
+    else if (Role.IsEqual("function", ENameCase::IgnoreCase))
+    {
+        return EHttpGPTChatRole::Function;
+    }
 
     return EHttpGPTChatRole::User;
+}
+
+const FName UHttpGPTHelper::PropertyTypeToName(const EHttpGPTPropertyType Type)
+{
+    switch (Type)
+    {
+    case EHttpGPTPropertyType::Boolean:
+        return "bool";
+
+    case EHttpGPTPropertyType::Number:
+        return "number";
+
+    case EHttpGPTPropertyType::String:
+        return "string";
+
+    default:
+        break;
+    }
+
+    return NAME_None;
+}
+
+const EHttpGPTPropertyType UHttpGPTHelper::NameToPropertyType(const FName Type)
+{
+    if (Type.IsEqual("bool", ENameCase::IgnoreCase))
+    {
+        return EHttpGPTPropertyType::Boolean;
+    }
+    else if (Type.IsEqual("number", ENameCase::IgnoreCase))
+    {
+        return  EHttpGPTPropertyType::Number;
+    }
+    else if (Type.IsEqual("string", ENameCase::IgnoreCase))
+    {
+        return EHttpGPTPropertyType::String;
+    }
+
+    return EHttpGPTPropertyType::Boolean;
 }
 
 const TArray<FName> UHttpGPTHelper::GetAvailableGPTModels()
@@ -124,7 +172,7 @@ const TArray<FName> UHttpGPTHelper::GetAvailableGPTModels()
     return Output;
 }
 
-const FName UHttpGPTHelper::GetEndpointForModel(const EHttpGPTChatModel& Model)
+const FString UHttpGPTHelper::GetEndpointForModel(const EHttpGPTChatModel Model, const bool bIsAzureOpenAI, const FString& AzureOpenAIAPIVersion)
 {
     switch (Model)
     {
@@ -132,20 +180,34 @@ const FName UHttpGPTHelper::GetEndpointForModel(const EHttpGPTChatModel& Model)
     case EHttpGPTChatModel::gpt432k:
     case EHttpGPTChatModel::gpt35turbo:
     case EHttpGPTChatModel::gpt35turbo16k:
-        return "v1/chat/completions";
+        if (bIsAzureOpenAI)
+        {
+            return FString::Format(TEXT("/openai/deployments/{0}/chat/completions?api-version={1}"), { ModelToName(Model).ToString(), AzureOpenAIAPIVersion });
+        }
+        else
+        {
+            return "v1/chat/completions";
+        }
 
     case EHttpGPTChatModel::textdavinci003:
     case EHttpGPTChatModel::textdavinci002:
     case EHttpGPTChatModel::codedavinci002:
-        return "v1/completions";
+        if (bIsAzureOpenAI)
+        {
+            return FString::Format(TEXT("/openai/deployments/{0}/completions?api-version={1}"), { ModelToName(Model).ToString(), AzureOpenAIAPIVersion });
+        }
+        else
+        {
+            return "v1/completions";
+        }
 
     default: break;
     }
 
-    return NAME_None;
+    return FString();
 }
 
-const bool UHttpGPTHelper::ModelSupportsChat(const EHttpGPTChatModel& Model)
+const bool UHttpGPTHelper::ModelSupportsChat(const EHttpGPTChatModel Model)
 {
     switch (Model)
     {
@@ -166,7 +228,7 @@ const bool UHttpGPTHelper::ModelSupportsChat(const EHttpGPTChatModel& Model)
     return false;
 }
 
-const FName UHttpGPTHelper::SizeToName(const EHttpGPTImageSize& Size)
+const FName UHttpGPTHelper::SizeToName(const EHttpGPTImageSize Size)
 {
     switch (Size)
     {
@@ -204,7 +266,7 @@ const EHttpGPTImageSize UHttpGPTHelper::NameToSize(const FName Size)
     return EHttpGPTImageSize::x256;
 }
 
-const FName UHttpGPTHelper::FormatToName(const EHttpGPTResponseFormat& Format)
+const FName UHttpGPTHelper::FormatToName(const EHttpGPTResponseFormat Format)
 {
     switch (Format)
     {
