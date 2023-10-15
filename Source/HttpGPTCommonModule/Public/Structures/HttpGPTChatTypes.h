@@ -25,10 +25,10 @@ struct HTTPGPTCOMMONMODULE_API FHttpGPTFunctionProperty
     GENERATED_BODY()
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat", Meta = (DisplayName = "Name"))
-    FName Name;
+    FName Name = NAME_None;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat", Meta = (DisplayName = "Type"))
-    EHttpGPTPropertyType Type;
+    EHttpGPTPropertyType Type = EHttpGPTPropertyType::String;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat", Meta = (DisplayName = "Description"))
     FString Description;
@@ -43,7 +43,7 @@ struct HTTPGPTCOMMONMODULE_API FHttpGPTFunction
     GENERATED_BODY()
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat", Meta = (DisplayName = "Name"))
-    FName Name;
+    FName Name = NAME_None;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat", Meta = (DisplayName = "Description"))
     FString Description;
@@ -63,7 +63,7 @@ struct HTTPGPTCOMMONMODULE_API FHttpGPTFunctionCall
     GENERATED_BODY()
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat", Meta = (DisplayName = "Name"))
-    FName Name;
+    FName Name = NAME_None;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Chat", Meta = (DisplayName = "Arguments"))
     FString Arguments;
