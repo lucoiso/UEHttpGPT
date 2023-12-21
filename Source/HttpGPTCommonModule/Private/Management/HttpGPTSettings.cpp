@@ -87,6 +87,8 @@ void UHttpGPTSettings::SetToDefaults()
     CommonOptions.bIsAzureOpenAI = false;
     CommonOptions.Endpoint = TEXT("https://api.openai.com/");
     CommonOptions.AzureOpenAIAPIVersion = TEXT("2023-05-15");
+    CommonOptions.bIsLocDeploy = false;
+    CommonOptions.LocalAddress = TEXT("http://localhost:8000/");
 
     ChatOptions.Model = EHttpGPTChatModel::gpt35turbo;
     ChatOptions.MaxTokens = 2048;

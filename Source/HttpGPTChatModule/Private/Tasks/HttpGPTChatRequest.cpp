@@ -87,7 +87,14 @@ bool UHttpGPTChatRequest::CanBindProgress() const
 
 FString UHttpGPTChatRequest::GetEndpointURL() const
 {
-    return FString::Format(TEXT("{0}/{1}"), { GetCommonOptions().Endpoint, UHttpGPTHelper::GetEndpointForModel(GetChatOptions().Model, GetCommonOptions().bIsAzureOpenAI, GetCommonOptions().AzureOpenAIAPIVersion) });
+    if(GetCommonOptions().bIsLocDeploy)
+    {
+        return FString::Format(TEXT("{0}/v1/chat/completions"), {GetCommonOptions().LocalAddress});
+    }
+    else
+    {
+        return FString::Format(TEXT("{0}/{1}"), { GetCommonOptions().Endpoint, UHttpGPTHelper::GetEndpointForModel(GetChatOptions().Model, GetCommonOptions().bIsAzureOpenAI, GetCommonOptions().AzureOpenAIAPIVersion) });
+    }
 }
 
 const FHttpGPTChatOptions UHttpGPTChatRequest::GetChatOptions() const

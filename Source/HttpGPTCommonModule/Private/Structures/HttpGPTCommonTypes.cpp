@@ -21,7 +21,9 @@ void FHttpGPTCommonOptions::SetDefaults()
         APIKey = Settings->CommonOptions.APIKey;
         User = Settings->CommonOptions.User;
         bIsAzureOpenAI = Settings->CommonOptions.bIsAzureOpenAI;
+        bIsLocDeploy = Settings->CommonOptions.bIsLocDeploy;
         Endpoint = Settings->CommonOptions.Endpoint;
+        LocalAddress = Settings->CommonOptions.LocalAddress;
         AzureOpenAIAPIVersion = Settings->CommonOptions.AzureOpenAIAPIVersion;
     }
 }
