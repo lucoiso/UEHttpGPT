@@ -43,6 +43,12 @@ struct HTTPGPTCOMMONMODULE_API FHttpGPTCommonOptions
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common", Meta = (DisplayName = "Endpoint", EditCondition = "bIsAzureOpenAI"))
     FString Endpoint;
 
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common", Meta = (DisplayName = "Is Local Deployment"))
+    bool bIsLocDeploy;
+    
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common", Meta = (DisplayName = "LocalAddress", EditCondition = "bIsLocDeploy"))
+    FString LocalAddress;
+    
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common", Meta = (DisplayName = "Azure OpenAI API Version", EditCondition = "bIsAzureOpenAI"))
     FString AzureOpenAIAPIVersion;
 

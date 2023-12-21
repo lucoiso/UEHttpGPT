@@ -216,7 +216,14 @@ void UHttpGPTBaseTask::BindRequestCallbacks()
                 return;
             }
 
-            OnProgressCompleted(RequestResponse->GetContentAsString(), bWasSuccessful);
+            if(RequestResponse.IsValid())
+            {
+                OnProgressCompleted(RequestResponse->GetContentAsString(), bWasSuccessful);
+            }
+            else
+            {
+                UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Failed to send request: RequestResponse is invalid"), *FString(__func__), GetUniqueID());
+            }
             SetReadyToDestroy();
         }
     );
