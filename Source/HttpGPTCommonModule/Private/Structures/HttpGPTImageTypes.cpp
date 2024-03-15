@@ -7,15 +7,15 @@
 
 FHttpGPTImageOptions::FHttpGPTImageOptions()
 {
-    SetDefaults();
+	SetDefaults();
 }
 
 void FHttpGPTImageOptions::SetDefaults()
 {
-    if (const UHttpGPTSettings* const Settings = GetDefault<UHttpGPTSettings>())
-    {
-        ImagesNum = Settings->ImageOptions.ImagesNum;
-        Size = Settings->ImageOptions.Size;
-        Format = Settings->ImageOptions.Format;
-    }
+	if (const UHttpGPTSettings* const Settings = GetDefault<UHttpGPTSettings>())
+	{
+		ImagesNum = Settings->ImageOptions.ImagesNum;
+		Size = Settings->ImageOptions.Size;
+		Format = Settings->ImageOptions.Format;
+	}
 }

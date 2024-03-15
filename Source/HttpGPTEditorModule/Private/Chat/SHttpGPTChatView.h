@@ -12,47 +12,48 @@
 class SHttpGPTChatView final : public SCompoundWidget
 {
 public:
-    SLATE_USER_ARGS(SHttpGPTChatView)
-        : _SessionID(NAME_None)
-        {
-        }
-        SLATE_ARGUMENT(FName, SessionID)
-    SLATE_END_ARGS()
+	SLATE_USER_ARGS(SHttpGPTChatView)
+			: _SessionID(NAME_None)
+		{
+		}
 
-    void Construct(const FArguments& InArgs);
-    ~SHttpGPTChatView();
+		SLATE_ARGUMENT(FName, SessionID)
+	SLATE_END_ARGS()
 
-    bool IsSendMessageEnabled() const;
-    bool IsClearChatEnabled() const;
-    FString GetHistoryPath() const;
+	void Construct(const FArguments& InArgs);
+	virtual ~SHttpGPTChatView() override;
 
-    void SetSessionID(const FName& NewSessionID);
-    FName GetSessionID() const;
+	bool IsSendMessageEnabled() const;
+	bool IsClearChatEnabled() const;
+	FString GetHistoryPath() const;
 
-    void ClearChat();
+	void SetSessionID(const FName& NewSessionID);
+	FName GetSessionID() const;
+
+	void ClearChat();
 
 private:
-    TSharedRef<SWidget> ConstructContent();
+	TSharedRef<SWidget> ConstructContent();
 
-    FReply HandleSendMessageButton(const EHttpGPTChatRole Role);
-    FReply HandleClearChatButton();
+	FReply HandleSendMessageButton(const EHttpGPTChatRole Role);
+	FReply HandleClearChatButton();
 
-    TArray<FHttpGPTChatMessage> GetChatHistory() const;
-    FString GetDefaultSystemContext() const;
+	TArray<FHttpGPTChatMessage> GetChatHistory() const;
+	FString GetDefaultSystemContext() const;
 
-    void LoadChatHistory();
-    void SaveChatHistory() const;
+	void LoadChatHistory();
+	void SaveChatHistory() const;
 
-    FName SessionID;
+	FName SessionID;
 
-    TSharedPtr<class SVerticalBox> ChatBox;
-    TArray<SHttpGPTChatItemPtr> ChatItems;
-    TSharedPtr<class SScrollBox> ChatScrollBox;
+	TSharedPtr<class SVerticalBox> ChatBox;
+	TArray<SHttpGPTChatItemPtr> ChatItems;
+	TSharedPtr<class SScrollBox> ChatScrollBox;
 
-    TSharedPtr<class SEditableTextBox> InputTextBox;
+	TSharedPtr<class SEditableTextBox> InputTextBox;
 
-    TSharedPtr<class STextComboBox> ModelsComboBox;
-    TArray<FTextDisplayStringPtr> AvailableModels;
+	TSharedPtr<class STextComboBox> ModelsComboBox;
+	TArray<FTextDisplayStringPtr> AvailableModels;
 
-    TWeakObjectPtr<class UHttpGPTChatRequest> RequestReference;
+	TWeakObjectPtr<class UHttpGPTChatRequest> RequestReference;
 };

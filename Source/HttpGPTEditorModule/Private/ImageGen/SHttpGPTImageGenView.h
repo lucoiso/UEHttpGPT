@@ -10,33 +10,34 @@
 class SHttpGPTImageGenView final : public SCompoundWidget
 {
 public:
-    SLATE_USER_ARGS(SHttpGPTImageGenView)
-        {
-        }
-    SLATE_END_ARGS()
+	SLATE_USER_ARGS(SHttpGPTImageGenView)
+		{
+		}
 
-    void Construct(const FArguments& InArgs);
+	SLATE_END_ARGS()
 
-    bool IsSendRequestEnabled() const;
-    bool IsClearViewEnabled() const;
+	void Construct(const FArguments& InArgs);
+
+	bool IsSendRequestEnabled() const;
+	bool IsClearViewEnabled() const;
 
 private:
-    TSharedRef<SWidget> ConstructContent();
+	TSharedRef<SWidget> ConstructContent();
 
-    FReply HandleSendRequestButton();
-    FReply HandleClearViewButton();
+	FReply HandleSendRequestButton();
+	FReply HandleClearViewButton();
 
-    void InitializeImageNumOptions();
-    void InitializeImageSizeOptions();
+	void InitializeImageNumOptions();
+	void InitializeImageSizeOptions();
 
-    TSharedPtr<class SVerticalBox> ViewBox;
-    TSharedPtr<class SScrollBox> ViewScrollBox;
+	TSharedPtr<class SVerticalBox> ViewBox;
+	TSharedPtr<class SScrollBox> ViewScrollBox;
 
-    TSharedPtr<class SEditableTextBox> InputTextBox;
+	TSharedPtr<class SEditableTextBox> InputTextBox;
 
-    TSharedPtr<class STextComboBox> ImageNumComboBox;
-    TArray<FTextDisplayStringPtr> ImageNum;
+	TSharedPtr<class STextComboBox> ImageNumComboBox;
+	TArray<FTextDisplayStringPtr> ImageNum;
 
-    TSharedPtr<class STextComboBox> ImageSizeComboBox;
-    TArray<FTextDisplayStringPtr> ImageSize;
+	TSharedPtr<class STextComboBox> ImageSizeComboBox;
+	TArray<FTextDisplayStringPtr> ImageSize;
 };

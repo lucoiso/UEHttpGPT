@@ -14,29 +14,29 @@ DECLARE_DELEGATE_OneParam(FMessageContentUpdated, FString);
 UCLASS(MinimalAPI, NotBlueprintable, NotPlaceable, Category = "Implementation")
 class UHttpGPTMessagingHandler : public UObject
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 
 public:
-    explicit UHttpGPTMessagingHandler(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	explicit UHttpGPTMessagingHandler(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-    FMessageContentUpdated OnMessageContentUpdated;
+	FMessageContentUpdated OnMessageContentUpdated;
 
-    UFUNCTION()
-    void RequestSent();
+	UFUNCTION()
+	void RequestSent();
 
-    UFUNCTION()
-    void RequestFailed();
+	UFUNCTION()
+	void RequestFailed();
 
-    UFUNCTION()
-    void ProcessUpdated(const FHttpGPTChatResponse& Response);
+	UFUNCTION()
+	void ProcessUpdated(const FHttpGPTChatResponse& Response);
 
-    UFUNCTION()
-    void ProcessCompleted(const FHttpGPTChatResponse& Response);
+	UFUNCTION()
+	void ProcessCompleted(const FHttpGPTChatResponse& Response);
 
-    TSharedPtr<class SScrollBox> ScrollBoxReference;
+	TSharedPtr<class SScrollBox> ScrollBoxReference;
 
-    void Destroy();
+	void Destroy();
 
 private:
-    void ProcessResponse(const FHttpGPTChatResponse& Response);
+	void ProcessResponse(const FHttpGPTChatResponse& Response);
 };
