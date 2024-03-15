@@ -1,65 +1,65 @@
 {
-	"FileVersion": 3,
-	"Version": 20,
-	"VersionName": "1.5.7",
-	"FriendlyName": "HttpGPT - GPT Integration",
-	"Description": "HttpGPT is an Unreal Engine plugin that facilitates integration with OpenAI's GPT based services (ChatGPT and DALL-E) through asynchronous REST requests, making it easy for developers to communicate with these services. HttpGPT also includes new Editor Tools to integrate Chat GPT and DALL-E image generation directly in the Engine.",
-	"Category": "Game Features",
-	"CreatedBy": "Lucas Vilas-Boas",
-	"CreatedByURL": "https://github.com/lucoiso",
-	"DocsURL": "https://github.com/lucoiso/UEHttpGPT/wiki",
-	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/433c180835184aeca0172680a69497ee",
-	"SupportURL": "https://github.com/lucoiso/UEHttpGPT/issues",
-	"CanContainContent": false,
-	"IsBetaVersion": true,
-	"IsExperimentalVersion": false,
-	"Installed": false,
-	"Modules": [
-		{
-			"Name": "HttpGPTChatModule",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"PlatformAllowList": [
-				"Win64",
-				"Mac",
-				"Linux",
-				"IOS",
-				"Android"
-			]
-		},
-		{
-			"Name": "HttpGPTImageModule",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"PlatformAllowList": [
-				"Win64",
-				"Mac",
-				"Linux",
-				"IOS",
-				"Android"
-			]
-		},
-		{
-			"Name": "HttpGPTCommonModule",
-			"Type": "Runtime",
-			"LoadingPhase": "Default",
-			"PlatformAllowList": [
-				"Win64",
-				"Mac",
-				"Linux",
-				"IOS",
-				"Android"
-			]
-		},
-		{
-			"Name": "HttpGPTEditorModule",
-			"Type": "Editor",
-			"PlatformAllowList": [
-				"Win64",
-				"Mac",
-				"Linux"
-			],
-			"LoadingPhase": "Default"
-		}
-	]
+  "FileVersion": 3,
+  "Version": 22,
+  "VersionName": "1.5.9",
+  "FriendlyName": "HttpGPT - GPT Integration",
+  "Description": "HttpGPT is an Unreal Engine plugin that facilitates integration with OpenAI's GPT based services (ChatGPT and DALL-E) through asynchronous REST requests, making it easy for developers to communicate with these services. HttpGPT also includes new Editor Tools to integrate Chat GPT and DALL-E image generation directly in the Engine.",
+  "Category": "Game Features",
+  "CreatedBy": "Lucas Vilas-Boas",
+  "CreatedByURL": "https://github.com/lucoiso",
+  "DocsURL": "https://github.com/lucoiso/UEHttpGPT/wiki",
+  "MarketplaceURL": "com.epicgames.launcher://ue/marketplace/product/433c180835184aeca0172680a69497ee",
+  "SupportURL": "https://github.com/lucoiso/UEHttpGPT/issues",
+  "CanContainContent": false,
+  "IsBetaVersion": true,
+  "IsExperimentalVersion": false,
+  "Installed": false,
+  "Modules": [
+    {
+      "Name": "HttpGPTChatModule",
+      "Type": "Runtime",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "Linux",
+        "IOS",
+        "Android"
+      ]
+    },
+    {
+      "Name": "HttpGPTImageModule",
+      "Type": "Runtime",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "Linux",
+        "IOS",
+        "Android"
+      ]
+    },
+    {
+      "Name": "HttpGPTCommonModule",
+      "Type": "Runtime",
+      "LoadingPhase": "Default",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "Linux",
+        "IOS",
+        "Android"
+      ]
+    },
+    {
+      "Name": "HttpGPTEditorModule",
+      "Type": "Editor",
+      "PlatformAllowList": [
+        "Win64",
+        "Mac",
+        "Linux"
+      ],
+      "LoadingPhase": "Default"
+    }
+  ]
 }

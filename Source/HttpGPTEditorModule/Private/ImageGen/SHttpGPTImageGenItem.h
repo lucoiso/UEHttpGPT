@@ -10,29 +10,30 @@
 class SHttpGPTImageGenItem final : public SCompoundWidget
 {
 public:
-    SLATE_BEGIN_ARGS(SHttpGPTImageGenItem) : _OutScrollBox(), _Prompt(), _Num(), _Size()
-        {
-        }
-        SLATE_ARGUMENT(TSharedPtr<class SScrollBox>, OutScrollBox)
-        SLATE_ARGUMENT(FString, Prompt)
-        SLATE_ARGUMENT(FString, Num)
-        SLATE_ARGUMENT(FString, Size)
-    SLATE_END_ARGS()
+	SLATE_BEGIN_ARGS(SHttpGPTImageGenItem) : _OutScrollBox(), _Prompt(), _Num(), _Size()
+		{
+		}
 
-    void Construct(const FArguments& InArgs);
-    ~SHttpGPTImageGenItem();
+		SLATE_ARGUMENT(TSharedPtr<class SScrollBox>, OutScrollBox)
+		SLATE_ARGUMENT(FString, Prompt)
+		SLATE_ARGUMENT(FString, Num)
+		SLATE_ARGUMENT(FString, Size)
+	SLATE_END_ARGS()
 
-    TWeakObjectPtr<class UHttpGPTImageGetter> HttpGPTImageGetterObject;
+	void Construct(const FArguments& InArgs);
+	virtual ~SHttpGPTImageGenItem() override;
+
+	TWeakObjectPtr<class UHttpGPTImageGetter> HttpGPTImageGetterObject;
 
 private:
-    TSharedRef<SWidget> ConstructContent();
+	TSharedRef<SWidget> ConstructContent();
 
-    FString Prompt;
+	FString Prompt;
 
-    TSharedPtr<class STextBlock> Status;
-    TSharedPtr<class SHorizontalBox> ItemViewBox;
+	TSharedPtr<class STextBlock> Status;
+	TSharedPtr<class SHorizontalBox> ItemViewBox;
 
-    TWeakObjectPtr<class UHttpGPTImageRequest> RequestReference;
+	TWeakObjectPtr<class UHttpGPTImageRequest> RequestReference;
 };
 
-typedef TSharedPtr<SHttpGPTImageGenItem> SHttpGPTImageGenItemPtr;
+using SHttpGPTImageGenItemPtr = TSharedPtr<SHttpGPTImageGenItem>;

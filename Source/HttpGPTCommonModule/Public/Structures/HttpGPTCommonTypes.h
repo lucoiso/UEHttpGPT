@@ -10,42 +10,43 @@
 USTRUCT(BlueprintType, Category = "HttpGPT | Common", Meta = (DisplayName = "HttpGPT Common Error"))
 struct HTTPGPTCOMMONMODULE_API FHttpGPTCommonError
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 
-    FHttpGPTCommonError() = default;
+	FHttpGPTCommonError() = default;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common")
-    FName Type;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common")
+	FName Type;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common")
-    FName Code;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common")
+	FName Code;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common")
-    FString Message;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common")
+	FString Message;
 };
 
 USTRUCT(BlueprintType, Category = "HttpGPT | Common", Meta = (DisplayName = "HttpGPT Common Options"))
 struct HTTPGPTCOMMONMODULE_API FHttpGPTCommonOptions
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 
-    FHttpGPTCommonOptions();
+	FHttpGPTCommonOptions();
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common", Meta = (DisplayName = "API Key"))
-    FName APIKey;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common", Meta = (DisplayName = "API Key"))
+	FName APIKey;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common", Meta = (DisplayName = "User"))
-    FName User;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common", Meta = (DisplayName = "User"))
+	FName User;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common", Meta = (DisplayName = "Is Azure OpenAI"))
-    bool bIsAzureOpenAI;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common", Meta = (DisplayName = "Is Azure OpenAI"))
+	bool bIsAzureOpenAI;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common", Meta = (DisplayName = "Endpoint", EditCondition = "bIsAzureOpenAI"))
-    FString Endpoint;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common", Meta = (DisplayName = "Endpoint", EditCondition = "bIsAzureOpenAI"))
+	FString Endpoint;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common", Meta = (DisplayName = "Azure OpenAI API Version", EditCondition = "bIsAzureOpenAI"))
-    FString AzureOpenAIAPIVersion;
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "HttpGPT | Common",
+		Meta = (DisplayName = "Azure OpenAI API Version", EditCondition = "bIsAzureOpenAI"))
+	FString AzureOpenAIAPIVersion;
 
 private:
-    void SetDefaults();
+	void SetDefaults();
 };

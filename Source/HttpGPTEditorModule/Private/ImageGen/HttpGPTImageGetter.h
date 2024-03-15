@@ -15,35 +15,35 @@ DECLARE_DELEGATE_OneParam(FImageStatusChanged, FString);
 UCLASS(MinimalAPI, NotBlueprintable, NotPlaceable, Category = "Implementation")
 class UHttpGPTImageGetter : public UObject
 {
-    GENERATED_BODY()
+	GENERATED_BODY()
 
 public:
-    explicit UHttpGPTImageGetter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
+	explicit UHttpGPTImageGetter(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-    FImageGenerated OnImageGenerated;
-    FImageStatusChanged OnStatusChanged;
+	FImageGenerated OnImageGenerated;
+	FImageStatusChanged OnStatusChanged;
 
-    UFUNCTION()
-    void RequestSent();
+	UFUNCTION()
+	void RequestSent();
 
-    UFUNCTION()
-    void RequestFailed();
+	UFUNCTION()
+	void RequestFailed();
 
-    UFUNCTION()
-    void ProcessCompleted(const FHttpGPTImageResponse& Response);
+	UFUNCTION()
+	void ProcessCompleted(const FHttpGPTImageResponse& Response);
 
-    void Destroy();
+	void Destroy();
 
-    TSharedPtr<class SScrollBox> OutScrollBox;
+	TSharedPtr<class SScrollBox> OutScrollBox;
 
 private:
-    void ProcessImage(const FHttpGPTImageData& Data);
+	void ProcessImage(const FHttpGPTImageData& Data);
 
-    FHttpGPTImageGenerate OnImageGenerated_Internal;
+	FHttpGPTImageGenerate OnImageGenerated_Internal;
 
-    UFUNCTION()
-    void ImageGenerated(UTexture2D* const Texture);
+	UFUNCTION()
+	void ImageGenerated(UTexture2D* const Texture);
 
-    uint8 GeneratedImages;
-    uint8 DataSize;
+	uint8 GeneratedImages;
+	uint8 DataSize;
 };
