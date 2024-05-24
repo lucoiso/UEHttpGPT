@@ -29,7 +29,7 @@ void UHttpGPTBaseTask::Activate()
 {
 	Super::Activate();
 
-	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Activating task"), *FString(__func__), GetUniqueID());
+	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Activating task"), *FString(__FUNCTION__), GetUniqueID());
 
 	bIsTaskActive = true;
 	if (!CommonOptions.Endpoint.EndsWith(TEXT("/")))
@@ -39,7 +39,7 @@ void UHttpGPTBaseTask::Activate()
 
 	if (!CanActivateTask())
 	{
-		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Failed to activate task."), *FString(__func__), GetUniqueID());
+		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Failed to activate task."), *FString(__FUNCTION__), GetUniqueID());
 		RequestFailed.Broadcast();
 		SetReadyToDestroy();
 		return;
@@ -71,7 +71,7 @@ void UHttpGPTBaseTask::StopHttpGPTTask()
 		return;
 	}
 
-	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Stopping task"), *FString(__func__), GetUniqueID());
+	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Stopping task"), *FString(__FUNCTION__), GetUniqueID());
 
 	bIsTaskActive = false;
 
@@ -93,7 +93,7 @@ void UHttpGPTBaseTask::SetReadyToDestroy()
 		return;
 	}
 
-	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Setting task as Ready to Destroy"), *FString(__func__), GetUniqueID());
+	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Setting task as Ready to Destroy"), *FString(__FUNCTION__), GetUniqueID());
 
 #if WITH_EDITOR
 	if (bIsEditorTask)
@@ -132,7 +132,7 @@ void UHttpGPTBaseTask::PrePIEEnded(bool bIsSimulating)
 		return;
 	}
 
-	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Trying to finish task due to PIE end"), *FString(__func__), GetUniqueID());
+	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Trying to finish task due to PIE end"), *FString(__FUNCTION__), GetUniqueID());
 
 	bEndingPIE = true;
 	StopHttpGPTTask();
@@ -143,7 +143,7 @@ bool UHttpGPTBaseTask::CanActivateTask() const
 {
 	if (HttpGPT::Internal::HasEmptyParam(GetCommonOptions().APIKey))
 	{
-		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Can't activate task: Invalid API Key."), *FString(__func__), GetUniqueID());
+		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Can't activate task: Invalid API Key."), *FString(__FUNCTION__), GetUniqueID());
 		return false;
 	}
 
@@ -164,7 +164,7 @@ void UHttpGPTBaseTask::InitializeRequest()
 {
 	FScopeLock Lock(&Mutex);
 
-	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Initializing request object"), *FString(__func__), GetUniqueID());
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Initializing request object"), *FString(__FUNCTION__), GetUniqueID());
 
 	HttpRequest = FHttpModule::Get().CreateRequest();
 	HttpRequest->SetURL(GetEndpointURL());
@@ -182,11 +182,15 @@ void UHttpGPTBaseTask::BindRequestCallbacks()
 		return;
 	}
 
-	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Binding callbacks"), *FString(__func__), GetUniqueID());
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Binding callbacks"), *FString(__FUNCTION__), GetUniqueID());
 
 	if (CanBindProgress())
 	{
+#if ENGINE_MAJOR_VERSION > 5 || (ENGINE_MAJOR_VERSION == 5 && ENGINE_MINOR_VERSION >= 4)
+		HttpRequest->OnRequestProgress64().BindLambda([this](const FHttpRequestPtr& Request, int32 BytesSent, int32 BytesReceived)
+#else
 		HttpRequest->OnRequestProgress().BindLambda([this](const FHttpRequestPtr& Request, int32 BytesSent, int32 BytesReceived)
+#endif
 		{
 			const FScopeTryLock Lock(&Mutex);
 
@@ -226,7 +230,7 @@ void UHttpGPTBaseTask::SendRequest()
 
 	if (!HttpRequest.IsValid())
 	{
-		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Failed to send request: Request object is invalid"), *FString(__func__), GetUniqueID());
+		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Failed to send request: Request object is invalid"), *FString(__FUNCTION__), GetUniqueID());
 
 		AsyncTask(ENamedThreads::GameThread, [this]
 		{
@@ -237,12 +241,12 @@ void UHttpGPTBaseTask::SendRequest()
 		return;
 	}
 
-	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Sending request"), *FString(__func__), GetUniqueID());
+	UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Sending request"), *FString(__FUNCTION__), GetUniqueID());
 
 	if (HttpRequest->ProcessRequest())
 	{
-		UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Request sent"), *FString(__func__), GetUniqueID());
-		UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Request content body:\n%s"), *FString(__func__), GetUniqueID(), *ContentString);
+		UE_LOG(LogHttpGPT, Display, TEXT("%s (%d): Request sent"), *FString(__FUNCTION__), GetUniqueID());
+		UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Request content body:\n%s"), *FString(__FUNCTION__), GetUniqueID(), *ContentString);
 
 		AsyncTask(ENamedThreads::GameThread, [this]
 		{
@@ -251,7 +255,7 @@ void UHttpGPTBaseTask::SendRequest()
 	}
 	else
 	{
-		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Failed to initialize the request process"), *FString(__func__), GetUniqueID());
+		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Failed to initialize the request process"), *FString(__FUNCTION__), GetUniqueID());
 		AsyncTask(ENamedThreads::GameThread, [this]
 		{
 			RequestFailed.Broadcast();
@@ -262,18 +266,18 @@ void UHttpGPTBaseTask::SendRequest()
 
 const bool UHttpGPTBaseTask::CheckError(const TSharedPtr<FJsonObject>& JsonObject, FHttpGPTCommonError& OutputError) const
 {
-	if (JsonObject->HasField("error"))
+	if (JsonObject->HasField(TEXT("error")))
 	{
-		const TSharedPtr<FJsonObject> ErrorObj = JsonObject->GetObjectField("error");
-		if (FString ErrorMessage; ErrorObj->TryGetStringField("message", ErrorMessage))
+		const TSharedPtr<FJsonObject> ErrorObj = JsonObject->GetObjectField(TEXT("error"));
+		if (FString ErrorMessage; ErrorObj->TryGetStringField(TEXT("message"), ErrorMessage))
 		{
 			OutputError.Message = *ErrorMessage;
 		}
-		if (FString ErrorCode; ErrorObj->TryGetStringField("code", ErrorCode))
+		if (FString ErrorCode; ErrorObj->TryGetStringField(TEXT("code"), ErrorCode))
 		{
 			OutputError.Code = *ErrorCode;
 		}
-		if (FString ErrorType; ErrorObj->TryGetStringField("type", ErrorType))
+		if (FString ErrorType; ErrorObj->TryGetStringField(TEXT("type"), ErrorType))
 		{
 			OutputError.Type = *ErrorType;
 		}

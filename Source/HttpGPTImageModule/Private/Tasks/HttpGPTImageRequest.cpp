@@ -78,7 +78,7 @@ bool UHttpGPTImageRequest::CanActivateTask() const
 
 	if (HttpGPT::Internal::HasEmptyParam(Prompt))
 	{
-		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Can't activate task: Invalid Prompt."), *FString(__func__), GetUniqueID());
+		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Can't activate task: Invalid Prompt."), *FString(__FUNCTION__), GetUniqueID());
 		return false;
 	}
 
@@ -109,7 +109,7 @@ FString UHttpGPTImageRequest::SetRequestContent()
 		return FString();
 	}
 
-	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Mounting content"), *FString(__func__), GetUniqueID());
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Mounting content"), *FString(__FUNCTION__), GetUniqueID());
 
 	const TSharedPtr<FJsonObject> JsonRequest = MakeShared<FJsonObject>();
 	JsonRequest->SetStringField("prompt", Prompt);
@@ -137,7 +137,7 @@ void UHttpGPTImageRequest::OnProgressCompleted(const FString& Content, const boo
 
 	if (!bWasSuccessful || HttpGPT::Internal::HasEmptyParam(Content))
 	{
-		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Request failed"), *FString(__func__), GetUniqueID());
+		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Request failed"), *FString(__FUNCTION__), GetUniqueID());
 		AsyncTask(ENamedThreads::GameThread, [this]
 		{
 			RequestFailed.Broadcast();
@@ -146,8 +146,8 @@ void UHttpGPTImageRequest::OnProgressCompleted(const FString& Content, const boo
 		return;
 	}
 
-	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Process Completed"), *FString(__func__), GetUniqueID());
-	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Content: %s"), *FString(__func__), GetUniqueID(), *Content);
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Process Completed"), *FString(__FUNCTION__), GetUniqueID());
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Content: %s"), *FString(__FUNCTION__), GetUniqueID(), *Content);
 
 	DeserializeResponse(Content);
 
@@ -161,7 +161,7 @@ void UHttpGPTImageRequest::OnProgressCompleted(const FString& Content, const boo
 	}
 	else
 	{
-		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Request failed"), *FString(__func__), GetUniqueID());
+		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Request failed"), *FString(__FUNCTION__), GetUniqueID());
 		AsyncTask(ENamedThreads::GameThread, [this]
 		{
 			FScopeLock Lock(&Mutex);
@@ -190,9 +190,9 @@ void UHttpGPTImageRequest::DeserializeResponse(const FString& Content)
 	}
 
 	Response.bSuccess = true;
-	Response.Created = JsonResponse->GetNumberField("created");
+	Response.Created = JsonResponse->GetNumberField(TEXT("created"));
 
-	const TArray<TSharedPtr<FJsonValue>> DataArray = JsonResponse->GetArrayField("data");
+	const TArray<TSharedPtr<FJsonValue>> DataArray = JsonResponse->GetArrayField(TEXT("data"));
 	for (auto Iterator = DataArray.CreateConstIterator(); Iterator; ++Iterator)
 	{
 		Response.Data.Add(FHttpGPTImageData(

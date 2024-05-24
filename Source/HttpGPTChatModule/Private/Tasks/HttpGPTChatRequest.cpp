@@ -81,7 +81,7 @@ bool UHttpGPTChatRequest::CanActivateTask() const
 
 	if (HttpGPT::Internal::HasEmptyParam(Messages))
 	{
-		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Can't activate task: Invalid Messages."), *FString(__func__), GetUniqueID());
+		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Can't activate task: Invalid Messages."), *FString(__FUNCTION__), GetUniqueID());
 		return false;
 	}
 
@@ -116,7 +116,7 @@ FString UHttpGPTChatRequest::SetRequestContent()
 		return FString();
 	}
 
-	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Mounting content"), *FString(__func__), GetUniqueID());
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Mounting content"), *FString(__FUNCTION__), GetUniqueID());
 
 	const TSharedPtr<FJsonObject> JsonRequest = MakeShared<FJsonObject>();
 	JsonRequest->SetStringField("model", UHttpGPTHelper::ModelToName(GetChatOptions().Model).ToString().ToLower());
@@ -157,7 +157,7 @@ FString UHttpGPTChatRequest::SetRequestContent()
 
 	if (UHttpGPTHelper::ModelSupportsChat(GetChatOptions().Model))
 	{
-		UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Selected model supports Chat API. Mounting section history."), *FString(__func__),
+		UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Selected model supports Chat API. Mounting section history."), *FString(__FUNCTION__),
 		       GetUniqueID());
 
 		TArray<TSharedPtr<FJsonValue>> MessagesJson;
@@ -182,7 +182,7 @@ FString UHttpGPTChatRequest::SetRequestContent()
 	else
 	{
 		UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Selected model does not supports Chat API. Using last message as prompt content."),
-		       *FString(__func__), GetUniqueID());
+		       *FString(__FUNCTION__), GetUniqueID());
 		JsonRequest->SetStringField("prompt", Messages.Top().Content);
 	}
 
@@ -206,8 +206,8 @@ void UHttpGPTChatRequest::OnProgressUpdated(const FString& Content, int32 BytesS
 
 	TArray<FString> Deltas = GetDeltasFromContent(Content);
 
-	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Progress Updated"), *FString(__func__), GetUniqueID());
-	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Content: %s; Bytes Sent: %d; Bytes Received: %d"), *FString(__func__), GetUniqueID(),
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Progress Updated"), *FString(__FUNCTION__), GetUniqueID());
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Content: %s; Bytes Sent: %d; Bytes Received: %d"), *FString(__FUNCTION__), GetUniqueID(),
 	       *Deltas.Top(), BytesSent, BytesReceived);
 
 	DeserializeStreamedResponse(Deltas);
@@ -245,7 +245,7 @@ void UHttpGPTChatRequest::OnProgressCompleted(const FString& Content, const bool
 
 	if (!bWasSuccessful || HttpGPT::Internal::HasEmptyParam(Content))
 	{
-		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Request failed"), *FString(__func__), GetUniqueID());
+		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Request failed"), *FString(__FUNCTION__), GetUniqueID());
 		AsyncTask(ENamedThreads::GameThread, [this]
 		{
 			RequestFailed.Broadcast();
@@ -254,8 +254,8 @@ void UHttpGPTChatRequest::OnProgressCompleted(const FString& Content, const bool
 		return;
 	}
 
-	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Process Completed"), *FString(__func__), GetUniqueID());
-	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Content: %s"), *FString(__func__), GetUniqueID(), *Content);
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Process Completed"), *FString(__FUNCTION__), GetUniqueID());
+	UE_LOG(LogHttpGPT_Internal, Display, TEXT("%s (%d): Content: %s"), *FString(__FUNCTION__), GetUniqueID(), *Content);
 
 	if (!GetChatOptions().bStream)
 	{
@@ -283,7 +283,7 @@ void UHttpGPTChatRequest::OnProgressCompleted(const FString& Content, const bool
 	}
 	else
 	{
-		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Request failed"), *FString(__func__), GetUniqueID());
+		UE_LOG(LogHttpGPT, Error, TEXT("%s (%d): Request failed"), *FString(__FUNCTION__), GetUniqueID());
 		AsyncTask(ENamedThreads::GameThread, [this]
 		{
 			FScopeLock Lock(&Mutex);
@@ -342,16 +342,16 @@ void UHttpGPTChatRequest::DeserializeSingleResponse(const FString& Content)
 
 	Response.bSuccess = true;
 
-	Response.ID = *JsonResponse->GetStringField("id");
-	Response.Object = *JsonResponse->GetStringField("object");
-	Response.Created = JsonResponse->GetNumberField("created");
+	Response.ID = *JsonResponse->GetStringField(TEXT("id"));
+	Response.Object = *JsonResponse->GetStringField(TEXT("object"));
+	Response.Created = JsonResponse->GetNumberField(TEXT("created"));
 
-	const TArray<TSharedPtr<FJsonValue>> ChoicesArr = JsonResponse->GetArrayField("choices");
+	const TArray<TSharedPtr<FJsonValue>> ChoicesArr = JsonResponse->GetArrayField(TEXT("choices"));
 
 	for (auto Iterator = ChoicesArr.CreateConstIterator(); Iterator; ++Iterator)
 	{
 		const TSharedPtr<FJsonObject> ChoiceObj = (*Iterator)->AsObject();
-		const int32 ChoiceIndex = ChoiceObj->GetIntegerField("index");
+		const int32 ChoiceIndex = ChoiceObj->GetIntegerField(TEXT("index"));
 
 		FHttpGPTChatChoice* Choice = Response.Choices.FindByPredicate([this, ChoiceIndex](const FHttpGPTChatChoice& Element)
 		{
@@ -365,54 +365,54 @@ void UHttpGPTChatRequest::DeserializeSingleResponse(const FString& Content)
 			Choice = &Response.Choices.Add_GetRef(NewChoice);
 		}
 
-		if (const TSharedPtr<FJsonObject>* MessageObj; ChoiceObj->TryGetObjectField("message", MessageObj))
+		if (const TSharedPtr<FJsonObject>* MessageObj; ChoiceObj->TryGetObjectField(TEXT("message"), MessageObj))
 		{
-			if (FString RoleStr; (*MessageObj)->TryGetStringField("role", RoleStr))
+			if (FString RoleStr; (*MessageObj)->TryGetStringField(TEXT("role"), RoleStr))
 			{
 				Choice->Message.Role = RoleStr == "user" ? EHttpGPTChatRole::User : EHttpGPTChatRole::Assistant;
 			}
 
-			if (FString ContentStr; (*MessageObj)->TryGetStringField("content", ContentStr))
+			if (FString ContentStr; (*MessageObj)->TryGetStringField(TEXT("content"), ContentStr))
 			{
 				Choice->Message.Content = ContentStr;
 			}
 
-			if (const TSharedPtr<FJsonObject>* FunctionObj; (*MessageObj)->TryGetObjectField("function_call", FunctionObj))
+			if (const TSharedPtr<FJsonObject>* FunctionObj; (*MessageObj)->TryGetObjectField(TEXT("function_call"), FunctionObj))
 			{
-				if (FString FunctionNameStr; (*FunctionObj)->TryGetStringField("name", FunctionNameStr))
+				if (FString FunctionNameStr; (*FunctionObj)->TryGetStringField(TEXT("name"), FunctionNameStr))
 				{
 					Choice->Message.FunctionCall.Name = *FunctionNameStr;
 				}
-				if (FString FunctionArgumentsStr; (*FunctionObj)->TryGetStringField("arguments", FunctionArgumentsStr))
+				if (FString FunctionArgumentsStr; (*FunctionObj)->TryGetStringField(TEXT("arguments"), FunctionArgumentsStr))
 				{
 					Choice->Message.FunctionCall.Arguments = FunctionArgumentsStr;
 				}
 			}
 		}
-		else if (const TSharedPtr<FJsonObject>* DeltaObj; ChoiceObj->TryGetObjectField("delta", DeltaObj))
+		else if (const TSharedPtr<FJsonObject>* DeltaObj; ChoiceObj->TryGetObjectField(TEXT("delta"), DeltaObj))
 		{
-			if (FString RoleStr; (*DeltaObj)->TryGetStringField("role", RoleStr))
+			if (FString RoleStr; (*DeltaObj)->TryGetStringField(TEXT("role"), RoleStr))
 			{
 				Choice->Message.Role = UHttpGPTHelper::NameToRole(*RoleStr);
 			}
-			else if (FString ContentStr; (*DeltaObj)->TryGetStringField("content", ContentStr))
+			else if (FString ContentStr; (*DeltaObj)->TryGetStringField(TEXT("content"), ContentStr))
 			{
 				Choice->Message.Content += ContentStr;
 			}
 
-			if (const TSharedPtr<FJsonObject>* FunctionObj; (*DeltaObj)->TryGetObjectField("function_call", FunctionObj))
+			if (const TSharedPtr<FJsonObject>* FunctionObj; (*DeltaObj)->TryGetObjectField(TEXT("function_call"), FunctionObj))
 			{
-				if (FString FunctionNameStr; (*FunctionObj)->TryGetStringField("name", FunctionNameStr))
+				if (FString FunctionNameStr; (*FunctionObj)->TryGetStringField(TEXT("name"), FunctionNameStr))
 				{
 					Choice->Message.FunctionCall.Name = *FunctionNameStr;
 				}
-				if (FString FunctionArgumentsStr; (*FunctionObj)->TryGetStringField("arguments", FunctionArgumentsStr))
+				if (FString FunctionArgumentsStr; (*FunctionObj)->TryGetStringField(TEXT("arguments"), FunctionArgumentsStr))
 				{
 					Choice->Message.FunctionCall.Arguments += FunctionArgumentsStr;
 				}
 			}
 		}
-		else if (FString MessageText; ChoiceObj->TryGetStringField("text", MessageText))
+		else if (FString MessageText; ChoiceObj->TryGetStringField(TEXT("text"), MessageText))
 		{
 			Choice->Message.Role = EHttpGPTChatRole::Assistant;
 			Choice->Message.Content += MessageText;
@@ -423,16 +423,16 @@ void UHttpGPTChatRequest::DeserializeSingleResponse(const FString& Content)
 			Choice->Message.Content.RemoveAt(0);
 		}
 
-		if (FString FinishReasonStr; ChoiceObj->TryGetStringField("finish_reason", FinishReasonStr))
+		if (FString FinishReasonStr; ChoiceObj->TryGetStringField(TEXT("finish_reason"), FinishReasonStr))
 		{
 			Choice->FinishReason = *FinishReasonStr;
 		}
 	}
 
-	if (const TSharedPtr<FJsonObject>* UsageObj; JsonResponse->TryGetObjectField("usage", UsageObj))
+	if (const TSharedPtr<FJsonObject>* UsageObj; JsonResponse->TryGetObjectField(TEXT("usage"), UsageObj))
 	{
-		Response.Usage = FHttpGPTChatUsage((*UsageObj)->GetNumberField("prompt_tokens"), (*UsageObj)->GetNumberField("completion_tokens"),
-		                                   (*UsageObj)->GetNumberField("total_tokens"));
+		Response.Usage = FHttpGPTChatUsage((*UsageObj)->GetNumberField(TEXT("prompt_tokens")), (*UsageObj)->GetNumberField(TEXT("completion_tokens")),
+		                                   (*UsageObj)->GetNumberField(TEXT("total_tokens")));
 	}
 }
 

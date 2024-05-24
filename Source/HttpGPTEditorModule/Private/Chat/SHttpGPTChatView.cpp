@@ -21,7 +21,7 @@ void SHttpGPTChatView::Construct(const FArguments& InArgs)
 {
 	SetSessionID(InArgs._SessionID);
 
-	ModelsComboBox = SNew(STextComboBox).OptionsSource(&AvailableModels).ToolTipText(FText::FromString(TEXT("GPT Model")));
+	SAssignNew(ModelsComboBox, STextComboBox).OptionsSource(&AvailableModels).ToolTipText(FText::FromString(TEXT("GPT Model")));
 
 	for (const FName& ModelName : UHttpGPTHelper::GetAvailableGPTModels())
 	{
@@ -230,7 +230,7 @@ FString SHttpGPTChatView::GetDefaultSystemContext() const
 	}
 
 	FString SupportedModels;
-	for (const FTextDisplayStringPtr& Model : AvailableModels)
+	for (const TSharedPtr<FString>& Model : AvailableModels)
 	{
 		SupportedModels.Append(*Model.Get() + ", ");
 	}
@@ -298,16 +298,16 @@ void SHttpGPTChatView::LoadChatHistory()
 		const TSharedRef<TJsonReader<>> Reader = TJsonReaderFactory<>::Create(FileContent);
 		if (FJsonSerializer::Deserialize(Reader, JsonParsed))
 		{
-			const TArray<TSharedPtr<FJsonValue>> SessionData = JsonParsed->GetArrayField("Data");
+			const TArray<TSharedPtr<FJsonValue>> SessionData = JsonParsed->GetArrayField(TEXT("Data"));
 			for (const TSharedPtr<FJsonValue>& Item : SessionData)
 			{
 				if (const TSharedPtr<FJsonObject> MessageItObj = Item->AsObject())
 				{
-					if (FString RoleString; MessageItObj->TryGetStringField("role", RoleString))
+					if (FString RoleString; MessageItObj->TryGetStringField(TEXT("role"), RoleString))
 					{
 						const EHttpGPTChatRole Role = UHttpGPTHelper::NameToRole(*RoleString);
 
-						if (FString Message; MessageItObj->TryGetStringField("content", Message))
+						if (FString Message; MessageItObj->TryGetStringField(TEXT("content"), Message))
 						{
 							if (Role == EHttpGPTChatRole::System && Message == GetDefaultSystemContext())
 							{

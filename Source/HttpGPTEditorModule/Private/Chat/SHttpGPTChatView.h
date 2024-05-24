@@ -53,7 +53,7 @@ private:
 	TSharedPtr<class SEditableTextBox> InputTextBox;
 
 	TSharedPtr<class STextComboBox> ModelsComboBox;
-	TArray<FTextDisplayStringPtr> AvailableModels;
+	TArray<TSharedPtr<FString>> AvailableModels;
 
 	TWeakObjectPtr<class UHttpGPTChatRequest> RequestReference;
 };
